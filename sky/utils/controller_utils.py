@@ -690,8 +690,11 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
     # ================================================================
     # Translate the workdir and local file mounts to cloud file mounts.
     # ================================================================
-
     run_id = common_utils.get_usage_run_id()[:8]
+    log_dir = os.path.join(constants.SKY_LOGS_DIRECTORY, run_id)
+    log_dir = os.path.expanduser(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
+
     original_file_mounts = task.file_mounts if task.file_mounts else {}
     original_storage_mounts = task.storage_mounts if task.storage_mounts else {}
 
@@ -720,6 +723,7 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
     # Step 1: Translate the workdir to SkyPilot storage.
     new_storage_mounts = {}
     if task.workdir is not None:
+        work_dir_log_path = os.path.join(log_dir, 'workdir.log')
         bucket_name = constants.WORKDIR_BUCKET_NAME.format(
             username=common_utils.get_cleaned_username(), id=run_id)
         workdir = task.workdir
@@ -736,6 +740,7 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
                 'source': workdir,
                 'persistent': False,
                 'mode': 'COPY',
+                '_log_path': work_dir_log_path,
             })
         # Check of the existence of the workdir in file_mounts is done in
         # the task construction.
@@ -747,6 +752,7 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
     # TODO(zhwu): Optimize this by:
     # 1. Use the same bucket for all the mounts.
     # 2. When the src is the same, use the same bucket.
+    file_mounts_dir_log_path = os.path.join(log_dir, 'file_mounts.log')
     copy_mounts_with_file_in_src = {}
     for i, (dst, src) in enumerate(copy_mounts.items()):
         assert task.file_mounts is not None
@@ -763,12 +769,14 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
             'source': src,
             'persistent': False,
             'mode': 'COPY',
+            '_log_path': file_mounts_dir_log_path,
         })
         logger.info(f'  {colorama.Style.DIM}Folder : {src!r} '
                     f'-> storage: {bucket_name!r}.{colorama.Style.RESET_ALL}')
 
     # Step 3: Translate local file mounts with file in src to SkyPilot storage.
     # Hard link the files in src to a temporary directory, and upload folder.
+    file_mounts_file_log_path = os.path.join(log_dir, 'file_mounts_file.log')
     local_fm_path = os.path.join(
         tempfile.gettempdir(),
         constants.FILE_MOUNTS_LOCAL_TMP_DIR.format(id=run_id))
@@ -790,6 +798,7 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
                 'source': local_fm_path,
                 'persistent': False,
                 'mode': 'MOUNT',
+                '_log_path': file_mounts_file_log_path,
             })
         if file_mount_remote_tmp_dir in original_storage_mounts:
             with ux_utils.print_exception_no_traceback():
@@ -876,6 +885,7 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
     # Step 7: Convert all `MOUNT` mode storages which don't specify a source
     # to specifying a source. If the source is specified with a local path,
     # it was handled in step 6.
+    storage_mount_log_path = os.path.join(log_dir, 'storage_mount.log')
     updated_mount_storages = {}
     for storage_path, storage_obj in task.storage_mounts.items():
         if (storage_obj.mode == storage_lib.StorageMode.MOUNT and
@@ -895,7 +905,8 @@ def maybe_translate_local_file_mounts_and_sync_up(task: 'task_lib.Task',
                 'mode': storage_lib.StorageMode.MOUNT.value,
                 # We enable force delete to allow the controller to delete
                 # the object store in case persistent is set to False.
-                '_force_delete': True
+                '_force_delete': True,
+                '_log_path': storage_mount_log_path,
             })
             updated_mount_storages[storage_path] = new_storage
     task.update_storage_mounts(updated_mount_storages)

@@ -427,13 +427,16 @@ def _group_files_by_dir(
     return grouped_files, dirs
 
 
-def parallel_upload(source_path_list: List[str],
-                    filesync_command_generator: Callable[[str, List[str]], str],
-                    dirsync_command_generator: Callable[[str, str], str],
-                    bucket_name: str,
-                    access_denied_message: str,
-                    create_dirs: bool = False,
-                    max_concurrent_uploads: Optional[int] = None) -> None:
+def parallel_upload(
+        source_path_list: List[str],
+        filesync_command_generator: Callable[[str, List[str]], str],
+        dirsync_command_generator: Callable[[str, str], str],
+        bucket_name: str,
+        access_denied_message: str,
+        create_dirs: bool = False,
+        max_concurrent_uploads: Optional[int] = None,
+        # pylint: disable=invalid-name
+        _log_path: Optional[str] = None) -> None:
     """Helper function to run parallel uploads for a list of paths.
 
     Used by S3Store, GCSStore, and R2Store to run rsync commands in parallel by
@@ -455,6 +458,7 @@ def parallel_upload(source_path_list: List[str],
             contents are uploaded to it.
         max_concurrent_uploads: Maximum number of concurrent threads to use
             to upload files.
+        _log_path: Path to the log file for the upload command.
     """
     # Generate gsutil rsync command for files and dirs
     commands = []
@@ -477,7 +481,7 @@ def parallel_upload(source_path_list: List[str],
         p.starmap(
             run_upload_cli,
             zip(commands, [access_denied_message] * len(commands),
-                [bucket_name] * len(commands)))
+                [bucket_name] * len(commands), [_log_path] * len(commands)))
 
 
 def get_gsutil_command() -> Tuple[str, str]:
@@ -518,37 +522,51 @@ def get_gsutil_command() -> Tuple[str, str]:
     return gsutil_alias, alias_gen
 
 
-def run_upload_cli(command: str, access_denied_message: str, bucket_name: str):
+def run_upload_cli(
+        command: str,
+        access_denied_message: str,
+        bucket_name: str,
+        # pylint: disable=invalid-name
+        _log_path: Optional[str] = None):
     # TODO(zhwu): Use log_lib.run_with_log() and redirect the output
     # to a log file.
-    with subprocess.Popen(command,
-                          stderr=subprocess.PIPE,
-                          stdout=subprocess.DEVNULL,
-                          shell=True) as process:
-        stderr = []
-        assert process.stderr is not None  # for mypy
-        while True:
-            line = process.stderr.readline()
-            if not line:
-                break
-            str_line = line.decode('utf-8')
-            stderr.append(str_line)
-            if access_denied_message in str_line:
-                process.kill()
+    if _log_path is None:
+        log_file = os.devnull
+    else:
+        log_file = _log_path
+
+    with open(log_file, 'a+', encoding='utf-8') as f:
+        with subprocess.Popen(command,
+                              stderr=subprocess.PIPE,
+                              stdout=f,
+                              shell=True) as process:
+            stderr = []
+            assert process.stderr is not None  # for mypy
+            while True:
+                line = process.stderr.readline()
+                if not line:
+                    break
+                str_line = line.decode('utf-8')
+                stderr.append(str_line)
+                if access_denied_message in str_line:
+                    process.kill()
+                    with ux_utils.print_exception_no_traceback():
+                        raise PermissionError(
+                            'Failed to upload files to '
+                            'the remote bucket. The bucket does not have '
+                            'write permissions. It is possible that '
+                            'the bucket is public.')
+            returncode = process.wait()
+            if returncode != 0:
+                stderr_str = '\n'.join(stderr)
                 with ux_utils.print_exception_no_traceback():
-                    raise PermissionError(
-                        'Failed to upload files to '
-                        'the remote bucket. The bucket does not have '
-                        'write permissions. It is possible that '
-                        'the bucket is public.')
-        returncode = process.wait()
-        if returncode != 0:
-            stderr_str = '\n'.join(stderr)
-            with ux_utils.print_exception_no_traceback():
-                logger.error(stderr_str)
-                raise exceptions.StorageUploadError(
-                    f'Upload to bucket failed for store {bucket_name}. '
-                    'Please check the logs.')
+                    logger.error(stderr_str)
+                    raise exceptions.StorageUploadError(
+                        f'Upload to bucket failed for store {bucket_name}. '
+                        'Please check the logs.')
+
+            logger.info(
+                ux_utils.finishing_message('Upload completed.', _log_path))
 
 
 def get_cos_regions() -> List[str]:

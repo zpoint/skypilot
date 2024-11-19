@@ -214,25 +214,32 @@ class AbstractStore:
                      name: str,
                      source: Optional[SourceType],
                      region: Optional[str] = None,
-                     is_sky_managed: Optional[bool] = None):
+                     is_sky_managed: Optional[bool] = None,
+                     _log_path: Optional[str] = None):
             self.name = name
             self.source = source
             self.region = region
             self.is_sky_managed = is_sky_managed
+            # Path to the log file for the storage sync command.
+            self._log_path = _log_path
 
         def __repr__(self):
             return (f'StoreMetadata('
                     f'\n\tname={self.name},'
                     f'\n\tsource={self.source},'
                     f'\n\tregion={self.region},'
-                    f'\n\tis_sky_managed={self.is_sky_managed})')
+                    f'\n\tis_sky_managed={self.is_sky_managed},'
+                    f'\n\t_log_path={self._log_path})')
 
-    def __init__(self,
-                 name: str,
-                 source: Optional[SourceType],
-                 region: Optional[str] = None,
-                 is_sky_managed: Optional[bool] = None,
-                 sync_on_reconstruction: Optional[bool] = True):
+    def __init__(
+            self,
+            name: str,
+            source: Optional[SourceType],
+            region: Optional[str] = None,
+            is_sky_managed: Optional[bool] = None,
+            sync_on_reconstruction: Optional[bool] = True,
+            # pylint: disable=invalid-name
+            _log_path: Optional[str] = None):
         """Initialize AbstractStore
 
         Args:
@@ -246,6 +253,7 @@ class AbstractStore:
               there. This is set to false when the Storage object is created not
               for direct use, e.g. for 'sky storage delete', or the storage is
               being re-used, e.g., for `sky start` on a stopped cluster.
+            _log_path: Path to the log file for the storage sync command.
 
         Raises:
             StorageBucketCreateError: If bucket creation fails
@@ -257,6 +265,8 @@ class AbstractStore:
         self.region = region
         self.is_sky_managed = is_sky_managed
         self.sync_on_reconstruction = sync_on_reconstruction
+        # Path to the log file for the storage sync command.
+        self._log_path = _log_path
         # Whether sky is responsible for the lifecycle of the Store.
         self._validate()
         self.initialize()
@@ -268,19 +278,23 @@ class AbstractStore:
         Used when reconstructing Storage and Store objects from
         global_user_state.
         """
-        return cls(name=override_args.get('name', metadata.name),
-                   source=override_args.get('source', metadata.source),
-                   region=override_args.get('region', metadata.region),
-                   is_sky_managed=override_args.get('is_sky_managed',
-                                                    metadata.is_sky_managed),
-                   sync_on_reconstruction=override_args.get(
-                       'sync_on_reconstruction', True))
+        return cls(
+            name=override_args.get('name', metadata.name),
+            source=override_args.get('source', metadata.source),
+            region=override_args.get('region', metadata.region),
+            is_sky_managed=override_args.get('is_sky_managed',
+                                             metadata.is_sky_managed),
+            sync_on_reconstruction=override_args.get('sync_on_reconstruction',
+                                                     True),
+            # pylint: disable=protected-access
+            _log_path=override_args.get('_log_path', metadata._log_path))
 
     def get_metadata(self) -> StoreMetadata:
         return self.StoreMetadata(name=self.name,
                                   source=self.source,
                                   region=self.region,
-                                  is_sky_managed=self.is_sky_managed)
+                                  is_sky_managed=self.is_sky_managed,
+                                  _log_path=self._log_path)
 
     def initialize(self):
         """Initializes the Store object on the cloud.
@@ -418,16 +432,18 @@ class Storage(object):
         - (required) Source
         - (optional) Storage mode.
         - (optional) Set of stores managed by sky added to the Storage object
+        - (optional) Path to the log file for the storage sync command.
         """
 
         def __init__(
-            self,
-            *,
-            storage_name: Optional[str],
-            source: Optional[SourceType],
-            mode: Optional[StorageMode] = None,
-            sky_stores: Optional[Dict[StoreType,
-                                      AbstractStore.StoreMetadata]] = None):
+                self,
+                *,
+                storage_name: Optional[str],
+                source: Optional[SourceType],
+                mode: Optional[StorageMode] = None,
+                sky_stores: Optional[Dict[StoreType,
+                                          AbstractStore.StoreMetadata]] = None,
+                _log_path: Optional[str] = None):
             assert storage_name is not None or source is not None
             self.storage_name = storage_name
             self.source = source
@@ -435,13 +451,16 @@ class Storage(object):
             # Only stores managed by sky are stored here in the
             # global_user_state
             self.sky_stores = {} if sky_stores is None else sky_stores
+            # Path to the log file for the storage sync command.
+            self._log_path = _log_path
 
         def __repr__(self):
             return (f'StorageMetadata('
                     f'\n\tstorage_name={self.storage_name},'
                     f'\n\tsource={self.source},'
                     f'\n\tmode={self.mode},'
-                    f'\n\tstores={self.sky_stores})')
+                    f'\n\tstores={self.sky_stores},'
+                    f'\n\t_log_path={self._log_path})')
 
         def add_store(self, store: AbstractStore) -> None:
             storetype = StoreType.from_store(store)
@@ -452,13 +471,16 @@ class Storage(object):
             if storetype in self.sky_stores:
                 del self.sky_stores[storetype]
 
-    def __init__(self,
-                 name: Optional[str] = None,
-                 source: Optional[SourceType] = None,
-                 stores: Optional[Dict[StoreType, AbstractStore]] = None,
-                 persistent: Optional[bool] = True,
-                 mode: StorageMode = StorageMode.MOUNT,
-                 sync_on_reconstruction: bool = True) -> None:
+    def __init__(
+            self,
+            name: Optional[str] = None,
+            source: Optional[SourceType] = None,
+            stores: Optional[Dict[StoreType, AbstractStore]] = None,
+            persistent: Optional[bool] = True,
+            mode: StorageMode = StorageMode.MOUNT,
+            sync_on_reconstruction: bool = True,
+            # pylint: disable=invalid-name
+            _log_path: Optional[str] = None) -> None:
         """Initializes a Storage object.
 
         Three fields are required: the name of the storage, the source
@@ -496,6 +518,8 @@ class Storage(object):
             there. This is set to false when the Storage object is created not
             for direct use, e.g. for 'sky storage delete', or the storage is
             being re-used, e.g., for `sky start` on a stopped cluster.
+          _log_path: Optional[str]; Path to the log file for the storage
+            sync command.
         """
         self.name: str
         self.source = source
@@ -503,6 +527,7 @@ class Storage(object):
         self.mode = mode
         assert mode in StorageMode
         self.sync_on_reconstruction = sync_on_reconstruction
+        self._log_path = _log_path
 
         # TODO(romilb, zhwu): This is a workaround to support storage deletion
         # for spot. Once sky storage supports forced management for external
@@ -546,7 +571,8 @@ class Storage(object):
             self.handle = self.StorageMetadata(storage_name=self.name,
                                                source=self.source,
                                                mode=self.mode,
-                                               sky_stores=sky_managed_stores)
+                                               sky_stores=sky_managed_stores,
+                                               _log_path=_log_path)
 
             if self.source is not None:
                 # If source is a pre-existing bucket, connect to the bucket
@@ -895,7 +921,8 @@ class Storage(object):
                 name=self.name,
                 source=self.source,
                 region=region,
-                sync_on_reconstruction=self.sync_on_reconstruction)
+                sync_on_reconstruction=self.sync_on_reconstruction,
+                _log_path=self._log_path)
         except exceptions.StorageBucketCreateError:
             # Creation failed, so this must be sky managed store. Add failure
             # to state.
@@ -1024,6 +1051,8 @@ class Storage(object):
         store = config.pop('store', None)
         mode_str = config.pop('mode', None)
         force_delete = config.pop('_force_delete', None)
+        log_path = config.pop('_log_path', None)
+
         if force_delete is None:
             force_delete = False
 
@@ -1043,7 +1072,8 @@ class Storage(object):
         storage_obj = cls(name=name,
                           source=source,
                           persistent=persistent,
-                          mode=mode)
+                          mode=mode,
+                          _log_path=log_path)
         if store is not None:
             storage_obj.add_store(StoreType(store.upper()))
 
@@ -1095,7 +1125,8 @@ class S3Store(AbstractStore):
                  source: str,
                  region: Optional[str] = _DEFAULT_REGION,
                  is_sky_managed: Optional[bool] = None,
-                 sync_on_reconstruction: bool = True):
+                 sync_on_reconstruction: bool = True,
+                 _log_path: Optional[str] = None):
         self.client: 'boto3.client.Client'
         self.bucket: 'StorageHandle'
         # TODO(romilb): This is purely a stopgap fix for
@@ -1108,7 +1139,7 @@ class S3Store(AbstractStore):
                            f'{self._DEFAULT_REGION} for bucket {name!r}.')
             region = self._DEFAULT_REGION
         super().__init__(name, source, region, is_sky_managed,
-                         sync_on_reconstruction)
+                         sync_on_reconstruction, _log_path)
 
     def _validate(self):
         if self.source is not None and isinstance(self.source, str):
@@ -1341,7 +1372,8 @@ class S3Store(AbstractStore):
                 self.name,
                 self._ACCESS_DENIED_MESSAGE,
                 create_dirs=create_dirs,
-                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS)
+                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS,
+                _log_path=self._log_path)
 
     def _transfer_to_s3(self) -> None:
         assert isinstance(self.source, str), self.source
@@ -1536,11 +1568,12 @@ class GcsStore(AbstractStore):
                  source: str,
                  region: Optional[str] = 'us-central1',
                  is_sky_managed: Optional[bool] = None,
-                 sync_on_reconstruction: Optional[bool] = True):
+                 sync_on_reconstruction: Optional[bool] = True,
+                 _log_path: Optional[str] = None):
         self.client: 'storage.Client'
         self.bucket: StorageHandle
         super().__init__(name, source, region, is_sky_managed,
-                         sync_on_reconstruction)
+                         sync_on_reconstruction, _log_path)
 
     def _validate(self):
         if self.source is not None and isinstance(self.source, str):
@@ -1747,7 +1780,8 @@ class GcsStore(AbstractStore):
                                          f'gs://{self.name}/')):
             data_utils.run_upload_cli(sync_command,
                                       self._ACCESS_DENIED_MESSAGE,
-                                      bucket_name=self.name)
+                                      bucket_name=self.name,
+                                      _log_path=self._log_path)
 
     def batch_gsutil_rsync(self,
                            source_path_list: List[Path],
@@ -1807,7 +1841,8 @@ class GcsStore(AbstractStore):
                 self.name,
                 self._ACCESS_DENIED_MESSAGE,
                 create_dirs=create_dirs,
-                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS)
+                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS,
+                _log_path=self._log_path)
 
     def _transfer_to_gcs(self) -> None:
         if isinstance(self.source, str) and self.source.startswith('s3://'):
@@ -1997,12 +2032,14 @@ class AzureBlobStore(AbstractStore):
                      storage_account_name: str,
                      source: Optional[SourceType],
                      region: Optional[str] = None,
-                     is_sky_managed: Optional[bool] = None):
+                     is_sky_managed: Optional[bool] = None,
+                     _log_path: Optional[str] = None):
             self.storage_account_name = storage_account_name
             super().__init__(name=name,
                              source=source,
                              region=region,
-                             is_sky_managed=is_sky_managed)
+                             is_sky_managed=is_sky_managed,
+                             _log_path=_log_path)
 
         def __repr__(self):
             return (f'AzureBlobStoreMetadata('
@@ -2545,7 +2582,8 @@ class AzureBlobStore(AbstractStore):
                 self.name,
                 self._ACCESS_DENIED_MESSAGE,
                 create_dirs=create_dirs,
-                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS)
+                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS,
+                _log_path=self._log_path)
 
     def _get_bucket(self) -> Tuple[str, bool]:
         """Obtains the AZ Container.
@@ -2761,11 +2799,12 @@ class R2Store(AbstractStore):
                  source: str,
                  region: Optional[str] = 'auto',
                  is_sky_managed: Optional[bool] = None,
-                 sync_on_reconstruction: Optional[bool] = True):
+                 sync_on_reconstruction: Optional[bool] = True,
+                 _log_path: Optional[str] = None):
         self.client: 'boto3.client.Client'
         self.bucket: 'StorageHandle'
         super().__init__(name, source, region, is_sky_managed,
-                         sync_on_reconstruction)
+                         sync_on_reconstruction, _log_path)
 
     def _validate(self):
         if self.source is not None and isinstance(self.source, str):
@@ -2948,7 +2987,8 @@ class R2Store(AbstractStore):
                 self.name,
                 self._ACCESS_DENIED_MESSAGE,
                 create_dirs=create_dirs,
-                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS)
+                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS,
+                _log_path=self._log_path)
 
     def _transfer_to_r2(self) -> None:
         assert isinstance(self.source, str), self.source
@@ -3146,11 +3186,12 @@ class IBMCosStore(AbstractStore):
                  source: str,
                  region: Optional[str] = 'us-east',
                  is_sky_managed: Optional[bool] = None,
-                 sync_on_reconstruction: bool = True):
+                 sync_on_reconstruction: bool = True,
+                 _log_path: Optional[str] = None):
         self.client: 'storage.Client'
         self.bucket: 'StorageHandle'
         super().__init__(name, source, region, is_sky_managed,
-                         sync_on_reconstruction)
+                         sync_on_reconstruction, _log_path)
         self.bucket_rclone_profile = \
           Rclone.generate_rclone_bucket_profile_name(
             self.name, Rclone.RcloneClouds.IBM)
@@ -3389,7 +3430,8 @@ class IBMCosStore(AbstractStore):
                 self.name,
                 self._ACCESS_DENIED_MESSAGE,
                 create_dirs=create_dirs,
-                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS)
+                max_concurrent_uploads=_MAX_CONCURRENT_UPLOADS,
+                _log_path=self._log_path)
 
     def _get_bucket(self) -> Tuple[StorageHandle, bool]:
         """returns IBM COS bucket object if exists, otherwise creates it.
