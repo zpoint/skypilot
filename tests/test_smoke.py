@@ -388,29 +388,6 @@ def run_one_test(test: Test) -> Tuple[int, str, str]:
         else:
             raise Exception(f'test failed: less {log_file.name}')
 
-    style = colorama.Style
-    fore = colorama.Fore
-    outcome = (f'{fore.RED}Failed{style.RESET_ALL}'
-               if proc.returncode else f'{fore.GREEN}Passed{style.RESET_ALL}')
-    reason = f'\nReason: {command}' if proc.returncode else ''
-    msg = (f'{outcome}.'
-           f'{reason}'
-           f'\nLog: less {log_file.name}\n')
-    test.echo(msg)
-    log_file.write(msg)
-    if (proc.returncode == 0 or
-            pytest.terminate_on_failure) and test.teardown is not None:
-        subprocess_utils.run(
-            test.teardown,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            timeout=10 * 60,  # 10 mins
-            shell=True,
-        )
-
-    if proc.returncode:
-        raise Exception(f'test failed: less {log_file.name}')
-
 
 def get_aws_region_for_quota_failover() -> Optional[str]:
     candidate_regions = AWS.regions_with_offering(instance_type='p3.16xlarge',
