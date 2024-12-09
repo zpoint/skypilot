@@ -3,6 +3,7 @@ env:
   LOG_TO_STDOUT: '1'
   PYTHONPATH: ${PYTHONPATH}:$(pwd)
   SKYPILOT_SUPPRESS_SENSITIVE_LOG: '1'
+  aws: '1'
 steps:
 - agents:
     queue: back_compat
