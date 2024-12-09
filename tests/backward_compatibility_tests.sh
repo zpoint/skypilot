@@ -23,7 +23,7 @@ CLUSTER_NAME="test-back-compat-$USER"
 source $(conda info --base 2> /dev/null)/etc/profile.d/conda.sh
 CLOUD="aws"
 
-git clone https://github.com/skypilot-org/skypilot.git ../sky-master || true
+git clone --branch releases/0.7.0 https://github.com/skypilot-org/skypilot.git ../sky-070 || true
 
 
 # Create environment for compatibility tests
@@ -32,8 +32,8 @@ conda env list | grep sky-back-compat-master || conda create -n sky-back-compat-
 conda activate sky-back-compat-master
 conda install -c conda-forge google-cloud-sdk -y
 rm -r  ~/.sky/wheels || true
-cd ../sky-master
-git pull origin master
+cd ../sky-070
+git pull origin releases/0.7.0
 pip uninstall -y skypilot
 pip install -e ".[all]"
 cd -
