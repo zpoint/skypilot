@@ -4,6 +4,9 @@ on:
   issue_comment:
     types:
       - created
+  pull_request:
+    branches:
+      - '**' # This allows testing on any branch
 
 jobs:
   pre-merge-test:
