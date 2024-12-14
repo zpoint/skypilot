@@ -6,39 +6,44 @@ on:
       - created
   pull_request:
     branches:
-      - '**' # This allows testing on any branch
+      - '**'
 
 jobs:
   pre-merge-test:
-    if: github.event.comment.body.startsWith('/pre-merge-test')
+    if: startsWith(github.event.comment.body, '/pre-merge-test')
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check if the user and comment are valid
+      # Step 1: Debugging - Echo VALID_USERS and BUILDKITE_TOKEN
+      - name: Debug Secrets
+        env:
+          VALID_USERS: ${{ secrets.VALID_USERS }}
+          BUILDKITE_TOKEN: ${{ secrets.BUILDKITE_TOKEN }}
+        run: |
+          echo "Debugging Secrets:"
+          echo "VALID_USERS starts with: ${VALID_USERS:0:5}..."  # Print first 5 characters
+          echo "VALID_USERS length: ${#VALID_USERS}"
+          echo "BUILDKITE_TOKEN starts with: ${BUILDKITE_TOKEN:0:5}..."  # Print first 5 characters
+          echo "BUILDKITE_TOKEN length: ${#BUILDKITE_TOKEN}"
+
+      # Step 2: Validate User and Comment
       - name: Validate User and Comment
         id: validate_user
         env:
-          VALID_USERS: ${{ secrets.VALID_USERS }}  # Pass VALID_USERS from secrets
+          VALID_USERS: ${{ secrets.VALID_USERS }}
         run: |
-          # Split VALID_USERS (comma-separated) into an array
           IFS=',' read -ra VALID_USERS_ARRAY <<< "$VALID_USERS"
-
           COMMENT_BODY="${{ github.event.comment.body }}"
           COMMENT_USER="${{ github.event.sender.login }}"
           ACTION="${{ github.event.action }}"
-
           echo "Valid users: ${VALID_USERS_ARRAY[@]}"
           echo "Comment user: $COMMENT_USER"
           echo "Action: $ACTION"
-
-          # Validate action
           if [[ "${ACTION}" != "created" ]]; then
             echo "Invalid action: ${ACTION}"
             echo "valid=false" >> $GITHUB_ENV
             exit 0
           fi
-
-          # Validate user
           USER_IS_VALID=false
           for VALID_USER in "${VALID_USERS_ARRAY[@]}"; do
             if [[ "$VALID_USER" == "$COMMENT_USER" ]]; then
@@ -46,71 +51,55 @@ jobs:
               break
             fi
           done
-
           if [[ "$USER_IS_VALID" == "false" ]]; then
             echo "Invalid user: ${COMMENT_USER}"
             echo "valid=false" >> $GITHUB_ENV
             exit 0
           fi
-
-          # Validate comment format
           if [[ ! "${COMMENT_BODY}" =~ ^/pre-merge-test ]]; then
             echo "Invalid comment format: ${COMMENT_BODY}"
             echo "valid=false" >> $GITHUB_ENV
             exit 0
           fi
-
           echo "valid=true" >> $GITHUB_ENV
 
-      # Step 2: Stop the job if the user/comment is invalid
+      # Step 3: Stop the job if the user/comment is invalid
       - name: Exit if Invalid User/Comment
         if: env.valid == 'false'
         run: echo "Exiting because the user/comment is invalid."
 
-      # Step 3: Parse Environment Variables
+      # Step 4: Parse Environment Variables
       - name: Parse Environment Variables
         if: env.valid == 'true'
         id: parse_envs
         run: |
           COMMENT_BODY="${{ github.event.comment.body }}"
-
-          # Extract the part after "/pre-merge-test"
           ENV_ARGS=$(echo "${COMMENT_BODY}" | sed -E 's|/pre-merge-test ?||')
-
-          # Allowed environments
           ALLOWED_ENVS=("aws" "azure" "gcp")
           FINAL_ENVS=()
-
           if [[ -z "${ENV_ARGS}" ]]; then
-            # Default to "aws" if no environments are provided
             FINAL_ENVS+=("aws")
           else
-            # Parse comma-separated environments and filter allowed ones
             IFS=',' read -ra ENV_LIST <<< "${ENV_ARGS}"
             for ENV in "${ENV_LIST[@]}"; do
-              ENV=$(echo "$ENV" | xargs) # Trim whitespace
+              ENV=$(echo "$ENV" | xargs)
               if [[ " ${ALLOWED_ENVS[@]} " =~ " ${ENV} " ]]; then
                 FINAL_ENVS+=("$ENV")
               fi
             done
           fi
-
-          # Default to "aws" if no valid environments are found
           if [[ ${#FINAL_ENVS[@]} -eq 0 ]]; then
             FINAL_ENVS+=("aws")
           fi
-
-          # Convert to JSON format
           ENV_JSON="{"
           for ENV in "${FINAL_ENVS[@]}"; do
             ENV_JSON+="\"$ENV\":\"1\","
           done
-          ENV_JSON="${ENV_JSON%,}}" # Remove trailing comma and close JSON
-
+          ENV_JSON="${ENV_JSON%,}}"
           echo "Parsed environments: ${ENV_JSON}"
           echo "envs=${ENV_JSON}" >> $GITHUB_ENV
 
-      # Step 4: Trigger Buildkite Pipeline
+      # Step 5: Trigger Buildkite Pipeline
       - name: Trigger Buildkite Pipeline
         if: env.valid == 'true'
         env:
@@ -118,8 +107,6 @@ jobs:
         run: |
           PR_API_URL="${{ github.event.issue.pull_request.url }}"
           AUTH_HEADER="Authorization: Bearer $BUILDKITE_TOKEN"
-
-          # Fetch PR data
           PR_DATA=$(curl -s -H "$AUTH_HEADER" "$PR_API_URL")
           HEAD=$(echo "$PR_DATA" | jq -r '.head.ref')
           COMMIT=$(echo "$PR_DATA" | jq -r '.head.sha')
@@ -127,8 +114,6 @@ jobs:
           BASE_BRANCH=$(echo "$PR_DATA" | jq -r '.base.ref')
           PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
           TITLE=$(echo "$PR_DATA" | jq -r '.title')
-
-          # Prepare Buildkite payload
           BUILDKITE_PAYLOAD=$(jq -n \
             --arg commit "$COMMIT" \
             --arg branch "$HEAD" \
@@ -143,7 +128,5 @@ jobs:
               ignore_pipeline_branch_filters: true,
               env: $envs
             }')
-
-          # Trigger Buildkite API
           BUILDKITE_URL="https://api.buildkite.com/v2/organizations/skypilot-1/pipelines/test-smoke-tests-required-before-merging/builds"
           curl -X POST -H "$AUTH_HEADER" -H "Content-Type: application/json" -d "$BUILDKITE_PAYLOAD" "$BUILDKITE_URL"
