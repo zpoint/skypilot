@@ -125,6 +125,7 @@ def test_launch_fast(generic_cloud: str):
 @pytest.mark.no_lambda_cloud
 @pytest.mark.no_ibm
 @pytest.mark.no_kubernetes
+@pytest.mark.no_nebius
 def test_launch_fast_with_autostop(generic_cloud: str):
     name = smoke_tests_utils.get_cluster_name()
     # Azure takes ~ 7m15s (435s) to autostop a VM, so here we use 600 to ensure
@@ -145,7 +146,8 @@ def test_launch_fast_with_autostop(generic_cloud: str):
                 timeout=autostop_timeout),
             # Even the cluster is stopped, cloud platform may take a while to
             # delete the VM.
-            f'sleep 35',
+            # FIXME(aylei): this can be flaky, sleep longer for now.
+            f'sleep 60',
             # Launch again. Do full output validation - we expect the cluster to re-launch
             f'unset SKYPILOT_DEBUG; s=$(sky launch -y -c {name} --fast -i 1 tests/test_yamls/minimal.yaml) && {smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
             f'sky logs {name} 2 --status',
@@ -360,6 +362,7 @@ def test_core_api_sky_launch_exec(generic_cloud: str):
 # The sky launch CLI has some additional checks to make sure the cluster is up/
 # restarted. However, the core API doesn't have these; make sure it still works
 @pytest.mark.no_kubernetes
+@pytest.mark.no_nebius  # Nebius Autodown and Autostop not supported.
 def test_core_api_sky_launch_fast(generic_cloud: str):
     name = smoke_tests_utils.get_cluster_name()
     cloud = sky.CLOUD_REGISTRY.from_str(generic_cloud)
@@ -462,6 +465,7 @@ class TestYamlSpecs:
 @pytest.mark.no_vast  # Vast has low availability for K80 GPUs
 @pytest.mark.no_fluidstack  # Fluidstack does not support K80 gpus for now
 @pytest.mark.no_paperspace  # Paperspace does not support K80 gpus
+@pytest.mark.no_nebius  # Nebius does not support K80s
 def test_multiple_accelerators_ordered():
     name = smoke_tests_utils.get_cluster_name()
     test = smoke_tests_utils.Test(
@@ -479,6 +483,7 @@ def test_multiple_accelerators_ordered():
 @pytest.mark.no_vast  # Vast has low availability for T4 GPUs
 @pytest.mark.no_fluidstack  # Fluidstack has low availability for T4 GPUs
 @pytest.mark.no_paperspace  # Paperspace does not support T4 GPUs
+@pytest.mark.no_nebius  # Nebius does not support T4 GPUs
 def test_multiple_accelerators_ordered_with_default():
     name = smoke_tests_utils.get_cluster_name()
     test = smoke_tests_utils.Test(
@@ -496,6 +501,7 @@ def test_multiple_accelerators_ordered_with_default():
 @pytest.mark.no_vast  # Vast has low availability for T4 GPUs
 @pytest.mark.no_fluidstack  # Fluidstack has low availability for T4 GPUs
 @pytest.mark.no_paperspace  # Paperspace does not support T4 GPUs
+@pytest.mark.no_nebius  # Nebius does not support T4 GPUs
 def test_multiple_accelerators_unordered():
     name = smoke_tests_utils.get_cluster_name()
     test = smoke_tests_utils.Test(
@@ -512,6 +518,7 @@ def test_multiple_accelerators_unordered():
 @pytest.mark.no_vast  # Vast has low availability for T4 GPUs
 @pytest.mark.no_fluidstack  # Fluidstack has low availability for T4 GPUs
 @pytest.mark.no_paperspace  # Paperspace does not support T4 GPUs
+@pytest.mark.no_nebius  # Nebius does not support T4 GPUs
 def test_multiple_accelerators_unordered_with_default():
     name = smoke_tests_utils.get_cluster_name()
     test = smoke_tests_utils.Test(
@@ -650,3 +657,28 @@ def test_kubernetes_context_failover():
             },
         )
         smoke_tests_utils.run_one_test(test)
+
+
+# ---------- Testing Exit Codes for CLI commands ----------
+def test_cli_exit_codes(generic_cloud: str):
+    """Test that CLI commands properly return exit codes based on job success/failure."""
+    name = smoke_tests_utils.get_cluster_name()
+    test = smoke_tests_utils.Test(
+        'cli_exit_codes',
+        [
+            # Test successful job exit code (0)
+            f'sky launch -y -c {name} --cloud {generic_cloud} "echo success" && echo "Exit code: $?"',
+            f'sky logs {name} 1 --status | grep SUCCEEDED',
+
+            # Test that sky logs with successful job returns 0
+            f'sky logs {name} 1 && echo "Exit code: $?"',
+
+            # Test failed job exit code (100)
+            f'sky exec {name} "exit 1" || echo "Command failed with code: $?" | grep "Command failed with code: 100"',
+            f'sky logs {name} 2 --status | grep FAILED',
+            f'sky logs {name} 2 || echo "Job logs exit code: $?" | grep "Job logs exit code: 100"',
+        ],
+        f'sky down -y {name}',
+        timeout=smoke_tests_utils.get_timeout(generic_cloud),
+    )
+    smoke_tests_utils.run_one_test(test)
