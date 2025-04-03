@@ -22,7 +22,7 @@ jobs:
           BUILDKITE_TOKEN: ${{ secrets.BUILDKITE_TOKEN }}
           BUILDKITE_API_URL: ${{ github.event_name == 'workflow_dispatch'
             && 'https://api.buildkite.com/v2/organizations/skypilot-1/pipelines/smoke-tests/builds'
-            || 'https://api.buildkite.com/v2/organizations/skypilot-1/pipelines/full-smoke-tests-run/builds' }}
+            || 'https://api.buildkite.com/v2/organizations/skypilot-1/release' }}
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             data='{
