@@ -275,10 +275,21 @@ def mock_get_clusters() -> List[Dict[str, Any]]:
             cluster['handle'].launched_nodes
         )
         result.append(cluster_copy)
+    
+    cluster_names = [c['name'] for c in result]
+    logger.info(f"Demo mode: mock_get_clusters() returning {len(result)} clusters: {cluster_names}")
+    
+    # Debug: log the structure of the first cluster for debugging
+    if result:
+        first_cluster = result[0]
+        logger.info(f"Demo mode: First cluster structure - name: '{first_cluster.get('name')}', keys: {list(first_cluster.keys())}")
+    
     return result
 
 def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str, Any]]:
     """Mock implementation of get_cluster_from_name."""
+    logger.info(f"Demo mode: mock_get_cluster_from_name() called with cluster_name='{cluster_name}'")
+    
     if cluster_name is None:
         return None
     for cluster in DEMO_CLUSTERS:
@@ -290,7 +301,10 @@ def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str
                 cluster['handle'].launched_resources.cloud,
                 cluster['handle'].launched_nodes
             )
+            logger.info(f"Demo mode: Found cluster '{cluster_name}' in demo data")
             return cluster_copy
+    
+    logger.warning(f"Demo mode: Cluster '{cluster_name}' not found in demo data. Available clusters: {[c['name'] for c in DEMO_CLUSTERS]}")
     return None
 
 def mock_get_all_users() -> List[models.User]:
@@ -326,6 +340,20 @@ def mock_get_cluster_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_cluster_names_start_with."""
     return [cluster['name'] for cluster in DEMO_CLUSTERS 
             if cluster['name'].startswith(starts_with)]
+
+def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
+    """Mock implementation of get_glob_cluster_names."""
+    import fnmatch
+    logger.info(f"Demo mode: mock_get_glob_cluster_names() called with pattern='{cluster_name}'")
+    
+    # Get all cluster names from demo data
+    all_cluster_names = [cluster['name'] for cluster in DEMO_CLUSTERS]
+    
+    # Apply glob pattern matching
+    matching_names = [name for name in all_cluster_names if fnmatch.fnmatch(name, cluster_name)]
+    
+    logger.info(f"Demo mode: Pattern '{cluster_name}' matched clusters: {matching_names}")
+    return matching_names
 
 def mock_get_storage_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_storage_names_start_with."""
@@ -381,6 +409,7 @@ def patch_global_user_state():
     global_user_state.get_volumes = mock_get_volumes
     global_user_state.get_cached_enabled_clouds = mock_get_cached_enabled_clouds
     global_user_state.get_cluster_names_start_with = mock_get_cluster_names_start_with
+    global_user_state.get_glob_cluster_names = mock_get_glob_cluster_names
     global_user_state.get_storage_names_start_with = mock_get_storage_names_start_with
     global_user_state.get_volume_names_start_with = mock_get_volume_names_start_with
     
