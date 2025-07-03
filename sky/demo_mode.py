@@ -737,4 +737,4 @@ def enable_demo_mode():
     logger.info("Demo mode enabled successfully")
 
 # Deploy demo mode patches. Executed when imported.
-enable_demo_mode() 
+enable_demo_mode()
