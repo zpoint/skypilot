@@ -104,8 +104,9 @@ def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud,
                        nodes: int = 1) -> CloudVmRayResourceHandle:
     """Creates a realistic CloudVmRayResourceHandle for demo purposes."""
     # Create appropriate resources based on cluster type
+    # TODO(romilb): We should include and parse this from the job definition
     if 'kubernetes' in str(cloud).lower():
-        instance_type = '4CPU--16GB'  # Valid Kubernetes instance type
+        instance_type = '4CPU--16GB'
         accelerators = None
     elif 'multinode' in cluster_name:
         instance_type = 'n1-standard-8'
@@ -735,5 +736,5 @@ def enable_demo_mode():
     
     logger.info("Demo mode enabled successfully")
 
-# Auto-enable demo mode
+# Deploy demo mode patches. Executed when imported.
 enable_demo_mode() 
