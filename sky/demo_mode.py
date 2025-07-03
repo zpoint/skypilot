@@ -17,6 +17,7 @@ from sky import models
 from sky import resources as resources_lib
 from sky import sky_logging
 from sky.backends.cloud_vm_ray_backend import CloudVmRayResourceHandle
+from sky.jobs.state import ManagedJobStatus, ManagedJobScheduleState
 from sky.utils import common_utils
 from sky.utils import status_lib
 
@@ -261,6 +262,143 @@ DEMO_VOLUMES = []
 # Demo enabled clouds
 DEMO_ENABLED_CLOUDS = ['gcp', 'aws']
 
+# Demo jobs data
+THREE_DAYS_AGO = CURRENT_TIME - (3 * 86400)
+TWO_HOURS_AGO = CURRENT_TIME - (2 * 3600)
+
+DEMO_JOBS = [
+    {
+        'job_id': 1,
+        'task_id': 0,  # Required field that was missing
+        'job_name': 'llama-training',
+        'task_name': 'llama-training',
+        'status': ManagedJobStatus.RUNNING,
+        'submitted_at': ONE_DAY_AGO,
+        'start_at': ONE_DAY_AGO + 300,  # Started 5 minutes after submission
+        'end_at': None,
+        'job_duration': 3600,  # 1 hour (renamed from duration)
+        'cluster_resources': '4x(gpus=A100:8, n1-standard-8, ...)',
+        'cluster_resources_full': '4x(gpus=A100:8, cpus=8, mem=60, n1-standard-8)',
+        'region': 'us-central1',
+        'cloud': 'gcp',
+        'zone': 'us-central1-a',
+        'user_name': 'alice@skypilot.co',
+        'user_hash': 'alice123',
+        'workspace': 'default',
+        'resources': 'A100:8x4',
+        'recovery_count': 0,
+        'failure_reason': None,
+        'schedule_state': ManagedJobScheduleState.ALIVE,  # Job is running
+        'specs': None,
+        'run_timestamp': str(ONE_DAY_AGO),
+        'last_recovered_at': ONE_DAY_AGO + 300,
+    },
+    {
+        'job_id': 2, 
+        'task_id': 0,
+        'job_name': 'batch-inference',
+        'task_name': 'batch-inference',
+        'status': ManagedJobStatus.SUCCEEDED,
+        'submitted_at': TWO_DAYS_AGO,
+        'start_at': TWO_DAYS_AGO + 180,  # Started 3 minutes after submission
+        'end_at': ONE_DAY_AGO,
+        'job_duration': 7200,  # 2 hours
+        'cluster_resources': '1x(gpus=A100:1, g4dn.xlarge, ...)',
+        'cluster_resources_full': '1x(gpus=A100:1, cpus=4, mem=16, g4dn.xlarge)',
+        'region': 'us-west-2',
+        'cloud': 'aws',
+        'zone': 'us-west-2a',
+        'user_name': 'mike@skypilot.co', 
+        'user_hash': 'mike789',
+        'workspace': 'default',
+        'resources': 'A100:1',
+        'recovery_count': 1,
+        'failure_reason': None,
+        'schedule_state': ManagedJobScheduleState.DONE,
+        'specs': None,
+        'run_timestamp': str(TWO_DAYS_AGO),
+        'last_recovered_at': TWO_DAYS_AGO + 3600,  # Recovered after 1 hour
+    },
+    {
+        'job_id': 3,
+        'task_id': 0,
+        'job_name': 'data-preprocessing', 
+        'task_name': 'data-preprocessing',
+        'status': ManagedJobStatus.PENDING,
+        'submitted_at': ONE_HOUR_AGO,
+        'start_at': None,  # Not started yet
+        'end_at': None,
+        'job_duration': 0,
+        'cluster_resources': '-',
+        'cluster_resources_full': '-',
+        'region': '-',
+        'cloud': '-',
+        'zone': '-',
+        'user_name': 'bob@skypilot.co',
+        'user_hash': 'bob456',
+        'workspace': 'default',
+        'resources': 'CPUs:8',
+        'recovery_count': 0,
+        'failure_reason': None,
+        'schedule_state': ManagedJobScheduleState.WAITING,
+        'specs': None,
+        'run_timestamp': str(ONE_HOUR_AGO),
+        'last_recovered_at': -1,  # Not started yet
+    },
+    {
+        'job_id': 4,
+        'task_id': 0,
+        'job_name': 'failed-experiment',
+        'task_name': 'failed-experiment',
+        'status': ManagedJobStatus.FAILED,
+        'submitted_at': THREE_DAYS_AGO,
+        'start_at': THREE_DAYS_AGO + 240,  # Started 4 minutes after submission
+        'end_at': TWO_DAYS_AGO,
+        'job_duration': 1800,  # 30 minutes
+        'cluster_resources': '1x(gpus=A100:1, n1-standard-4, ...)',
+        'cluster_resources_full': '1x(gpus=A100:1, cpus=4, mem=15, n1-standard-4)',
+        'region': 'us-west1',
+        'cloud': 'gcp',
+        'zone': 'us-west1-b',
+        'user_name': 'alice@skypilot.co',
+        'user_hash': 'alice123', 
+        'workspace': 'default',
+        'resources': 'A100:1',
+        'recovery_count': 2,
+        'failure_reason': 'Out of memory error in training script',
+        'schedule_state': ManagedJobScheduleState.DONE,
+        'specs': None,
+        'run_timestamp': str(THREE_DAYS_AGO),
+        'last_recovered_at': THREE_DAYS_AGO + 7200,  # Last recovery 2 hours in
+    },
+    {
+        'job_id': 5,
+        'task_id': 0,
+        'job_name': 'cancelled-run',
+        'task_name': 'cancelled-run',
+        'status': ManagedJobStatus.CANCELLED,
+        'submitted_at': TWO_HOURS_AGO,
+        'start_at': TWO_HOURS_AGO + 120,  # Started 2 minutes after submission
+        'end_at': ONE_HOUR_AGO,
+        'job_duration': 600,  # 10 minutes  
+        'cluster_resources': '1x(cpus=4, mem=16, n1-standard-4, ...)',
+        'cluster_resources_full': '1x(cpus=4, mem=16, n1-standard-4)',
+        'region': 'us-central1',
+        'cloud': 'gcp',
+        'zone': 'us-central1-c',
+        'user_name': 'bob@skypilot.co',
+        'user_hash': 'bob456',
+        'workspace': 'default', 
+        'resources': 'CPUs:4',
+        'recovery_count': 0,
+        'failure_reason': None,
+        'schedule_state': ManagedJobScheduleState.DONE,
+        'specs': None,
+        'run_timestamp': str(TWO_HOURS_AGO),
+        'last_recovered_at': TWO_HOURS_AGO + 120,
+    }
+]
+
 # Mock functions to replace global_user_state functions
 def mock_get_clusters() -> List[Dict[str, Any]]:
     """Mock implementation of get_clusters."""
@@ -398,6 +536,43 @@ def mock_get_user_hash() -> str:
     """Mock get_user_hash - returns default demo user hash."""
     return DEMO_USERS[0].id
 
+# Jobs-related mock functions
+def mock_jobs_queue(*args, **kwargs) -> List[Dict[str, Any]]:
+    """Mock implementation of core.queue - returns demo job data."""
+    logger.info(f"Demo mode: mock_jobs_queue() called with args={args}, kwargs={kwargs}")
+    
+    # Apply filtering based on kwargs if needed
+    jobs = copy.deepcopy(DEMO_JOBS)
+    
+    # Handle skip_finished filter
+    if kwargs.get('skip_finished', False):
+        jobs = [job for job in jobs if not job['status'].is_terminal()]
+        logger.info(f"Demo mode: Filtered to non-finished jobs: {len(jobs)} jobs")
+    
+    # Handle all_users filter
+    if not kwargs.get('all_users', True):
+        current_user_hash = mock_get_user_hash()
+        jobs = [job for job in jobs if job['user_hash'] == current_user_hash]
+        logger.info(f"Demo mode: Filtered to current user jobs: {len(jobs)} jobs")
+    
+    # Handle job_ids filter
+    job_ids = kwargs.get('job_ids')
+    if job_ids:
+        jobs = [job for job in jobs if job['job_id'] in job_ids]
+        logger.info(f"Demo mode: Filtered to specific job IDs {job_ids}: {len(jobs)} jobs")
+    
+    logger.info(f"Demo mode: Returning {len(jobs)} demo jobs")
+    return jobs
+
+def mock_maybe_restart_controller(*args, **kwargs):
+    """Mock implementation of _maybe_restart_controller - returns fake handle."""
+    logger.info(f"Demo mode: mock_maybe_restart_controller() called")
+    
+    # Return a fake controller handle that passes basic checks
+    fake_controller_handle = _create_demo_handle('sky-jobs-controller-fake', clouds.GCP(), 1)
+    logger.info(f"Demo mode: Returning fake jobs controller handle")
+    return fake_controller_handle
+
 # Patch global_user_state functions
 def patch_global_user_state():
     """Monkey-patch global_user_state functions with demo data."""
@@ -429,6 +604,91 @@ def patch_global_user_state():
     # Mock user context functions
     common_utils.get_current_user = mock_get_current_user
     common_utils.get_user_hash = mock_get_user_hash
+
+def mock_load_managed_job_queue(payload: str) -> List[Dict[str, Any]]:
+    """Mock implementation of load_managed_job_queue - returns demo job data."""
+    logger.info(f"Demo mode: mock_load_managed_job_queue() called")
+    
+    # Return demo jobs data directly (bypass the JSON parsing)
+    jobs = copy.deepcopy(DEMO_JOBS)
+    logger.info(f"Demo mode: Returning {len(jobs)} demo jobs from load_managed_job_queue")
+    return jobs
+
+def mock_jobs_queue_direct(refresh: bool,
+          skip_finished: bool = False,
+          all_users: bool = False,
+          job_ids: Optional[List[int]] = None) -> List[Dict[str, Any]]:
+    """Mock implementation of core.queue - returns demo job data in API format."""
+    logger.info(f"Demo mode: mock_jobs_queue_direct() called with refresh={refresh}, skip_finished={skip_finished}, all_users={all_users}, job_ids={job_ids}")
+    
+    # Convert demo data to API format (matching core.queue docstring format exactly)
+    api_jobs = []
+    for job in DEMO_JOBS:
+        api_job = {
+            'job_id': job['job_id'],
+            'job_name': job['job_name'],
+            'task_id': job['task_id'],
+            'job_duration': job['job_duration'],
+            'task_name': job['task_name'],
+            'resources': job['resources'],
+            'submitted_at': job['submitted_at'],
+            'end_at': job['end_at'],
+            'duration': job['job_duration'],  # Rename to match API format
+            'recovery_count': job['recovery_count'],
+            'status': job['status'],  # Keep as enum object (API format)
+            'cluster_resources': job['cluster_resources'],
+            'region': job['region'],
+            'user_name': job['user_name'],
+            'user_hash': job['user_hash'],
+        }
+        api_jobs.append(api_job)
+    
+    # Apply filtering based on parameters (same logic as real core.queue)
+    jobs = api_jobs
+    
+    # User filtering
+    if not all_users:
+        def user_hash_matches_or_missing(job: Dict[str, Any]) -> bool:
+            user_hash = job.get('user_hash', None)
+            if user_hash is None:
+                return True  # For backwards compatibility
+            return user_hash == mock_get_user_hash()
+            
+        jobs = list(filter(user_hash_matches_or_missing, jobs))
+        logger.info(f"Demo mode: After user filtering: {len(jobs)} jobs")
+    
+    # Workspace filtering (simplified - all our demo jobs are in 'default')
+    # (Note: workspace is not in API format, so this is implicitly handled)
+    
+    # Skip finished filtering
+    if skip_finished:
+        non_finished_tasks = list(filter(lambda job: not job['status'].is_terminal(), jobs))
+        non_finished_job_ids = {job['job_id'] for job in non_finished_tasks}
+        jobs = list(filter(lambda job: job['job_id'] in non_finished_job_ids, jobs))
+        logger.info(f"Demo mode: After skip_finished filtering: {len(jobs)} jobs")
+    
+    # Job IDs filtering
+    if job_ids:
+        jobs = [job for job in jobs if job['job_id'] in job_ids]
+        logger.info(f"Demo mode: After job_ids filtering: {len(jobs)} jobs")
+    
+    logger.info(f"Demo mode: Returning {len(jobs)} demo jobs")
+    return jobs
+
+def patch_jobs_functions():
+    """Patch jobs-related functions."""
+    logger.info("Demo mode: Patching jobs functions")
+    try:
+        from sky.jobs.server import core as jobs_core
+        
+        # Mock the main queue function directly (avoid SSH connection issues)
+        jobs_core.queue = mock_jobs_queue_direct
+        
+        logger.info("Demo mode: Successfully patched jobs functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import jobs core module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching jobs functions: {e}")
 
 def patch_server_write_endpoints():
     """Patch server write endpoints to be read-only."""
@@ -466,6 +726,9 @@ def enable_demo_mode():
     
     # Patch global user state functions
     patch_global_user_state()
+    
+    # Patch jobs functions
+    patch_jobs_functions()
     
     # Patch server write endpoints  
     patch_server_write_endpoints()
