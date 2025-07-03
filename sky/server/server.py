@@ -71,6 +71,12 @@ from sky.utils import subprocess_utils
 from sky.volumes.server import server as volumes_rest
 from sky.workspaces import server as workspaces_rest
 
+# Enable demo mode with fake data and read-only endpoints
+try:
+    from sky import demo_mode  # pylint: disable=unused-import
+except ImportError:
+    pass  # Demo mode not available
+
 # pylint: disable=ungrouped-imports
 if sys.version_info >= (3, 10):
     from typing import ParamSpec
