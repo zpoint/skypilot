@@ -5,7 +5,6 @@ to provide a read-only demo experience with realistic fake data.
 """
 
 import json
-import pickle
 import time
 from typing import Any, Dict, List, Optional, Set
 
@@ -14,7 +13,9 @@ import fastapi
 from sky import clouds
 from sky import global_user_state
 from sky import models
+from sky import resources as resources_lib
 from sky import sky_logging
+from sky.backends.cloud_vm_ray_backend import CloudVmRayResourceHandle
 from sky.utils import common_utils
 from sky.utils import status_lib
 
@@ -96,20 +97,57 @@ run: |
   jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 """
 
-# Mock cluster handles (simplified)
-class MockClusterHandle:
-    def __init__(self, cluster_name: str, cloud_name: str):
-        self.cluster_name = cluster_name
-        self.cloud_name = cloud_name
-        self.launched_nodes = 1 if 'multinode' not in cluster_name else 4
-        self.launched_resources = None
+# Helper function to create demo cluster handles
+def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, 
+                       nodes: int = 1) -> CloudVmRayResourceHandle:
+    """Creates a realistic CloudVmRayResourceHandle for demo purposes."""
+    # Create appropriate resources based on cluster type
+    if 'kubernetes' in str(cloud).lower():
+        instance_type = '4CPU--16GB'  # Valid Kubernetes instance type
+        accelerators = None
+    elif 'multinode' in cluster_name:
+        instance_type = 'n1-standard-8'
+        accelerators = {'A100': 8}
+    elif 'inference' in cluster_name:
+        instance_type = 'g4dn.xlarge'
+        accelerators = {'A100': 1}
+    else:
+        instance_type = 'n1-standard-4'
+        accelerators = None
+    
+    # Create Resources object
+    resources = resources_lib.Resources(
+        cloud=cloud,
+        instance_type=instance_type,
+        accelerators=accelerators,
+        cpus=None,
+        memory=None,
+        use_spot=False
+    )
+    
+    # Generate fake IPs 
+    base_ip = 10 + hash(cluster_name) % 200  # Generate deterministic but varied IPs
+    internal_ips = [f'10.0.{base_ip}.{i+1}' for i in range(nodes)]
+    external_ips = [f'34.{base_ip}.{base_ip}.{i+1}' for i in range(nodes)]
+    stable_internal_external_ips = list(zip(internal_ips, external_ips))
+    stable_ssh_ports = [22] * nodes
+    
+    return CloudVmRayResourceHandle(
+        cluster_name=cluster_name,
+        cluster_name_on_cloud=f'{cluster_name}-{common_utils.get_user_hash()[:8]}',
+        cluster_yaml=None,  # No actual YAML file for demo
+        launched_nodes=nodes,
+        launched_resources=resources,
+        stable_internal_external_ips=stable_internal_external_ips,
+        stable_ssh_ports=stable_ssh_ports
+    )
 
 # Demo clusters data
 DEMO_CLUSTERS = [
     {
         'name': 'lambda-k8s',
         'launched_at': TWO_DAYS_AGO,
-        'handle': MockClusterHandle('lambda-k8s', 'kubernetes'),
+        'handle': _create_demo_handle('lambda-k8s', clouds.Kubernetes(), 1),
         'last_use': 'sky status',
         'status': status_lib.ClusterStatus.UP,
         'autostop': -1,
@@ -130,7 +168,7 @@ DEMO_CLUSTERS = [
     {
         'name': 'nebius-k8s',
         'launched_at': ONE_DAY_AGO,
-        'handle': MockClusterHandle('nebius-k8s', 'kubernetes'),
+        'handle': _create_demo_handle('nebius-k8s', clouds.Kubernetes(), 1),
         'last_use': 'sky status',
         'status': status_lib.ClusterStatus.UP,
         'autostop': -1,
@@ -151,7 +189,7 @@ DEMO_CLUSTERS = [
     {
         'name': 'training-multinode-1',
         'launched_at': ONE_DAY_AGO,
-        'handle': MockClusterHandle('training-multinode-1', 'gcp'),
+        'handle': _create_demo_handle('training-multinode-1', clouds.GCP(), 4),
         'last_use': 'sky exec training-multinode-1 train.yaml',
         'status': status_lib.ClusterStatus.UP,
         'autostop': 60,
@@ -172,7 +210,7 @@ DEMO_CLUSTERS = [
     {
         'name': 'inference-cluster',
         'launched_at': ONE_HOUR_AGO,
-        'handle': pickle.dumps(MockClusterHandle('inference-cluster', 'aws')),
+        'handle': _create_demo_handle('inference-cluster', clouds.AWS(), 1),
         'last_use': 'sky exec inference-cluster inference.yaml',
         'status': status_lib.ClusterStatus.UP,
         'autostop': 30,
@@ -193,7 +231,7 @@ DEMO_CLUSTERS = [
     {
         'name': 'dev-cluster-alice',
         'launched_at': TWO_DAYS_AGO,
-        'handle': pickle.dumps(MockClusterHandle('dev-cluster-alice', 'gcp')),
+        'handle': _create_demo_handle('dev-cluster-alice', clouds.GCP(), 1),
         'last_use': 'sky launch dev-work.yaml',
         'status': status_lib.ClusterStatus.STOPPED,
         'autostop': -1,
@@ -257,12 +295,12 @@ def mock_get_volumes() -> List[Dict[str, Any]]:
 
 def mock_get_cached_enabled_clouds(cloud_capability, workspace: str) -> List:
     """Mock implementation of get_cached_enabled_clouds."""
-    # Return mock cloud objects - simplified for demo
+    # Return actual cloud objects for demo
     mock_clouds = []
     if 'gcp' in DEMO_ENABLED_CLOUDS:
-        mock_clouds.append('gcp')  # Simplified - would normally be cloud objects
+        mock_clouds.append(clouds.GCP())
     if 'aws' in DEMO_ENABLED_CLOUDS:
-        mock_clouds.append('aws')
+        mock_clouds.append(clouds.AWS())
     return mock_clouds
 
 def mock_get_cluster_names_start_with(starts_with: str) -> List[str]:
