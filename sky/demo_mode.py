@@ -4,6 +4,7 @@ This module monkey-patches global_user_state functions and server endpoints
 to provide a read-only demo experience with realistic fake data.
 """
 
+import copy
 import json
 import time
 from typing import Any, Dict, List, Optional, Set
@@ -263,7 +264,18 @@ DEMO_ENABLED_CLOUDS = ['gcp', 'aws']
 # Mock functions to replace global_user_state functions
 def mock_get_clusters() -> List[Dict[str, Any]]:
     """Mock implementation of get_clusters."""
-    return DEMO_CLUSTERS.copy()
+    # Deep copy to avoid handle mutations and recreate fresh handle objects
+    result = []
+    for cluster in DEMO_CLUSTERS:
+        cluster_copy = copy.deepcopy(cluster)
+        # Recreate the handle object to ensure it's not a string or mutated
+        cluster_copy['handle'] = _create_demo_handle(
+            cluster['name'], 
+            cluster['handle'].launched_resources.cloud,
+            cluster['handle'].launched_nodes
+        )
+        result.append(cluster_copy)
+    return result
 
 def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str, Any]]:
     """Mock implementation of get_cluster_from_name."""
@@ -271,7 +283,14 @@ def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str
         return None
     for cluster in DEMO_CLUSTERS:
         if cluster['name'] == cluster_name:
-            return cluster.copy()
+            cluster_copy = copy.deepcopy(cluster)
+            # Recreate the handle object to ensure it's not a string or mutated
+            cluster_copy['handle'] = _create_demo_handle(
+                cluster['name'], 
+                cluster['handle'].launched_resources.cloud,
+                cluster['handle'].launched_nodes
+            )
+            return cluster_copy
     return None
 
 def mock_get_all_users() -> List[models.User]:
