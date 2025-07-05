@@ -3,6 +3,7 @@
 # SkyPilot Demo Build Script
 # Generates patch and builds demo Docker image
 # Usage: ./build-demo.sh [IMAGE_NAME] [TAG] [OPTIONS]
+# Example: ./build-demo.sh skypilot-demo latest --push --registry berkeleyskypilot
 
 set -e
 
@@ -152,16 +153,23 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if we have changes to create a patch from
-if ! git diff --quiet master 2>/dev/null; then
-    log_info "Changes detected from master branch"
-else
-    log_warning "No changes detected from master branch - patch will be empty"
+# Find the merge base (common ancestor) with master
+MERGE_BASE=$(git merge-base HEAD master 2>/dev/null)
+if [[ -z "$MERGE_BASE" ]]; then
+    log_error "Cannot find common ancestor with master branch"
+    exit 1
 fi
 
-# Generate the patch
-log_info "Generating demo mode patch..."
-if git diff master > "$PATCH_FILE" 2>/dev/null; then
+# Check if we have changes to create a patch from (since merge-base)
+if ! git diff --quiet "$MERGE_BASE" 2>/dev/null; then
+    log_info "Changes detected since branching from master ($MERGE_BASE)"
+else
+    log_warning "No changes detected since branching from master - patch will be empty"
+fi
+
+# Generate the patch (only changes since merge-base, not all diffs from current master)
+log_info "Generating demo mode patch from merge-base..."
+if git format-patch "$MERGE_BASE" --stdout > "$PATCH_FILE" 2>/dev/null; then
     PATCH_SIZE=$(wc -c < "$PATCH_FILE")
     if [[ $PATCH_SIZE -gt 0 ]]; then
         log_success "Patch generated: $PATCH_FILE ($PATCH_SIZE bytes)"
