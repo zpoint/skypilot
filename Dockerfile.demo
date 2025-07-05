@@ -23,8 +23,19 @@ COPY skypilot-demo-mode.patch /app/
 # Apply the demo mode patch
 RUN git apply skypilot-demo-mode.patch
 
-# Install SkyPilot and dependencies
-RUN pip install -e .
+# Install NPM and Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    cd /app && \
+    ~/.local/bin/uv pip install -e . --system && \
+    npm --prefix sky/dashboard install && npm --prefix sky/dashboard run build && \
+    # Cleanup all caches to reduce the image size
+    conda clean -afy && \
+    ~/.local/bin/uv cache clean && \
+    rm -rf ~/.cache/pip ~/.cache/uv
 
 # Install additional dependencies for demo mode
 RUN pip install fastapi uvicorn
@@ -52,12 +63,8 @@ echo "  • 3 Demo Users (alice@skypilot.co, bob@skypilot.co, mike@skypilot.co)"
 echo "  • Read-only environment (no actual cloud operations)"\n\
 echo ""\n\
 echo "Starting SkyPilot API server..."\n\
-sky api start --host 0.0.0.0 --port 46580\n\
+sky api start --host 0.0.0.0 --foreground\n\
 ' > /app/start-demo.sh && chmod +x /app/start-demo.sh
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:46580/health || exit 1
 
 # Default command
 CMD ["/app/start-demo.sh"] 

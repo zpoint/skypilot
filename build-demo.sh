@@ -76,12 +76,13 @@ EOF
 }
 
 # Parse arguments
-IMAGE_NAME="$DEFAULT_IMAGE_NAME"
-TAG="$DEFAULT_TAG"
+IMAGE_NAME=""
+TAG=""
 NO_CACHE=""
 DRY_RUN=false
 PUSH=false
 REGISTRY=""
+POSITIONAL_COUNT=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -119,9 +120,10 @@ while [[ $# -gt 0 ]]; do
             exit 1
             ;;
         *)
-            if [[ -z "$IMAGE_NAME" || "$IMAGE_NAME" == "$DEFAULT_IMAGE_NAME" ]]; then
+            POSITIONAL_COUNT=$((POSITIONAL_COUNT + 1))
+            if [[ $POSITIONAL_COUNT -eq 1 ]]; then
                 IMAGE_NAME="$1"
-            elif [[ -z "$TAG" || "$TAG" == "$DEFAULT_TAG" ]]; then
+            elif [[ $POSITIONAL_COUNT -eq 2 ]]; then
                 TAG="$1"
             else
                 log_error "Too many arguments: $1"
@@ -132,6 +134,15 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Set defaults if not provided
+if [[ -z "$IMAGE_NAME" ]]; then
+    IMAGE_NAME="$DEFAULT_IMAGE_NAME"
+fi
+
+if [[ -z "$TAG" ]]; then
+    TAG="$DEFAULT_TAG"
+fi
 
 # Construct full image name
 if [[ -n "$REGISTRY" ]]; then
@@ -182,7 +193,7 @@ if git format-patch "$MERGE_BASE" --stdout > "$PATCH_FILE" 2>/dev/null; then
         log_warning "Empty patch generated - no changes from master"
     fi
 else
-    log_error "Failed to generate patch from master branch"
+    log_error "Failed to generate patch from merge-base"
     exit 1
 fi
 
