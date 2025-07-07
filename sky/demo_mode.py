@@ -258,7 +258,74 @@ DEMO_CLUSTERS = [
 DEMO_STORAGE = []
 
 # Demo volumes data  
-DEMO_VOLUMES = []
+DEMO_VOLUMES = [
+    {
+        'name': 'ml-datasets',
+        'type': 'k8s-pvc',
+        'launched_at': TWO_DAYS_AGO,
+        'cloud': 'Kubernetes', 
+        'region': 'lambda-cloud',
+        'zone': None,
+        'size': '500',  # 500GB
+        'config': {
+            'storage_class_name': 'lambda-standard',
+            'access_mode': 'ReadWriteMany'
+        },
+        'name_on_cloud': 'ml-datasets-pvc-abc123',
+        'user_hash': 'alice123',
+        'user_name': 'alice@skypilot.co',
+        'workspace': 'default',
+        'last_attached_at': ONE_HOUR_AGO,
+        'last_use': 'sky exec lambda-k8s train.yaml',
+        'status': status_lib.VolumeStatus.IN_USE,
+        'usedby_clusters': ['lambda-k8s'],
+        'usedby_pods': [],
+    },
+    {
+        'name': 'model-checkpoints',
+        'type': 'k8s-pvc',
+        'launched_at': ONE_DAY_AGO,
+        'cloud': 'Kubernetes',
+        'region': 'nebius', 
+        'zone': None,
+        'size': '1000',  # 1TB
+        'config': {
+            'storage_class_name': 'nebius-fast-ssd',
+            'access_mode': 'ReadWriteOnce'
+        },
+        'name_on_cloud': 'model-checkpoints-pvc-def456',
+        'user_hash': 'alice123',
+        'user_name': 'alice@skypilot.co',
+        'workspace': 'default',
+        'last_attached_at': ONE_DAY_AGO + 1800,  # 30 minutes after creation
+        'last_use': 'sky launch training-job.yaml',
+        'status': status_lib.VolumeStatus.READY,
+        'usedby_clusters': [],
+        'usedby_pods': [],
+    },
+    {
+        'name': 'shared-workspace',
+        'type': 'k8s-pvc',
+        'launched_at': ONE_DAY_AGO - 3600,  # 1 day and 1 hour ago
+        'cloud': 'Kubernetes',
+        'region': 'nebius',
+        'zone': None,
+        'size': '100',  # 100GB
+        'config': {
+            'storage_class_name': 'nebius-standard',
+            'access_mode': 'ReadWriteMany'
+        },
+        'name_on_cloud': 'shared-workspace-pvc-ghi789',
+        'user_hash': 'bob456',
+        'user_name': 'bob@skypilot.co',
+        'workspace': 'default',
+        'last_attached_at': None,  # Never attached
+        'last_use': 'sky volume apply shared-workspace.yaml',
+        'status': status_lib.VolumeStatus.READY,
+        'usedby_clusters': [],
+        'usedby_pods': [],
+    },
+]
 
 # Demo enabled clouds
 DEMO_ENABLED_CLOUDS = ['gcp', 'aws']
@@ -500,7 +567,8 @@ def mock_get_storage_names_start_with(starts_with: str) -> List[str]:
 
 def mock_get_volume_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_volume_names_start_with."""
-    return []
+    return [volume['name'] for volume in DEMO_VOLUMES 
+            if volume['name'].startswith(starts_with)]
 
 # Infrastructure-related mock functions
 def mock_enabled_clouds(workspace: Optional[str] = None, expand: bool = False) -> List[str]:
@@ -667,6 +735,21 @@ def mock_kubernetes_node_info(context: Optional[str] = None):
     
     logger.info(f"Demo mode: Returning node info for context '{context}' with {len(node_info_dict)} nodes")
     return result
+
+def mock_volume_list() -> List[Dict[str, Any]]:
+    """Mock implementation of volumes.server.core.volume_list."""
+    logger.info("Demo mode: mock_volume_list() called")
+    
+    # Return demo volumes data in the format expected by the volumes server
+    volumes = copy.deepcopy(DEMO_VOLUMES)
+    
+    # Convert VolumeStatus enum objects to string values for JSON serialization
+    for volume in volumes:
+        if 'status' in volume and hasattr(volume['status'], 'value'):
+            volume['status'] = volume['status'].value
+    
+    logger.info(f"Demo mode: Returning {len(volumes)} demo volumes")
+    return volumes
 
 # Read-only operation handlers - these will no-op or return appropriate responses
 def mock_readonly_operation(*args, **kwargs):
@@ -878,6 +961,21 @@ def patch_infrastructure_functions():
     except Exception as e:
         logger.warning(f"Demo mode: Error patching infrastructure functions: {e}")
 
+def patch_volumes_functions():
+    """Patch volumes-related functions."""
+    logger.info("Demo mode: Patching volumes functions")
+    try:
+        from sky.volumes.server import core as volumes_core
+        
+        # Mock the main volume_list function
+        volumes_core.volume_list = mock_volume_list
+        
+        logger.info("Demo mode: Successfully patched volumes functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import volumes core module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching volumes functions: {e}")
+
 def patch_server_write_endpoints():
     """Patch server write endpoints to be read-only."""
     # Import server module to access the app
@@ -886,7 +984,8 @@ def patch_server_write_endpoints():
     # List of write endpoints to make read-only
     write_endpoints = [
         '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
-        '/storage/delete', '/local_up', '/local_down', '/upload'
+        '/storage/delete', '/local_up', '/local_down', '/upload',
+        '/volumes/delete', '/volumes/apply'
     ]
     
     # We'll monkey-patch by replacing the route handlers
@@ -920,6 +1019,9 @@ def enable_demo_mode():
     
     # Patch infrastructure functions
     patch_infrastructure_functions()
+    
+    # Patch volumes functions
+    patch_volumes_functions()
     
     # Patch server write endpoints  
     patch_server_write_endpoints()
