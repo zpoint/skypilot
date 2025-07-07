@@ -164,7 +164,7 @@ DEMO_CLUSTERS = [
         'user_hash': 'alice123',
         'user_name': 'alice@skypilot.co',
         'config_hash': 'config-hash-1',
-        'workspace': 'default',
+        'workspace': 'research-private',
         'last_creation_yaml': DEV_YAML,
         'last_creation_command': 'sky launch -c lambda-k8s dev.yaml',
     },
@@ -206,7 +206,7 @@ DEMO_CLUSTERS = [
         'user_hash': 'alice123',
         'user_name': 'alice@skypilot.co',
         'config_hash': 'config-hash-3',
-        'workspace': 'default',
+        'workspace': 'ml-team',
         'last_creation_yaml': TRAINING_YAML,
         'last_creation_command': 'sky launch -c training-multinode-1 train.yaml',
     },
@@ -274,7 +274,7 @@ DEMO_VOLUMES = [
         'name_on_cloud': 'ml-datasets-pvc-abc123',
         'user_hash': 'alice123',
         'user_name': 'alice@skypilot.co',
-        'workspace': 'default',
+        'workspace': 'research-private',
         'last_attached_at': ONE_HOUR_AGO,
         'last_use': 'sky exec lambda-k8s train.yaml',
         'status': status_lib.VolumeStatus.IN_USE,
@@ -296,7 +296,7 @@ DEMO_VOLUMES = [
         'name_on_cloud': 'model-checkpoints-pvc-def456',
         'user_hash': 'alice123',
         'user_name': 'alice@skypilot.co',
-        'workspace': 'default',
+        'workspace': 'ml-team',
         'last_attached_at': ONE_DAY_AGO + 1800,  # 30 minutes after creation
         'last_use': 'sky launch training-job.yaml',
         'status': status_lib.VolumeStatus.READY,
@@ -330,6 +330,35 @@ DEMO_VOLUMES = [
 # Demo enabled clouds
 DEMO_ENABLED_CLOUDS = ['gcp', 'aws']
 
+# Demo workspaces data
+DEMO_WORKSPACES = {
+    'default': {
+        # Default workspace - can use all accessible infrastructure
+        # Empty config means no restrictions
+    },
+    'ml-team': {
+        'gcp': {
+            'project_id': 'skypilot-ml-team-prod'
+        },
+        'aws': {
+            'disabled': False
+        }
+    },
+    'research-private': {
+        'private': True,
+        'allowed_users': [
+            'alice@skypilot.co',
+            'mike@skypilot.co'
+        ],
+        'gcp': {
+            'project_id': 'skypilot-research-private'
+        },
+        'aws': {
+            'disabled': True  # Only GCP for this private workspace
+        }
+    }
+}
+
 # Demo jobs data
 THREE_DAYS_AGO = CURRENT_TIME - (3 * 86400)
 TWO_HOURS_AGO = CURRENT_TIME - (2 * 3600)
@@ -352,7 +381,7 @@ DEMO_JOBS = [
         'zone': 'us-central1-a',
         'user_name': 'alice@skypilot.co',
         'user_hash': 'alice123',
-        'workspace': 'default',
+        'workspace': 'ml-team',
         'resources': 'A100:8x4',
         'recovery_count': 0,
         'failure_reason': None,
@@ -430,7 +459,7 @@ DEMO_JOBS = [
         'zone': 'us-west1-b',
         'user_name': 'alice@skypilot.co',
         'user_hash': 'alice123', 
-        'workspace': 'default',
+        'workspace': 'research-private',
         'resources': 'A100:1',
         'recovery_count': 2,
         'failure_reason': 'Out of memory error in training script',
@@ -751,6 +780,16 @@ def mock_volume_list() -> List[Dict[str, Any]]:
     logger.info(f"Demo mode: Returning {len(volumes)} demo volumes")
     return volumes
 
+def mock_get_workspaces() -> Dict[str, Any]:
+    """Mock implementation of workspaces.core.get_workspaces."""
+    logger.info("Demo mode: mock_get_workspaces() called")
+    
+    # Return demo workspaces configuration
+    workspaces = copy.deepcopy(DEMO_WORKSPACES)
+    
+    logger.info(f"Demo mode: Returning {len(workspaces)} demo workspaces: {list(workspaces.keys())}")
+    return workspaces
+
 # Read-only operation handlers - these will no-op or return appropriate responses
 def mock_readonly_operation(*args, **kwargs):
     """Generic handler for read-only mode - raises 403 Forbidden."""
@@ -976,6 +1015,21 @@ def patch_volumes_functions():
     except Exception as e:
         logger.warning(f"Demo mode: Error patching volumes functions: {e}")
 
+def patch_workspaces_functions():
+    """Patch workspaces-related functions."""
+    logger.info("Demo mode: Patching workspaces functions")
+    try:
+        from sky.workspaces import core as workspaces_core
+        
+        # Mock the main get_workspaces function
+        workspaces_core.get_workspaces = mock_get_workspaces
+        
+        logger.info("Demo mode: Successfully patched workspaces functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import workspaces core module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching workspaces functions: {e}")
+
 def patch_server_write_endpoints():
     """Patch server write endpoints to be read-only."""
     # Import server module to access the app
@@ -985,7 +1039,8 @@ def patch_server_write_endpoints():
     write_endpoints = [
         '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
         '/storage/delete', '/local_up', '/local_down', '/upload',
-        '/volumes/delete', '/volumes/apply'
+        '/volumes/delete', '/volumes/apply',
+        '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config'
     ]
     
     # We'll monkey-patch by replacing the route handlers
@@ -1022,6 +1077,9 @@ def enable_demo_mode():
     
     # Patch volumes functions
     patch_volumes_functions()
+    
+    # Patch workspaces functions
+    patch_workspaces_functions()
     
     # Patch server write endpoints  
     patch_server_write_endpoints()
