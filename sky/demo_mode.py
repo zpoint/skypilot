@@ -502,6 +502,172 @@ def mock_get_volume_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_volume_names_start_with."""
     return []
 
+# Infrastructure-related mock functions
+def mock_enabled_clouds(workspace: Optional[str] = None, expand: bool = False) -> List[str]:
+    """Mock implementation of core.enabled_clouds."""
+    logger.info(f"Demo mode: mock_enabled_clouds() called with workspace={workspace}, expand={expand}")
+    
+    if not expand:
+        return DEMO_ENABLED_CLOUDS.copy()
+    else:
+        # Return expanded infrastructure names
+        # For demo purposes, just return the basic cloud names since we don't need complex infra expansion
+        return DEMO_ENABLED_CLOUDS.copy()
+
+def mock_get_all_contexts() -> List[str]:
+    """Mock implementation of core.get_all_contexts."""
+    logger.info("Demo mode: mock_get_all_contexts() called")
+    
+    # Return the Kubernetes contexts from our demo clusters
+    # Based on the demo clusters, we have lambda-k8s and nebius-k8s
+    contexts = ['lambda-cloud', 'nebius']
+    
+    logger.info(f"Demo mode: Returning {len(contexts)} contexts: {contexts}")
+    return contexts
+
+def mock_realtime_kubernetes_gpu_availability(
+    context: Optional[str] = None,
+    name_filter: Optional[str] = None,
+    quantity_filter: Optional[int] = None,
+    is_ssh: Optional[bool] = None
+):
+    """Mock implementation of core.realtime_kubernetes_gpu_availability."""
+    logger.info(f"Demo mode: mock_realtime_kubernetes_gpu_availability() called with context={context}, name_filter={name_filter}, quantity_filter={quantity_filter}, is_ssh={is_ssh}")
+    
+    # Import models here to avoid circular imports
+    from sky import models
+    
+    # Define demo GPU availability for each context
+    demo_gpu_data = {
+        'lambda-cloud': [
+            # Each entry: [gpu_name, [requestable_qty_per_node], total_capacity, available]
+            ['A100', [1, 2, 4], 8, 6],  # 8 total A100s, 6 available
+            ['H100', [1, 2], 4, 2],     # 4 total H100s, 2 available
+        ],
+        'nebius': [
+            ['A100', [1, 2, 4, 8], 16, 8],  # 16 total A100s, 8 available  
+            ['V100', [1, 2], 4, 4],         # 4 total V100s, all available
+        ]
+    }
+    
+    # Build the response as list of tuples: (context_name, list_of_gpu_availability)
+    result = []
+    
+    contexts_to_process = []
+    if context is None:
+        # Return all contexts
+        contexts_to_process = list(demo_gpu_data.keys())
+    else:
+        # Return specific context if it exists in our demo data
+        if context in demo_gpu_data:
+            contexts_to_process = [context]
+    
+    for ctx in contexts_to_process:
+        gpu_availability_list = []
+        for gpu_info in demo_gpu_data[ctx]:
+            gpu_name, requestable_qtys, total_capacity, available = gpu_info
+            
+            # Apply name filter
+            if name_filter and name_filter.lower() not in gpu_name.lower():
+                continue
+                
+            # Apply quantity filter  
+            if quantity_filter and quantity_filter not in requestable_qtys:
+                continue
+            
+            # Create RealtimeGpuAvailability object
+            gpu_availability = models.RealtimeGpuAvailability(
+                gpu=gpu_name,
+                counts=requestable_qtys,
+                capacity=total_capacity,
+                available=available
+            )
+            gpu_availability_list.append(gpu_availability)
+        
+        if gpu_availability_list:  # Only add context if it has GPUs
+            result.append((ctx, gpu_availability_list))
+    
+    logger.info(f"Demo mode: Returning GPU availability for {len(result)} contexts")
+    return result
+
+def mock_kubernetes_node_info(context: Optional[str] = None):
+    """Mock implementation of kubernetes_utils.get_kubernetes_node_info."""
+    logger.info(f"Demo mode: mock_kubernetes_node_info() called with context={context}")
+    
+    # Import models here to avoid circular imports
+    from sky import models
+    
+    # Define demo node information for each context
+    demo_node_data = {
+        'lambda-cloud': {
+            'lambda-worker-1': {
+                'name': 'lambda-worker-1',
+                'accelerator_type': 'A100',
+                'total': {'accelerator_count': 4},
+                'free': {'accelerators_available': 3},
+                'ip_address': '10.0.1.10',
+            },
+            'lambda-worker-2': {
+                'name': 'lambda-worker-2', 
+                'accelerator_type': 'A100',
+                'total': {'accelerator_count': 4},
+                'free': {'accelerators_available': 3},
+                'ip_address': '10.0.1.11',
+            },
+            'lambda-gpu-node-1': {
+                'name': 'lambda-gpu-node-1',
+                'accelerator_type': 'H100', 
+                'total': {'accelerator_count': 4},
+                'free': {'accelerators_available': 2},
+                'ip_address': '10.0.1.12',
+            },
+        },
+        'nebius': {
+            'nebius-worker-1': {
+                'name': 'nebius-worker-1',
+                'accelerator_type': 'A100',
+                'total': {'accelerator_count': 8},
+                'free': {'accelerators_available': 4},
+                'ip_address': '10.0.2.10',
+            },
+            'nebius-worker-2': {
+                'name': 'nebius-worker-2',
+                'accelerator_type': 'A100', 
+                'total': {'accelerator_count': 8},
+                'free': {'accelerators_available': 4},
+                'ip_address': '10.0.2.11',
+            },
+            'nebius-v100-node': {
+                'name': 'nebius-v100-node',
+                'accelerator_type': 'V100',
+                'total': {'accelerator_count': 4},
+                'free': {'accelerators_available': 4},
+                'ip_address': '10.0.2.12',
+            },
+        }
+    }
+    
+    # Get node data for the specified context, or return empty if context not found
+    node_info_dict = {}
+    if context and context in demo_node_data:
+        for node_name, node_data in demo_node_data[context].items():
+            node_info_dict[node_name] = models.KubernetesNodeInfo(
+                name=node_data['name'],
+                accelerator_type=node_data['accelerator_type'],
+                total=node_data['total'],
+                free=node_data['free'],
+                ip_address=node_data['ip_address'],
+            )
+    
+    # Create KubernetesNodesInfo response
+    result = models.KubernetesNodesInfo(
+        node_info_dict=node_info_dict,
+        hint=None  # No specific hints for demo
+    )
+    
+    logger.info(f"Demo mode: Returning node info for context '{context}' with {len(node_info_dict)} nodes")
+    return result
+
 # Read-only operation handlers - these will no-op or return appropriate responses
 def mock_readonly_operation(*args, **kwargs):
     """Generic handler for read-only mode - raises 403 Forbidden."""
@@ -691,6 +857,27 @@ def patch_jobs_functions():
     except Exception as e:
         logger.warning(f"Demo mode: Error patching jobs functions: {e}")
 
+def patch_infrastructure_functions():
+    """Patch infrastructure-related functions."""
+    logger.info("Demo mode: Patching infrastructure functions")
+    try:
+        from sky import core
+        from sky.provision.kubernetes import utils as kubernetes_utils
+        
+        # Patch core infrastructure functions
+        core.enabled_clouds = mock_enabled_clouds
+        core.get_all_contexts = mock_get_all_contexts
+        core.realtime_kubernetes_gpu_availability = mock_realtime_kubernetes_gpu_availability
+        
+        # Patch Kubernetes utils function
+        kubernetes_utils.get_kubernetes_node_info = mock_kubernetes_node_info
+        
+        logger.info("Demo mode: Successfully patched infrastructure functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import infrastructure modules: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching infrastructure functions: {e}")
+
 def patch_server_write_endpoints():
     """Patch server write endpoints to be read-only."""
     # Import server module to access the app
@@ -730,6 +917,9 @@ def enable_demo_mode():
     
     # Patch jobs functions
     patch_jobs_functions()
+    
+    # Patch infrastructure functions
+    patch_infrastructure_functions()
     
     # Patch server write endpoints  
     patch_server_write_endpoints()
