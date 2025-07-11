@@ -581,11 +581,11 @@ def mock_get_ssh_keys(user_hash: str) -> tuple:
     return '', '', False
 
 def mock_get_current_user() -> models.User:
-    """Mock get_current_user - returns default demo user."""
+    """Mock get_current_user - returns current demo user."""
     # Load fresh data from JSON for hot reloading
     mock_data = _get_fresh_mock_data()
-    users = _convert_users_from_json(mock_data)
-    return users[0]  # Return first user as default user
+    current_user_id = mock_data['current_user']
+    return mock_get_user(current_user_id)
 
 def mock_get_user_hash() -> str:
     """Mock get_user_hash - returns default demo user hash."""
@@ -593,6 +593,13 @@ def mock_get_user_hash() -> str:
     mock_data = _get_fresh_mock_data()
     users = _convert_users_from_json(mock_data)
     return users[0].id
+
+def mock_get_user_roles(user_id: str) -> List[str]:
+    """Mock implementation of get_user_roles."""
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    user_roles = mock_data.get('user_roles', {})
+    return user_roles.get(user_id, [])
 
 # Jobs-related mock functions
 def mock_jobs_queue(*args, **kwargs) -> List[Dict[str, Any]]:
@@ -806,6 +813,24 @@ def patch_workspaces_functions():
     except Exception as e:
         logger.warning(f"Demo mode: Error patching workspaces functions: {e}")
 
+def patch_permission_functions():
+    """Patch permission-related functions."""
+    logger.info("Demo mode: Patching permission functions")
+    try:
+        from sky.users import permission
+        
+        # Mock the get_user_roles method on the permission service
+        if hasattr(permission, 'permission_service'):
+            # Store the original method for potential restoration
+            permission.permission_service._original_get_user_roles = permission.permission_service.get_user_roles
+            permission.permission_service.get_user_roles = mock_get_user_roles
+        
+        logger.info("Demo mode: Successfully patched permission functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import permission module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching permission functions: {e}")
+
 
 
 def enable_demo_mode():
@@ -827,6 +852,9 @@ def enable_demo_mode():
     # Patch workspaces functions
     patch_workspaces_functions()
     
+    # Patch permission functions
+    patch_permission_functions()
+    
     logger.info("Demo mode enabled successfully")
 
 def patch_server_endpoints(app):
@@ -836,12 +864,17 @@ def patch_server_endpoints(app):
         '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
         '/storage/delete', '/local_up', '/local_down', '/upload',
         '/volumes/delete', '/volumes/apply',
-        '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config'
+        '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config',
+        '/users/update', '/users/delete', '/users/create',
+        '/users/service-account-tokens/delete', '/users/service-account-tokens/update-role', '/users/service-account-tokens/rotate'
     ]
     
     @app.middleware("http")
     async def demo_readonly_middleware(request: fastapi.Request, call_next):
         """Middleware to block write operations in demo mode."""
+        # Set current user from demo data for all requests
+        request.state.auth_user = mock_get_current_user()
+        
         # Block write operations
         if (request.method in ['POST', 'PUT', 'PATCH', 'DELETE'] and 
             any(request.url.path.startswith(f'/api/v1{endpoint}') for endpoint in write_endpoints)):
