@@ -1,4 +1,5 @@
 {
+  "current_user": "alice123",
   "users": [
     {
       "id": "alice123",
@@ -19,6 +20,11 @@
       "created_at_offset": -86400
     }
   ],
+  "user_roles": {
+    "alice123": ["admin", "user"],
+    "bob456": ["user"],
+    "mike789": ["user", "viewer"]
+  },
   "yaml_configs": {
     "training": "resources:\n  accelerators: A100:8\n  cloud: gcp\n  region: us-central1\n\nnum_nodes: 4\n\nsetup: |\n  pip install torch transformers datasets\n\nrun: |\n  torchrun --nproc_per_node=8 --nnodes=4 \\\n    train_llama.py \\\n    --model_name_or_path meta-llama/Llama-2-70b \\\n    --dataset_name alpaca \\\n    --output_dir ./checkpoints \\\n    --num_train_epochs 3 \\\n    --per_device_train_batch_size 1 \\\n    --gradient_accumulation_steps 32 \\\n    --learning_rate 2e-5 \\\n    --save_steps 500 \\\n    --logging_steps 10",
     "inference": "resources:\n  accelerators: A100:1\n  cloud: aws\n  region: us-west-2\n\nsetup: |\n  pip install vllm transformers\n\nrun: |\n  python -c \"\n  from vllm import LLM, SamplingParams\n  \n  llm = LLM(model='meta-llama/Llama-2-13b-chat-hf')\n  sampling_params = SamplingParams(temperature=0.7, top_p=0.9)\n  \n  prompts = ['Tell me about artificial intelligence']\n  outputs = llm.generate(prompts, sampling_params)\n  \n  for output in outputs:\n      print(output.outputs[0].text)\n  \"",
