@@ -2,10 +2,19 @@
 
 This module monkey-patches global_user_state functions and server endpoints
 to provide a read-only demo experience with realistic fake data.
+
+The demo data is loaded from demo/mock_data.json file, which contains all the
+fake users, clusters, jobs, volumes, and other resources to simulate a 
+realistic SkyPilot environment.
+
+HOT RELOADING: The JSON file is loaded fresh on every API query, enabling
+real-time editing of mock data without server restarts. Simply edit the
+JSON file and refresh your browser to see changes immediately!
 """
 
 import copy
 import json
+import os
 import time
 from typing import Any, Dict, List, Optional, Set
 
@@ -25,82 +34,204 @@ logger = sky_logging.init_logger(__name__)
 
 # Demo data timestamps
 CURRENT_TIME = int(time.time())
-ONE_HOUR_AGO = CURRENT_TIME - 3600
-ONE_DAY_AGO = CURRENT_TIME - 86400
-TWO_DAYS_AGO = CURRENT_TIME - 172800
 
-# Demo users
-DEMO_USERS = [
-    models.User(id="alice123", name="alice@skypilot.co", password=None, created_at=TWO_DAYS_AGO),
-    models.User(id="bob456", name="bob@skypilot.co", password=None, created_at=TWO_DAYS_AGO),
-    models.User(id="mike789", name="mike@skypilot.co", password=None, created_at=ONE_DAY_AGO),
-]
+# Path to mock data file
+MOCK_DATA_FILE = os.path.join(os.path.dirname(__file__), 'mock_data.json')
 
-# Sample YAML configurations
-TRAINING_YAML = """
-resources:
-  accelerators: A100:8
-  cloud: gcp
-  region: us-central1
+def load_mock_data():
+    """Load mock data from JSON file."""
+    try:
+        with open(MOCK_DATA_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error(f"Mock data file not found: {MOCK_DATA_FILE}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in mock data file: {e}")
+        raise
 
-num_nodes: 4
+def reload_mock_data():
+    """Reload mock data from JSON file for hot reloading.
+    
+    This function is now deprecated since data is loaded fresh on every query.
+    It's kept for backward compatibility.
+    """
+    logger.info("Mock data is now loaded fresh on every query - reload_mock_data() is deprecated")
+    
+    # Test loading to ensure the JSON file is valid
+    try:
+        mock_data = _get_fresh_mock_data()
+        users = _convert_users_from_json(mock_data)
+        clusters = _convert_clusters_from_json(mock_data)
+        volumes = _convert_volumes_from_json(mock_data)
+        jobs = _convert_jobs_from_json(mock_data)
+        
+        logger.info(f"Mock data validated successfully - {len(users)} users, {len(clusters)} clusters, {len(jobs)} jobs, {len(volumes)} volumes")
+    except Exception as e:
+        logger.error(f"Failed to reload mock data: {e}")
+        raise
 
-setup: |
-  pip install torch transformers datasets
+def _convert_timestamp_offset(offset):
+    """Convert timestamp offset to absolute timestamp."""
+    if offset is None:
+        return None
+    if offset == -1:
+        return -1
+    return CURRENT_TIME + offset
 
-run: |
-  torchrun --nproc_per_node=8 --nnodes=4 \\
-    train_llama.py \\
-    --model_name_or_path meta-llama/Llama-2-70b \\
-    --dataset_name alpaca \\
-    --output_dir ./checkpoints \\
-    --num_train_epochs 3 \\
-    --per_device_train_batch_size 1 \\
-    --gradient_accumulation_steps 32 \\
-    --learning_rate 2e-5 \\
-    --save_steps 500 \\
-    --logging_steps 10
-"""
+def _get_cloud_from_string(cloud_str):
+    """Convert cloud string to cloud object."""
+    if cloud_str.lower() == 'gcp':
+        return clouds.GCP()
+    elif cloud_str.lower() == 'aws':
+        return clouds.AWS()
+    elif cloud_str.lower() == 'kubernetes':
+        return clouds.Kubernetes()
+    else:
+        raise ValueError(f"Unknown cloud: {cloud_str}")
 
-INFERENCE_YAML = """
-resources:
-  accelerators: A100:1
-  cloud: aws
-  region: us-west-2
+def _get_status_from_string(status_str):
+    """Convert status string to status enum."""
+    if hasattr(status_lib.ClusterStatus, status_str):
+        return getattr(status_lib.ClusterStatus, status_str)
+    else:
+        raise ValueError(f"Unknown cluster status: {status_str}")
 
-setup: |
-  pip install vllm transformers
+def _get_volume_status_from_string(status_str):
+    """Convert volume status string to volume status enum."""
+    if hasattr(status_lib.VolumeStatus, status_str):
+        return getattr(status_lib.VolumeStatus, status_str)
+    else:
+        raise ValueError(f"Unknown volume status: {status_str}")
 
-run: |
-  python -c "
-  from vllm import LLM, SamplingParams
-  
-  llm = LLM(model='meta-llama/Llama-2-13b-chat-hf')
-  sampling_params = SamplingParams(temperature=0.7, top_p=0.9)
-  
-  prompts = ['Tell me about artificial intelligence']
-  outputs = llm.generate(prompts, sampling_params)
-  
-  for output in outputs:
-      print(output.outputs[0].text)
-  "
-"""
+def _get_job_status_from_string(status_str):
+    """Convert job status string to job status enum."""
+    if hasattr(ManagedJobStatus, status_str):
+        return getattr(ManagedJobStatus, status_str)
+    else:
+        raise ValueError(f"Unknown job status: {status_str}")
 
-DEV_YAML = """
-resources:
-  cpus: 4
-  memory: 16
-  cloud: gcp
+def _get_schedule_state_from_string(state_str):
+    """Convert schedule state string to schedule state enum."""
+    if hasattr(ManagedJobScheduleState, state_str):
+        return getattr(ManagedJobScheduleState, state_str)
+    else:
+        raise ValueError(f"Unknown schedule state: {state_str}")
 
-setup: |
-  pip install jupyter numpy pandas matplotlib
+def _get_fresh_mock_data():
+    """Load fresh mock data from JSON file for hot reloading."""
+    return load_mock_data()
 
-run: |
-  jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
-"""
+def _convert_users_from_json(mock_data):
+    """Convert users from JSON data to User objects."""
+    users = []
+    for user_data in mock_data['users']:
+        user = models.User(
+            id=user_data['id'],
+            name=user_data['name'],
+            password=user_data['password'],
+            created_at=_convert_timestamp_offset(user_data['created_at_offset'])
+        )
+        users.append(user)
+    return users
+
+def _convert_clusters_from_json(mock_data):
+    """Convert clusters from JSON data to cluster objects."""
+    clusters = []
+    yaml_configs = mock_data['yaml_configs']
+    
+    for cluster_data in mock_data['clusters']:
+        yaml_config = yaml_configs[cluster_data['last_creation_yaml']]
+        cluster = {
+            'name': cluster_data['name'],
+            'launched_at': _convert_timestamp_offset(cluster_data['launched_at_offset']),
+            'handle': _create_demo_handle(
+                cluster_data['name'], 
+                _get_cloud_from_string(cluster_data['cloud']), 
+                cluster_data['region'], 
+                cluster_data['nodes']
+            ),
+            'last_use': cluster_data['last_use'],
+            'status': _get_status_from_string(cluster_data['status']),
+            'autostop': cluster_data['autostop'],
+            'to_down': cluster_data['to_down'],
+            'owner': cluster_data['owner'],
+            'metadata': cluster_data['metadata'],
+            'cluster_hash': cluster_data['cluster_hash'],
+            'storage_mounts_metadata': cluster_data['storage_mounts_metadata'],
+            'cluster_ever_up': cluster_data['cluster_ever_up'],
+            'status_updated_at': _convert_timestamp_offset(cluster_data['status_updated_at_offset']),
+            'user_hash': cluster_data['user_hash'],
+            'user_name': cluster_data['user_name'],
+            'config_hash': cluster_data['config_hash'],
+            'workspace': cluster_data['workspace'],
+            'last_creation_yaml': yaml_config,
+            'last_creation_command': cluster_data['last_creation_command'],
+        }
+        clusters.append(cluster)
+    return clusters
+
+def _convert_volumes_from_json(mock_data):
+    """Convert volumes from JSON data to volume objects."""
+    volumes = []
+    for volume_data in mock_data['volumes']:
+        volume = {
+            'name': volume_data['name'],
+            'type': volume_data['type'],
+            'launched_at': _convert_timestamp_offset(volume_data['launched_at_offset']),
+            'cloud': volume_data['cloud'],
+            'region': volume_data['region'],
+            'zone': volume_data['zone'],
+            'size': volume_data['size'],
+            'config': volume_data['config'],
+            'name_on_cloud': volume_data['name_on_cloud'],
+            'user_hash': volume_data['user_hash'],
+            'user_name': volume_data['user_name'],
+            'workspace': volume_data['workspace'],
+            'last_attached_at': _convert_timestamp_offset(volume_data['last_attached_at_offset']),
+            'last_use': volume_data['last_use'],
+            'status': _get_volume_status_from_string(volume_data['status']),
+            'usedby_clusters': volume_data['usedby_clusters'],
+            'usedby_pods': volume_data['usedby_pods'],
+        }
+        volumes.append(volume)
+    return volumes
+
+def _convert_jobs_from_json(mock_data):
+    """Convert jobs from JSON data to job objects."""
+    jobs = []
+    for job_data in mock_data['jobs']:
+        job = {
+            'job_id': job_data['job_id'],
+            'task_id': job_data['task_id'],
+            'job_name': job_data['job_name'],
+            'task_name': job_data['task_name'],
+            'status': _get_job_status_from_string(job_data['status']),
+            'submitted_at': _convert_timestamp_offset(job_data['submitted_at_offset']),
+            'start_at': _convert_timestamp_offset(job_data.get('start_at_offset')) if 'start_at_offset' in job_data else job_data.get('start_at'),
+            'end_at': _convert_timestamp_offset(job_data.get('end_at_offset')) if 'end_at_offset' in job_data else job_data.get('end_at'),
+            'job_duration': job_data['job_duration'],
+            'cluster_resources': job_data['cluster_resources'],
+            'cluster_resources_full': job_data['cluster_resources_full'],
+            'region': job_data['region'],
+            'cloud': job_data['cloud'],
+            'zone': job_data['zone'],
+            'user_name': job_data['user_name'],
+            'user_hash': job_data['user_hash'],
+            'workspace': job_data['workspace'],
+            'resources': job_data['resources'],
+            'recovery_count': job_data['recovery_count'],
+            'failure_reason': job_data['failure_reason'],
+            'schedule_state': _get_schedule_state_from_string(job_data['schedule_state']),
+            'specs': job_data['specs'],
+            'run_timestamp': str(_convert_timestamp_offset(job_data['run_timestamp_offset'])),
+            'last_recovered_at': _convert_timestamp_offset(job_data['last_recovered_at_offset']),
+        }
+        jobs.append(job)
+    return jobs
 
 # Helper function to create demo cluster handles
-def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, 
+def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, region: str,
                        nodes: int = 1) -> CloudVmRayResourceHandle:
     """Creates a realistic CloudVmRayResourceHandle for demo purposes."""
     # Create appropriate resources based on cluster type
@@ -121,6 +252,7 @@ def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud,
     # Create Resources object
     resources = resources_lib.Resources(
         cloud=cloud,
+        region=region,
         instance_type=instance_type,
         accelerators=accelerators,
         cpus=None,
@@ -145,371 +277,14 @@ def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud,
         stable_ssh_ports=stable_ssh_ports
     )
 
-# Demo clusters data
-DEMO_CLUSTERS = [
-    {
-        'name': 'lambda-k8s',
-        'launched_at': TWO_DAYS_AGO,
-        'handle': _create_demo_handle('lambda-k8s', clouds.Kubernetes(), 1),
-        'last_use': 'sky status',
-        'status': status_lib.ClusterStatus.UP,
-        'autostop': -1,
-        'to_down': False,
-        'owner': ['alice123'],
-        'metadata': {'cloud': 'kubernetes', 'region': 'lambda-cloud'},
-        'cluster_hash': 'cluster-hash-lambda-k8s',
-        'storage_mounts_metadata': None,
-        'cluster_ever_up': True,
-        'status_updated_at': ONE_HOUR_AGO,
-        'user_hash': 'alice123',
-        'user_name': 'alice@skypilot.co',
-        'config_hash': 'config-hash-1',
-        'workspace': 'research-private',
-        'last_creation_yaml': DEV_YAML,
-        'last_creation_command': 'sky launch -c lambda-k8s dev.yaml',
-    },
-    {
-        'name': 'nebius-k8s',
-        'launched_at': ONE_DAY_AGO,
-        'handle': _create_demo_handle('nebius-k8s', clouds.Kubernetes(), 1),
-        'last_use': 'sky status',
-        'status': status_lib.ClusterStatus.UP,
-        'autostop': -1,
-        'to_down': False,
-        'owner': ['bob456'],
-        'metadata': {'cloud': 'kubernetes', 'region': 'nebius'},
-        'cluster_hash': 'cluster-hash-nebius-k8s',
-        'storage_mounts_metadata': None,
-        'cluster_ever_up': True,
-        'status_updated_at': ONE_HOUR_AGO,
-        'user_hash': 'bob456',
-        'user_name': 'bob@skypilot.co',
-        'config_hash': 'config-hash-2',
-        'workspace': 'default',
-        'last_creation_yaml': DEV_YAML,
-        'last_creation_command': 'sky launch -c nebius-k8s dev.yaml',
-    },
-    {
-        'name': 'training-multinode-1',
-        'launched_at': ONE_DAY_AGO,
-        'handle': _create_demo_handle('training-multinode-1', clouds.GCP(), 4),
-        'last_use': 'sky exec training-multinode-1 train.yaml',
-        'status': status_lib.ClusterStatus.UP,
-        'autostop': 60,
-        'to_down': False,
-        'owner': ['alice123'],
-        'metadata': {'cloud': 'gcp', 'region': 'us-central1'},
-        'cluster_hash': 'cluster-hash-training-1',
-        'storage_mounts_metadata': None,
-        'cluster_ever_up': True,
-        'status_updated_at': ONE_HOUR_AGO,
-        'user_hash': 'alice123',
-        'user_name': 'alice@skypilot.co',
-        'config_hash': 'config-hash-3',
-        'workspace': 'ml-team',
-        'last_creation_yaml': TRAINING_YAML,
-        'last_creation_command': 'sky launch -c training-multinode-1 train.yaml',
-    },
-    {
-        'name': 'inference-cluster',
-        'launched_at': ONE_HOUR_AGO,
-        'handle': _create_demo_handle('inference-cluster', clouds.AWS(), 1),
-        'last_use': 'sky exec inference-cluster inference.yaml',
-        'status': status_lib.ClusterStatus.UP,
-        'autostop': 30,
-        'to_down': False,
-        'owner': ['mike789'],
-        'metadata': {'cloud': 'aws', 'region': 'us-west-2'},
-        'cluster_hash': 'cluster-hash-inference',
-        'storage_mounts_metadata': None,
-        'cluster_ever_up': True,
-        'status_updated_at': ONE_HOUR_AGO,
-        'user_hash': 'mike789',
-        'user_name': 'mike@skypilot.co',
-        'config_hash': 'config-hash-4',
-        'workspace': 'default',
-        'last_creation_yaml': INFERENCE_YAML,
-        'last_creation_command': 'sky launch -c inference-cluster inference.yaml',
-    },
-    {
-        'name': 'dev-cluster-alice',
-        'launched_at': TWO_DAYS_AGO,
-        'handle': _create_demo_handle('dev-cluster-alice', clouds.GCP(), 1),
-        'last_use': 'sky launch dev-work.yaml',
-        'status': status_lib.ClusterStatus.STOPPED,
-        'autostop': -1,
-        'to_down': False,
-        'owner': ['alice123'],
-        'metadata': {'cloud': 'gcp', 'region': 'us-west1'},
-        'cluster_hash': 'cluster-hash-dev-alice',
-        'storage_mounts_metadata': None,
-        'cluster_ever_up': True,
-        'status_updated_at': ONE_DAY_AGO,
-        'user_hash': 'alice123',
-        'user_name': 'alice@skypilot.co',
-        'config_hash': 'config-hash-5',
-        'workspace': 'default',
-        'last_creation_yaml': DEV_YAML,
-        'last_creation_command': 'sky launch -c dev-cluster-alice dev.yaml',
-    },
-]
-
-# Demo storage data
-DEMO_STORAGE = []
-
-# Demo volumes data  
-DEMO_VOLUMES = [
-    {
-        'name': 'ml-datasets',
-        'type': 'k8s-pvc',
-        'launched_at': TWO_DAYS_AGO,
-        'cloud': 'Kubernetes', 
-        'region': 'lambda-cloud',
-        'zone': None,
-        'size': '500',  # 500GB
-        'config': {
-            'storage_class_name': 'lambda-standard',
-            'access_mode': 'ReadWriteMany'
-        },
-        'name_on_cloud': 'ml-datasets-pvc-abc123',
-        'user_hash': 'alice123',
-        'user_name': 'alice@skypilot.co',
-        'workspace': 'research-private',
-        'last_attached_at': ONE_HOUR_AGO,
-        'last_use': 'sky exec lambda-k8s train.yaml',
-        'status': status_lib.VolumeStatus.IN_USE,
-        'usedby_clusters': ['lambda-k8s'],
-        'usedby_pods': [],
-    },
-    {
-        'name': 'model-checkpoints',
-        'type': 'k8s-pvc',
-        'launched_at': ONE_DAY_AGO,
-        'cloud': 'Kubernetes',
-        'region': 'nebius', 
-        'zone': None,
-        'size': '1000',  # 1TB
-        'config': {
-            'storage_class_name': 'nebius-fast-ssd',
-            'access_mode': 'ReadWriteOnce'
-        },
-        'name_on_cloud': 'model-checkpoints-pvc-def456',
-        'user_hash': 'alice123',
-        'user_name': 'alice@skypilot.co',
-        'workspace': 'ml-team',
-        'last_attached_at': ONE_DAY_AGO + 1800,  # 30 minutes after creation
-        'last_use': 'sky launch training-job.yaml',
-        'status': status_lib.VolumeStatus.READY,
-        'usedby_clusters': [],
-        'usedby_pods': [],
-    },
-    {
-        'name': 'shared-workspace',
-        'type': 'k8s-pvc',
-        'launched_at': ONE_DAY_AGO - 3600,  # 1 day and 1 hour ago
-        'cloud': 'Kubernetes',
-        'region': 'nebius',
-        'zone': None,
-        'size': '100',  # 100GB
-        'config': {
-            'storage_class_name': 'nebius-standard',
-            'access_mode': 'ReadWriteMany'
-        },
-        'name_on_cloud': 'shared-workspace-pvc-ghi789',
-        'user_hash': 'bob456',
-        'user_name': 'bob@skypilot.co',
-        'workspace': 'default',
-        'last_attached_at': None,  # Never attached
-        'last_use': 'sky volume apply shared-workspace.yaml',
-        'status': status_lib.VolumeStatus.READY,
-        'usedby_clusters': [],
-        'usedby_pods': [],
-    },
-]
-
-# Demo enabled clouds
-DEMO_ENABLED_CLOUDS = ['gcp', 'aws']
-
-# Demo workspaces data
-DEMO_WORKSPACES = {
-    'default': {
-        # Default workspace - can use all accessible infrastructure
-        # Empty config means no restrictions
-    },
-    'ml-team': {
-        'gcp': {
-            'project_id': 'skypilot-ml-team-prod'
-        },
-        'aws': {
-            'disabled': False
-        }
-    },
-    'research-private': {
-        'private': True,
-        'allowed_users': [
-            'alice@skypilot.co',
-            'mike@skypilot.co'
-        ],
-        'gcp': {
-            'project_id': 'skypilot-research-private'
-        },
-        'aws': {
-            'disabled': True  # Only GCP for this private workspace
-        }
-    }
-}
-
-# Demo jobs data
-THREE_DAYS_AGO = CURRENT_TIME - (3 * 86400)
-TWO_HOURS_AGO = CURRENT_TIME - (2 * 3600)
-
-DEMO_JOBS = [
-    {
-        'job_id': 1,
-        'task_id': 0,  # Required field that was missing
-        'job_name': 'llama-training',
-        'task_name': 'llama-training',
-        'status': ManagedJobStatus.RUNNING,
-        'submitted_at': ONE_DAY_AGO,
-        'start_at': ONE_DAY_AGO + 300,  # Started 5 minutes after submission
-        'end_at': None,
-        'job_duration': 3600,  # 1 hour (renamed from duration)
-        'cluster_resources': '4x(gpus=A100:8, n1-standard-8, ...)',
-        'cluster_resources_full': '4x(gpus=A100:8, cpus=8, mem=60, n1-standard-8)',
-        'region': 'us-central1',
-        'cloud': 'gcp',
-        'zone': 'us-central1-a',
-        'user_name': 'alice@skypilot.co',
-        'user_hash': 'alice123',
-        'workspace': 'ml-team',
-        'resources': 'A100:8x4',
-        'recovery_count': 0,
-        'failure_reason': None,
-        'schedule_state': ManagedJobScheduleState.ALIVE,  # Job is running
-        'specs': None,
-        'run_timestamp': str(ONE_DAY_AGO),
-        'last_recovered_at': ONE_DAY_AGO + 300,
-    },
-    {
-        'job_id': 2, 
-        'task_id': 0,
-        'job_name': 'batch-inference',
-        'task_name': 'batch-inference',
-        'status': ManagedJobStatus.SUCCEEDED,
-        'submitted_at': TWO_DAYS_AGO,
-        'start_at': TWO_DAYS_AGO + 180,  # Started 3 minutes after submission
-        'end_at': ONE_DAY_AGO,
-        'job_duration': 7200,  # 2 hours
-        'cluster_resources': '1x(gpus=A100:1, g4dn.xlarge, ...)',
-        'cluster_resources_full': '1x(gpus=A100:1, cpus=4, mem=16, g4dn.xlarge)',
-        'region': 'us-west-2',
-        'cloud': 'aws',
-        'zone': 'us-west-2a',
-        'user_name': 'mike@skypilot.co', 
-        'user_hash': 'mike789',
-        'workspace': 'default',
-        'resources': 'A100:1',
-        'recovery_count': 1,
-        'failure_reason': None,
-        'schedule_state': ManagedJobScheduleState.DONE,
-        'specs': None,
-        'run_timestamp': str(TWO_DAYS_AGO),
-        'last_recovered_at': TWO_DAYS_AGO + 3600,  # Recovered after 1 hour
-    },
-    {
-        'job_id': 3,
-        'task_id': 0,
-        'job_name': 'data-preprocessing', 
-        'task_name': 'data-preprocessing',
-        'status': ManagedJobStatus.PENDING,
-        'submitted_at': ONE_HOUR_AGO,
-        'start_at': None,  # Not started yet
-        'end_at': None,
-        'job_duration': 0,
-        'cluster_resources': '-',
-        'cluster_resources_full': '-',
-        'region': '-',
-        'cloud': '-',
-        'zone': '-',
-        'user_name': 'bob@skypilot.co',
-        'user_hash': 'bob456',
-        'workspace': 'default',
-        'resources': 'CPUs:8',
-        'recovery_count': 0,
-        'failure_reason': None,
-        'schedule_state': ManagedJobScheduleState.WAITING,
-        'specs': None,
-        'run_timestamp': str(ONE_HOUR_AGO),
-        'last_recovered_at': -1,  # Not started yet
-    },
-    {
-        'job_id': 4,
-        'task_id': 0,
-        'job_name': 'failed-experiment',
-        'task_name': 'failed-experiment',
-        'status': ManagedJobStatus.FAILED,
-        'submitted_at': THREE_DAYS_AGO,
-        'start_at': THREE_DAYS_AGO + 240,  # Started 4 minutes after submission
-        'end_at': TWO_DAYS_AGO,
-        'job_duration': 1800,  # 30 minutes
-        'cluster_resources': '1x(gpus=A100:1, n1-standard-4, ...)',
-        'cluster_resources_full': '1x(gpus=A100:1, cpus=4, mem=15, n1-standard-4)',
-        'region': 'us-west1',
-        'cloud': 'gcp',
-        'zone': 'us-west1-b',
-        'user_name': 'alice@skypilot.co',
-        'user_hash': 'alice123', 
-        'workspace': 'research-private',
-        'resources': 'A100:1',
-        'recovery_count': 2,
-        'failure_reason': 'Out of memory error in training script',
-        'schedule_state': ManagedJobScheduleState.DONE,
-        'specs': None,
-        'run_timestamp': str(THREE_DAYS_AGO),
-        'last_recovered_at': THREE_DAYS_AGO + 7200,  # Last recovery 2 hours in
-    },
-    {
-        'job_id': 5,
-        'task_id': 0,
-        'job_name': 'cancelled-run',
-        'task_name': 'cancelled-run',
-        'status': ManagedJobStatus.CANCELLED,
-        'submitted_at': TWO_HOURS_AGO,
-        'start_at': TWO_HOURS_AGO + 120,  # Started 2 minutes after submission
-        'end_at': ONE_HOUR_AGO,
-        'job_duration': 600,  # 10 minutes  
-        'cluster_resources': '1x(cpus=4, mem=16, n1-standard-4, ...)',
-        'cluster_resources_full': '1x(cpus=4, mem=16, n1-standard-4)',
-        'region': 'us-central1',
-        'cloud': 'gcp',
-        'zone': 'us-central1-c',
-        'user_name': 'bob@skypilot.co',
-        'user_hash': 'bob456',
-        'workspace': 'default', 
-        'resources': 'CPUs:4',
-        'recovery_count': 0,
-        'failure_reason': None,
-        'schedule_state': ManagedJobScheduleState.DONE,
-        'specs': None,
-        'run_timestamp': str(TWO_HOURS_AGO),
-        'last_recovered_at': TWO_HOURS_AGO + 120,
-    }
-]
+# All demo data is now loaded fresh from JSON on each query for hot reloading
 
 # Mock functions to replace global_user_state functions
 def mock_get_clusters() -> List[Dict[str, Any]]:
     """Mock implementation of get_clusters."""
-    # Deep copy to avoid handle mutations and recreate fresh handle objects
-    result = []
-    for cluster in DEMO_CLUSTERS:
-        cluster_copy = copy.deepcopy(cluster)
-        # Recreate the handle object to ensure it's not a string or mutated
-        cluster_copy['handle'] = _create_demo_handle(
-            cluster['name'], 
-            cluster['handle'].launched_resources.cloud,
-            cluster['handle'].launched_nodes
-        )
-        result.append(cluster_copy)
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    result = _convert_clusters_from_json(mock_data)
     
     cluster_names = [c['name'] for c in result]
     logger.info(f"Demo mode: mock_get_clusters() returning {len(result)} clusters: {cluster_names}")
@@ -527,53 +302,69 @@ def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str
     
     if cluster_name is None:
         return None
-    for cluster in DEMO_CLUSTERS:
-        if cluster['name'] == cluster_name:
-            cluster_copy = copy.deepcopy(cluster)
-            # Recreate the handle object to ensure it's not a string or mutated
-            cluster_copy['handle'] = _create_demo_handle(
-                cluster['name'], 
-                cluster['handle'].launched_resources.cloud,
-                cluster['handle'].launched_nodes
-            )
-            logger.info(f"Demo mode: Found cluster '{cluster_name}' in demo data")
-            return cluster_copy
     
-    logger.warning(f"Demo mode: Cluster '{cluster_name}' not found in demo data. Available clusters: {[c['name'] for c in DEMO_CLUSTERS]}")
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    clusters = _convert_clusters_from_json(mock_data)
+    
+    for cluster in clusters:
+        if cluster['name'] == cluster_name:
+            logger.info(f"Demo mode: Found cluster '{cluster_name}' in demo data")
+            return cluster
+    
+    logger.warning(f"Demo mode: Cluster '{cluster_name}' not found in demo data. Available clusters: {[c['name'] for c in clusters]}")
     return None
 
 def mock_get_all_users() -> List[models.User]:
     """Mock implementation of get_all_users."""
-    return DEMO_USERS.copy()
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    return _convert_users_from_json(mock_data)
 
 def mock_get_user(user_id: str) -> Optional[models.User]:
     """Mock implementation of get_user."""
-    for user in DEMO_USERS:
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    users = _convert_users_from_json(mock_data)
+    
+    for user in users:
         if user.id == user_id:
             return user
     return None
 
 def mock_get_storage() -> List[Dict[str, Any]]:
     """Mock implementation of get_storage."""
-    return DEMO_STORAGE.copy()
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    return mock_data['storage'].copy()
 
 def mock_get_volumes() -> List[Dict[str, Any]]:
     """Mock implementation of get_volumes."""
-    return DEMO_VOLUMES.copy()
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    return _convert_volumes_from_json(mock_data)
 
 def mock_get_cached_enabled_clouds(cloud_capability, workspace: str) -> List:
     """Mock implementation of get_cached_enabled_clouds."""
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    enabled_clouds = mock_data['enabled_clouds']
+    
     # Return actual cloud objects for demo
     mock_clouds = []
-    if 'gcp' in DEMO_ENABLED_CLOUDS:
+    if 'gcp' in enabled_clouds:
         mock_clouds.append(clouds.GCP())
-    if 'aws' in DEMO_ENABLED_CLOUDS:
+    if 'aws' in enabled_clouds:
         mock_clouds.append(clouds.AWS())
     return mock_clouds
 
 def mock_get_cluster_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_cluster_names_start_with."""
-    return [cluster['name'] for cluster in DEMO_CLUSTERS 
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    clusters = _convert_clusters_from_json(mock_data)
+    
+    return [cluster['name'] for cluster in clusters 
             if cluster['name'].startswith(starts_with)]
 
 def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
@@ -581,8 +372,12 @@ def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
     import fnmatch
     logger.info(f"Demo mode: mock_get_glob_cluster_names() called with pattern='{cluster_name}'")
     
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    clusters = _convert_clusters_from_json(mock_data)
+    
     # Get all cluster names from demo data
-    all_cluster_names = [cluster['name'] for cluster in DEMO_CLUSTERS]
+    all_cluster_names = [cluster['name'] for cluster in clusters]
     
     # Apply glob pattern matching
     matching_names = [name for name in all_cluster_names if fnmatch.fnmatch(name, cluster_name)]
@@ -592,11 +387,20 @@ def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
 
 def mock_get_storage_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_storage_names_start_with."""
-    return []
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    storage = mock_data['storage']
+    
+    return [storage_item['name'] for storage_item in storage 
+            if storage_item['name'].startswith(starts_with)]
 
 def mock_get_volume_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_volume_names_start_with."""
-    return [volume['name'] for volume in DEMO_VOLUMES 
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    volumes = _convert_volumes_from_json(mock_data)
+    
+    return [volume['name'] for volume in volumes 
             if volume['name'].startswith(starts_with)]
 
 # Infrastructure-related mock functions
@@ -604,20 +408,26 @@ def mock_enabled_clouds(workspace: Optional[str] = None, expand: bool = False) -
     """Mock implementation of core.enabled_clouds."""
     logger.info(f"Demo mode: mock_enabled_clouds() called with workspace={workspace}, expand={expand}")
     
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    enabled_clouds = mock_data['enabled_clouds']
+    
     if not expand:
-        return DEMO_ENABLED_CLOUDS.copy()
+        return enabled_clouds.copy()
     else:
         # Return expanded infrastructure names
         # For demo purposes, just return the basic cloud names since we don't need complex infra expansion
-        return DEMO_ENABLED_CLOUDS.copy()
+        return enabled_clouds.copy()
 
 def mock_get_all_contexts() -> List[str]:
     """Mock implementation of core.get_all_contexts."""
     logger.info("Demo mode: mock_get_all_contexts() called")
     
-    # Return the Kubernetes contexts from our demo clusters
-    # Based on the demo clusters, we have lambda-k8s and nebius-k8s
-    contexts = ['lambda-cloud', 'nebius']
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    
+    # Return the contexts from our demo node info (these are the available Kubernetes contexts)
+    contexts = list(mock_data['node_info'].keys())
     
     logger.info(f"Demo mode: Returning {len(contexts)} contexts: {contexts}")
     return contexts
@@ -634,18 +444,9 @@ def mock_realtime_kubernetes_gpu_availability(
     # Import models here to avoid circular imports
     from sky import models
     
-    # Define demo GPU availability for each context
-    demo_gpu_data = {
-        'lambda-cloud': [
-            # Each entry: [gpu_name, [requestable_qty_per_node], total_capacity, available]
-            ['A100', [1, 2, 4], 8, 6],  # 8 total A100s, 6 available
-            ['H100', [1, 2], 4, 2],     # 4 total H100s, 2 available
-        ],
-        'nebius': [
-            ['A100', [1, 2, 4, 8], 16, 8],  # 16 total A100s, 8 available  
-            ['V100', [1, 2], 4, 4],         # 4 total V100s, all available
-        ]
-    }
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    demo_gpu_data = mock_data['gpu_availability']
     
     # Build the response as list of tuples: (context_name, list_of_gpu_availability)
     result = []
@@ -662,7 +463,10 @@ def mock_realtime_kubernetes_gpu_availability(
     for ctx in contexts_to_process:
         gpu_availability_list = []
         for gpu_info in demo_gpu_data[ctx]:
-            gpu_name, requestable_qtys, total_capacity, available = gpu_info
+            gpu_name = gpu_info['gpu_name']
+            requestable_qtys = gpu_info['requestable_qtys']
+            total_capacity = gpu_info['total_capacity']
+            available = gpu_info['available']
             
             # Apply name filter
             if name_filter and name_filter.lower() not in gpu_name.lower():
@@ -694,55 +498,9 @@ def mock_kubernetes_node_info(context: Optional[str] = None):
     # Import models here to avoid circular imports
     from sky import models
     
-    # Define demo node information for each context
-    demo_node_data = {
-        'lambda-cloud': {
-            'lambda-worker-1': {
-                'name': 'lambda-worker-1',
-                'accelerator_type': 'A100',
-                'total': {'accelerator_count': 4},
-                'free': {'accelerators_available': 3},
-                'ip_address': '10.0.1.10',
-            },
-            'lambda-worker-2': {
-                'name': 'lambda-worker-2', 
-                'accelerator_type': 'A100',
-                'total': {'accelerator_count': 4},
-                'free': {'accelerators_available': 3},
-                'ip_address': '10.0.1.11',
-            },
-            'lambda-gpu-node-1': {
-                'name': 'lambda-gpu-node-1',
-                'accelerator_type': 'H100', 
-                'total': {'accelerator_count': 4},
-                'free': {'accelerators_available': 2},
-                'ip_address': '10.0.1.12',
-            },
-        },
-        'nebius': {
-            'nebius-worker-1': {
-                'name': 'nebius-worker-1',
-                'accelerator_type': 'A100',
-                'total': {'accelerator_count': 8},
-                'free': {'accelerators_available': 4},
-                'ip_address': '10.0.2.10',
-            },
-            'nebius-worker-2': {
-                'name': 'nebius-worker-2',
-                'accelerator_type': 'A100', 
-                'total': {'accelerator_count': 8},
-                'free': {'accelerators_available': 4},
-                'ip_address': '10.0.2.11',
-            },
-            'nebius-v100-node': {
-                'name': 'nebius-v100-node',
-                'accelerator_type': 'V100',
-                'total': {'accelerator_count': 4},
-                'free': {'accelerators_available': 4},
-                'ip_address': '10.0.2.12',
-            },
-        }
-    }
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    demo_node_data = mock_data['node_info']
     
     # Get node data for the specified context, or return empty if context not found
     node_info_dict = {}
@@ -769,8 +527,9 @@ def mock_volume_list() -> List[Dict[str, Any]]:
     """Mock implementation of volumes.server.core.volume_list."""
     logger.info("Demo mode: mock_volume_list() called")
     
-    # Return demo volumes data in the format expected by the volumes server
-    volumes = copy.deepcopy(DEMO_VOLUMES)
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    volumes = _convert_volumes_from_json(mock_data)
     
     # Convert VolumeStatus enum objects to string values for JSON serialization
     for volume in volumes:
@@ -784,8 +543,9 @@ def mock_get_workspaces() -> Dict[str, Any]:
     """Mock implementation of workspaces.core.get_workspaces."""
     logger.info("Demo mode: mock_get_workspaces() called")
     
-    # Return demo workspaces configuration
-    workspaces = copy.deepcopy(DEMO_WORKSPACES)
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    workspaces = copy.deepcopy(mock_data['workspaces'])
     
     logger.info(f"Demo mode: Returning {len(workspaces)} demo workspaces: {list(workspaces.keys())}")
     return workspaces
@@ -800,13 +560,16 @@ def mock_readonly_operation(*args, **kwargs):
 
 def mock_add_or_update_user(user: models.User, allow_duplicate_name: bool = True) -> bool:
     """Mock add_or_update_user - adds user to demo users if not exists."""
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    users = _convert_users_from_json(mock_data)
+    
     # Check if user already exists
-    for existing_user in DEMO_USERS:
+    for existing_user in users:
         if existing_user.id == user.id:
             return False  # User already exists, not newly added
     
-    # Add new user to demo users list
-    DEMO_USERS.append(user)
+    # In demo mode, we can't actually persist new users, so just return True
     return True  # User was newly added
 
 def mock_set_ssh_keys(*args, **kwargs):
@@ -819,19 +582,26 @@ def mock_get_ssh_keys(user_hash: str) -> tuple:
 
 def mock_get_current_user() -> models.User:
     """Mock get_current_user - returns default demo user."""
-    return DEMO_USERS[0]  # Return Alice as default user
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    users = _convert_users_from_json(mock_data)
+    return users[0]  # Return first user as default user
 
 def mock_get_user_hash() -> str:
     """Mock get_user_hash - returns default demo user hash."""
-    return DEMO_USERS[0].id
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    users = _convert_users_from_json(mock_data)
+    return users[0].id
 
 # Jobs-related mock functions
 def mock_jobs_queue(*args, **kwargs) -> List[Dict[str, Any]]:
     """Mock implementation of core.queue - returns demo job data."""
     logger.info(f"Demo mode: mock_jobs_queue() called with args={args}, kwargs={kwargs}")
     
-    # Apply filtering based on kwargs if needed
-    jobs = copy.deepcopy(DEMO_JOBS)
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    jobs = _convert_jobs_from_json(mock_data)
     
     # Handle skip_finished filter
     if kwargs.get('skip_finished', False):
@@ -858,7 +628,7 @@ def mock_maybe_restart_controller(*args, **kwargs):
     logger.info(f"Demo mode: mock_maybe_restart_controller() called")
     
     # Return a fake controller handle that passes basic checks
-    fake_controller_handle = _create_demo_handle('sky-jobs-controller-fake', clouds.GCP(), 1)
+    fake_controller_handle = _create_demo_handle('sky-jobs-controller-fake', clouds.GCP(), 'us-central1', 1)
     logger.info(f"Demo mode: Returning fake jobs controller handle")
     return fake_controller_handle
 
@@ -898,8 +668,10 @@ def mock_load_managed_job_queue(payload: str) -> List[Dict[str, Any]]:
     """Mock implementation of load_managed_job_queue - returns demo job data."""
     logger.info(f"Demo mode: mock_load_managed_job_queue() called")
     
-    # Return demo jobs data directly (bypass the JSON parsing)
-    jobs = copy.deepcopy(DEMO_JOBS)
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    jobs = _convert_jobs_from_json(mock_data)
+    
     logger.info(f"Demo mode: Returning {len(jobs)} demo jobs from load_managed_job_queue")
     return jobs
 
@@ -910,9 +682,13 @@ def mock_jobs_queue_direct(refresh: bool,
     """Mock implementation of core.queue - returns demo job data in API format."""
     logger.info(f"Demo mode: mock_jobs_queue_direct() called with refresh={refresh}, skip_finished={skip_finished}, all_users={all_users}, job_ids={job_ids}")
     
+    # Load fresh data from JSON for hot reloading
+    mock_data = _get_fresh_mock_data()
+    demo_jobs = _convert_jobs_from_json(mock_data)
+    
     # Convert demo data to API format (matching core.queue docstring format exactly)
     api_jobs = []
-    for job in DEMO_JOBS:
+    for job in demo_jobs:
         api_job = {
             'job_id': job['job_id'],
             'job_name': job['job_name'],
@@ -1030,37 +806,7 @@ def patch_workspaces_functions():
     except Exception as e:
         logger.warning(f"Demo mode: Error patching workspaces functions: {e}")
 
-def patch_server_write_endpoints():
-    """Patch server write endpoints to be read-only."""
-    # Import server module to access the app
-    from sky.server import server
-    
-    # List of write endpoints to make read-only
-    write_endpoints = [
-        '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
-        '/storage/delete', '/local_up', '/local_down', '/upload',
-        '/volumes/delete', '/volumes/apply',
-        '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config'
-    ]
-    
-    # We'll monkey-patch by replacing the route handlers
-    # This is a bit tricky with FastAPI, so we'll use a different approach:
-    # Add middleware to intercept write operations
-    
-    @server.app.middleware("http")
-    async def demo_readonly_middleware(request: fastapi.Request, call_next):
-        """Middleware to block write operations in demo mode."""
-        # Block write operations
-        if (request.method in ['POST', 'PUT', 'PATCH', 'DELETE'] and 
-            any(request.url.path.startswith(f'/api/v1{endpoint}') for endpoint in write_endpoints)):
-            return fastapi.responses.JSONResponse(
-                status_code=403,
-                content={'detail': 'Demo mode: Write operations are not allowed'}
-            )
-        
-        # Allow read operations
-        response = await call_next(request)
-        return response
+
 
 def enable_demo_mode():
     """Enable demo mode by patching functions and endpoints."""
@@ -1081,10 +827,34 @@ def enable_demo_mode():
     # Patch workspaces functions
     patch_workspaces_functions()
     
-    # Patch server write endpoints  
-    patch_server_write_endpoints()
-    
     logger.info("Demo mode enabled successfully")
 
-# Deploy demo mode patches. Executed when imported.
+def patch_server_endpoints(app):
+    """Patch server write endpoints to be read-only. Call this after app is created."""
+    # List of write endpoints to make read-only
+    write_endpoints = [
+        '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
+        '/storage/delete', '/local_up', '/local_down', '/upload',
+        '/volumes/delete', '/volumes/apply',
+        '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config'
+    ]
+    
+    @app.middleware("http")
+    async def demo_readonly_middleware(request: fastapi.Request, call_next):
+        """Middleware to block write operations in demo mode."""
+        # Block write operations
+        if (request.method in ['POST', 'PUT', 'PATCH', 'DELETE'] and 
+            any(request.url.path.startswith(f'/api/v1{endpoint}') for endpoint in write_endpoints)):
+            return fastapi.responses.JSONResponse(
+                status_code=403,
+                content={'detail': 'Demo mode: Write operations are not allowed'}
+            )
+        
+        # Allow read operations
+        response = await call_next(request)
+        return response
+    
+    logger.info("Demo mode: Server write endpoints patched successfully")
+
+# Enable demo mode functions (but not server endpoints) when imported
 enable_demo_mode()
