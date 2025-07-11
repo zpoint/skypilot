@@ -228,6 +228,7 @@ def _convert_jobs_from_json(mock_data):
             'last_recovered_at': _convert_timestamp_offset(job_data['last_recovered_at_offset']),
         }
         jobs.append(job)
+    jobs.sort(key=lambda x: x['job_id'], reverse=True)
     return jobs
 
 # Helper function to create demo cluster handles
