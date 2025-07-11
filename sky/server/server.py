@@ -71,11 +71,9 @@ from sky.utils import subprocess_utils
 from sky.volumes.server import server as volumes_rest
 from sky.workspaces import server as workspaces_rest
 
-# Enable demo mode with fake data and read-only endpoints
-try:
-    from sky import demo_mode  # pylint: disable=unused-import
-except ImportError:
-    pass  # Demo mode not available
+# Check if demo mode should be enabled
+_DEMO_MODE_ENABLED = os.environ.get('SKYPILOT_INTERNAL_APPLY_DEMO_PATCH', '').lower() == 'true'
+_DEMO_MODE_MODULE = None
 
 # pylint: disable=ungrouped-imports
 if sys.version_info >= (3, 10):
@@ -111,6 +109,24 @@ def _add_timestamp_prefix_for_server_logs() -> None:
 
 _add_timestamp_prefix_for_server_logs()
 logger = sky_logging.init_logger(__name__)
+
+# Enable demo mode with fake data and read-only endpoints
+# Only load if SKYPILOT_INTERNAL_APPLY_DEMO_PATCH environment variable is set
+if _DEMO_MODE_ENABLED:
+    try:
+        import sys
+        import pathlib
+        # Add demo directory to Python path
+        demo_dir = pathlib.Path(__file__).parent.parent.parent / 'demo'
+        if str(demo_dir) not in sys.path:
+            sys.path.insert(0, str(demo_dir))
+        import demo_mode  # pylint: disable=unused-import
+        _DEMO_MODE_MODULE = demo_mode
+        logger.info('Demo mode enabled via SKYPILOT_INTERNAL_APPLY_DEMO_PATCH')
+    except ImportError as e:
+        logger.warning(f'Failed to load demo mode: {e}')
+        _DEMO_MODE_ENABLED = False
+        pass  # Demo mode not available
 
 # TODO(zhwu): Streaming requests, such log tailing after sky launch or sky logs,
 # need to be detached from the main requests queue. Otherwise, the streaming
@@ -599,6 +615,11 @@ class APIVersionMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
 
 app = fastapi.FastAPI(prefix='/api/v1', debug=True, lifespan=lifespan)
+
+# Apply demo mode server patches if enabled
+if _DEMO_MODE_ENABLED and _DEMO_MODE_MODULE is not None:
+    _DEMO_MODE_MODULE.patch_server_endpoints(app)
+
 # Middleware wraps in the order defined here. E.g., given
 #   app.add_middleware(Middleware1)
 #   app.add_middleware(Middleware2)

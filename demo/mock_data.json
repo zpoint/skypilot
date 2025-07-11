@@ -1,0 +1,463 @@
+{
+  "users": [
+    {
+      "id": "alice123",
+      "name": "alice@skypilot.co",
+      "password": null,
+      "created_at_offset": -172800
+    },
+    {
+      "id": "bob456", 
+      "name": "bob@skypilot.co",
+      "password": null,
+      "created_at_offset": -172800
+    },
+    {
+      "id": "mike789",
+      "name": "mike@skypilot.co", 
+      "password": null,
+      "created_at_offset": -86400
+    }
+  ],
+  "yaml_configs": {
+    "training": "resources:\n  accelerators: A100:8\n  cloud: gcp\n  region: us-central1\n\nnum_nodes: 4\n\nsetup: |\n  pip install torch transformers datasets\n\nrun: |\n  torchrun --nproc_per_node=8 --nnodes=4 \\\n    train_llama.py \\\n    --model_name_or_path meta-llama/Llama-2-70b \\\n    --dataset_name alpaca \\\n    --output_dir ./checkpoints \\\n    --num_train_epochs 3 \\\n    --per_device_train_batch_size 1 \\\n    --gradient_accumulation_steps 32 \\\n    --learning_rate 2e-5 \\\n    --save_steps 500 \\\n    --logging_steps 10",
+    "inference": "resources:\n  accelerators: A100:1\n  cloud: aws\n  region: us-west-2\n\nsetup: |\n  pip install vllm transformers\n\nrun: |\n  python -c \"\n  from vllm import LLM, SamplingParams\n  \n  llm = LLM(model='meta-llama/Llama-2-13b-chat-hf')\n  sampling_params = SamplingParams(temperature=0.7, top_p=0.9)\n  \n  prompts = ['Tell me about artificial intelligence']\n  outputs = llm.generate(prompts, sampling_params)\n  \n  for output in outputs:\n      print(output.outputs[0].text)\n  \"",
+    "dev": "resources:\n  cpus: 4\n  memory: 16\n  cloud: gcp\n\nsetup: |\n  pip install jupyter numpy pandas matplotlib\n\nrun: |\n  jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+  },
+  "clusters": [
+    {
+      "name": "dev-alice",
+      "launched_at_offset": -172800,
+      "cloud": "kubernetes",
+      "region": "lambda-k8s", 
+      "nodes": 1,
+      "last_use": "sky launch -c dev-alice dev.yaml",
+      "status": "UP",
+      "autostop": -1,
+      "to_down": false,
+      "owner": ["alice123"],
+      "metadata": {
+        "cloud": "kubernetes",
+        "region": "lambda-k8s"
+      },
+      "cluster_hash": "cluster-hash-dev-alice",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -3600,
+      "user_hash": "alice123",
+      "user_name": "alice@skypilot.co",
+      "config_hash": "config-hash-1",
+      "workspace": "research-private",
+      "last_creation_yaml": "dev",
+      "last_creation_command": "sky launch -c dev-alice dev.yaml"
+    },
+    {
+      "name": "dev-bob",
+      "launched_at_offset": -86400,
+      "cloud": "kubernetes",
+      "region": "nebius-k8s",
+      "nodes": 1,
+      "last_use": "sky launch -c dev-bob dev.yaml",
+      "status": "UP",
+      "autostop": -1,
+      "to_down": false,
+      "owner": ["bob456"],
+      "metadata": {
+        "cloud": "kubernetes",
+        "region": "nebius-k8s"
+      },
+      "cluster_hash": "cluster-hash-dev-bob",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -3600,
+      "user_hash": "bob456",
+      "user_name": "bob@skypilot.co",
+      "config_hash": "config-hash-2",
+      "workspace": "default",
+      "last_creation_yaml": "dev",
+      "last_creation_command": "sky launch -c dev-bob dev.yaml"
+    },
+    {
+      "name": "training-multinode",
+      "launched_at_offset": -86400,
+      "cloud": "gcp",
+      "region": "us-central1",
+      "nodes": 4,
+      "last_use": "sky exec training-multinode train.yaml",
+      "status": "UP",
+      "autostop": 60,
+      "to_down": false,
+      "owner": ["alice123"],
+      "metadata": {
+        "cloud": "gcp",
+        "region": "us-central1"
+      },
+      "cluster_hash": "cluster-hash-training-1",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -3600,
+      "user_hash": "alice123",
+      "user_name": "alice@skypilot.co",
+      "config_hash": "config-hash-3",
+      "workspace": "ml-team",
+      "last_creation_yaml": "training",
+      "last_creation_command": "sky launch -c training-multinode-1 train.yaml"
+    },
+    {
+      "name": "inference-cluster",
+      "launched_at_offset": -3600,
+      "cloud": "aws",
+      "region": "us-west-2",
+      "nodes": 1,
+      "last_use": "sky exec inference-cluster inference.yaml",
+      "status": "UP",
+      "autostop": 30,
+      "to_down": false,
+      "owner": ["mike789"],
+      "metadata": {
+        "cloud": "aws",
+        "region": "us-west-2"
+      },
+      "cluster_hash": "cluster-hash-inference",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -3600,
+      "user_hash": "mike789",
+      "user_name": "mike@skypilot.co",
+      "config_hash": "config-hash-4",
+      "workspace": "default",
+      "last_creation_yaml": "inference",
+      "last_creation_command": "sky launch -c inference-cluster inference.yaml"
+    },
+    {
+      "name": "dev-cluster-alice",
+      "launched_at_offset": -172800,
+      "cloud": "gcp",
+      "region": "us-west1",
+      "nodes": 1,
+      "last_use": "sky launch dev-work.yaml",
+      "status": "STOPPED",
+      "autostop": -1,
+      "to_down": false,
+      "owner": ["alice123"],
+      "metadata": {
+        "cloud": "gcp",
+        "region": "us-west1"
+      },
+      "cluster_hash": "cluster-hash-dev-alice",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -86400,
+      "user_hash": "alice123",
+      "user_name": "alice@skypilot.co",
+      "config_hash": "config-hash-5",
+      "workspace": "default",
+      "last_creation_yaml": "dev",
+      "last_creation_command": "sky launch -c dev-cluster-alice dev.yaml"
+    }
+  ],
+  "storage": [],
+  "volumes": [
+    {
+      "name": "ml-datasets",
+      "type": "k8s-pvc",
+      "launched_at_offset": -172800,
+      "cloud": "Kubernetes",
+      "region": "lambda-k8s",
+      "zone": null,
+      "size": "500",
+      "config": {
+        "storage_class_name": "lambda-standard",
+        "access_mode": "ReadWriteMany"
+      },
+      "name_on_cloud": "ml-datasets-pvc-abc123",
+      "user_hash": "alice123",
+      "user_name": "alice@skypilot.co",
+      "workspace": "research-private",
+      "last_attached_at_offset": -3600,
+      "last_use": "sky exec lambda-k8s train.yaml",
+      "status": "IN_USE",
+      "usedby_clusters": ["lambda-k8s"],
+      "usedby_pods": []
+    },
+    {
+      "name": "model-checkpoints",
+      "type": "k8s-pvc",
+      "launched_at_offset": -86400,
+      "cloud": "Kubernetes",
+      "region": "nebius-k8s",
+      "zone": null,
+      "size": "1000",
+      "config": {
+        "storage_class_name": "nebius-fast-ssd",
+        "access_mode": "ReadWriteOnce"
+      },
+      "name_on_cloud": "model-checkpoints-pvc-def456",
+      "user_hash": "alice123",
+      "user_name": "alice@skypilot.co",
+      "workspace": "ml-team",
+      "last_attached_at_offset": -84600,
+      "last_use": "sky launch training-job.yaml",
+      "status": "READY",
+      "usedby_clusters": [],
+      "usedby_pods": []
+    },
+    {
+      "name": "shared-workspace",
+      "type": "k8s-pvc",
+      "launched_at_offset": -90000,
+      "cloud": "Kubernetes",
+      "region": "nebius-k8s",
+      "zone": null,
+      "size": "100",
+      "config": {
+        "storage_class_name": "nebius-standard",
+        "access_mode": "ReadWriteMany"
+      },
+      "name_on_cloud": "shared-workspace-pvc-ghi789",
+      "user_hash": "bob456",
+      "user_name": "bob@skypilot.co",
+      "workspace": "default",
+      "last_attached_at_offset": null,
+      "last_use": "sky volume apply shared-workspace.yaml",
+      "status": "READY",
+      "usedby_clusters": [],
+      "usedby_pods": []
+    }
+  ],
+  "enabled_clouds": ["gcp", "aws"],
+  "workspaces": {
+    "default": {},
+    "ml-team": {
+      "gcp": {
+        "project_id": "skypilot-ml-team-prod"
+      },
+      "aws": {
+        "disabled": false
+      }
+    },
+    "research-private": {
+      "private": true,
+      "allowed_users": [
+        "alice@skypilot.co",
+        "mike@skypilot.co"
+      ],
+      "gcp": {
+        "project_id": "skypilot-research-private"
+      },
+      "aws": {
+        "disabled": true
+      }
+    }
+  },
+  "jobs": [
+    {
+      "job_id": 1,
+      "task_id": 0,
+      "job_name": "llama-training",
+      "task_name": "llama-training",
+      "status": "RUNNING",
+      "submitted_at_offset": -86400,
+      "start_at_offset": -86100,
+      "end_at": null,
+      "job_duration": 3600,
+      "cluster_resources": "4x(gpus=A100:8, n1-standard-8, ...)",
+      "cluster_resources_full": "4x(gpus=A100:8, cpus=8, mem=60, n1-standard-8)",
+      "region": "us-central1",
+      "cloud": "gcp",
+      "zone": "us-central1-a",
+      "user_name": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "workspace": "ml-team",
+      "resources": "A100:8x4",
+      "recovery_count": 0,
+      "failure_reason": null,
+      "schedule_state": "ALIVE",
+      "specs": null,
+      "run_timestamp_offset": -86400,
+      "last_recovered_at_offset": -86100
+    },
+    {
+      "job_id": 2,
+      "task_id": 0,
+      "job_name": "batch-inference",
+      "task_name": "batch-inference",
+      "status": "SUCCEEDED",
+      "submitted_at_offset": -172800,
+      "start_at_offset": -172620,
+      "end_at_offset": -86400,
+      "job_duration": 7200,
+      "cluster_resources": "1x(gpus=A100:1, g4dn.xlarge, ...)",
+      "cluster_resources_full": "1x(gpus=A100:1, cpus=4, mem=16, g4dn.xlarge)",
+      "region": "us-west-2",
+      "cloud": "aws",
+      "zone": "us-west-2a",
+      "user_name": "mike@skypilot.co",
+      "user_hash": "mike789",
+      "workspace": "default",
+      "resources": "A100:1",
+      "recovery_count": 1,
+      "failure_reason": null,
+      "schedule_state": "DONE",
+      "specs": null,
+      "run_timestamp_offset": -172800,
+      "last_recovered_at_offset": -169200
+    },
+    {
+      "job_id": 3,
+      "task_id": 0,
+      "job_name": "data-preprocessing",
+      "task_name": "data-preprocessing",
+      "status": "PENDING",
+      "submitted_at_offset": -3600,
+      "start_at": null,
+      "end_at": null,
+      "job_duration": 0,
+      "cluster_resources": "-",
+      "cluster_resources_full": "-",
+      "region": "-",
+      "cloud": "-",
+      "zone": "-",
+      "user_name": "bob@skypilot.co",
+      "user_hash": "bob456",
+      "workspace": "default",
+      "resources": "CPUs:8",
+      "recovery_count": 0,
+      "failure_reason": null,
+      "schedule_state": "WAITING",
+      "specs": null,
+      "run_timestamp_offset": -3600,
+      "last_recovered_at_offset": -1
+    },
+    {
+      "job_id": 4,
+      "task_id": 0,
+      "job_name": "failed-experiment",
+      "task_name": "failed-experiment",
+      "status": "FAILED",
+      "submitted_at_offset": -259200,
+      "start_at_offset": -258960,
+      "end_at_offset": -172800,
+      "job_duration": 1800,
+      "cluster_resources": "1x(gpus=A100:1, n1-standard-4, ...)",
+      "cluster_resources_full": "1x(gpus=A100:1, cpus=4, mem=15, n1-standard-4)",
+      "region": "us-west1",
+      "cloud": "gcp",
+      "zone": "us-west1-b",
+      "user_name": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "workspace": "research-private",
+      "resources": "A100:1",
+      "recovery_count": 2,
+      "failure_reason": "Out of memory error in training script",
+      "schedule_state": "DONE",
+      "specs": null,
+      "run_timestamp_offset": -259200,
+      "last_recovered_at_offset": -252000
+    },
+    {
+      "job_id": 5,
+      "task_id": 0,
+      "job_name": "cancelled-run",
+      "task_name": "cancelled-run",
+      "status": "CANCELLED",
+      "submitted_at_offset": -7200,
+      "start_at_offset": -7080,
+      "end_at_offset": -3600,
+      "job_duration": 600,
+      "cluster_resources": "1x(cpus=4, mem=16, n1-standard-4, ...)",
+      "cluster_resources_full": "1x(cpus=4, mem=16, n1-standard-4)",
+      "region": "us-central1",
+      "cloud": "gcp",
+      "zone": "us-central1-c",
+      "user_name": "bob@skypilot.co",
+      "user_hash": "bob456",
+      "workspace": "default",
+      "resources": "CPUs:4",
+      "recovery_count": 0,
+      "failure_reason": null,
+      "schedule_state": "DONE",
+      "specs": null,
+      "run_timestamp_offset": -7200,
+      "last_recovered_at_offset": -7080
+    }
+  ],
+  "gpu_availability": {
+    "lambda-k8s": [
+      {
+        "gpu_name": "A100",
+        "requestable_qtys": [1, 2, 4],
+        "total_capacity": 8,
+        "available": 6
+      },
+      {
+        "gpu_name": "H100",
+        "requestable_qtys": [1, 2],
+        "total_capacity": 4,
+        "available": 2
+      }
+    ],
+    "nebius-k8s": [
+      {
+        "gpu_name": "A100",
+        "requestable_qtys": [1, 2, 4, 8],
+        "total_capacity": 16,
+        "available": 8
+      },
+      {
+        "gpu_name": "V100",
+        "requestable_qtys": [1, 2],
+        "total_capacity": 4,
+        "available": 4
+      }
+    ]
+  },
+  "node_info": {
+    "lambda-k8s": {
+      "lambda-worker-1": {
+        "name": "lambda-worker-1",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.0.1.10"
+      },
+      "lambda-worker-2": {
+        "name": "lambda-worker-2",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.0.1.11"
+      },
+      "lambda-gpu-node-1": {
+        "name": "lambda-gpu-node-1",
+        "accelerator_type": "H100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 2},
+        "ip_address": "10.0.1.12"
+      }
+    },
+    "nebius-k8s": {
+      "nebius-worker-1": {
+        "name": "nebius-worker-1",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.10"
+      },
+      "nebius-worker-2": {
+        "name": "nebius-worker-2",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.11"
+      },
+      "nebius-v100-node": {
+        "name": "nebius-v100-node",
+        "accelerator_type": "V100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.12"
+      }
+    }
+  }
+}
