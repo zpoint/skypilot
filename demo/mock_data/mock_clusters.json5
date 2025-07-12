@@ -56,21 +56,21 @@
       "config_hash": "config-hash-3",
       "workspace": "ml-team",
       "last_creation_yaml": "training",
-      "last_creation_command": "sky launch -c training-multinode train.yaml",
+      "last_creation_command": "sky launch -c training-multinode --secrets HF_TOKEN train.yaml",
       "resources": {
-        "instance_type": "n1-standard-8",
+        "instance_type": "a2-highgpu-8g",
         "accelerators": {"A100": 8},
-        "cpus": null,
-        "memory": null
+        "cpus": 96,
+        "memory": 680
       }
     },
     {
-      "name": "inference-cluster",
+      "name": "inference",
       "launched_at_offset": -3600,
       "cloud": "aws",
       "region": "us-west-2",
       "nodes": 1,
-      "last_use": "sky exec inference-cluster inference.yaml",
+      "last_use": "sky exec inference inference.yaml",
       "status": "UP",
       "autostop": 30,
       "to_down": false,
@@ -88,12 +88,12 @@
       "config_hash": "config-hash-4",
       "workspace": "default",
       "last_creation_yaml": "inference",
-      "last_creation_command": "sky launch -c inference-cluster inference.yaml",
+      "last_creation_command": "sky launch -c inference inference.yaml",
       "resources": {
-        "instance_type": "g6.xlarge",
+        "instance_type": "g6.2xlarge",
         "accelerators": {"L4": 1},
-        "cpus": null,
-        "memory": null
+        "cpus": 8,
+        "memory": 32
       }
     },
     {

@@ -14,42 +14,42 @@
       "log_path": "logs/training-multinode/job-1.log"
     },
     {
-      "cluster_name": "inference-cluster",
+      "cluster_name": "inference",
       "job_id": 1,
-      "job_name": "batch-inference",
+      "job_name": "compute-embeddings",
       "username": "mike@skypilot.co",
       "user_hash": "mike789",
       "submitted_at_offset": -5400,
       "start_at_offset": -5200,
       "end_at": null,
       "resources": "1x[L4:1]",
-      "status": "RUNNING",
-      "log_path": "logs/inference-cluster/job-1.log"
+      "status": "SUCCEEDED",
+      "log_path": "logs/inference/job-1.log"
     },
     {
-      "cluster_name": "inference-cluster",
+      "cluster_name": "inference",
       "job_id": 2,
-      "job_name": "model-evaluation",
+      "job_name": "compute-embeddings-2",
       "username": "mike@skypilot.co",
       "user_hash": "mike789",
       "submitted_at_offset": -28800,
       "start_at_offset": -28600,
       "end_at_offset": -25200,
       "resources": "1x[L4:1]",
-      "status": "SUCCEEDED",
-      "log_path": "logs/inference-cluster/job-2.log"
+      "status": "RUNNING",
+      "log_path": "logs/inference/job-2.log"
     },
     {
       "cluster_name": "dev-bob",
       "job_id": 1,
-      "job_name": "code-testing",
+      "job_name": "jupyter-notebook",
       "username": "bob@skypilot.co",
       "user_hash": "bob456",
       "submitted_at_offset": -172800,
       "start_at_offset": -172600,
-      "end_at_offset": -172000,
+      "end_at": null,
       "resources": "4CPU--16GB",
-      "status": "SUCCEEDED",
+      "status": "CANCELLED",
       "log_path": "logs/dev-bob/job-1.log"
     }
   ]

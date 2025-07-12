@@ -1,0 +1,124 @@
+(setup pid=9142) Installing dependencies for vLLM
+(setup pid=9142) pip install transformers==4.48.1 vllm==0.6.6.post1
+(setup pid=9142) Successfully installed transformers-4.48.1 vllm-0.6.6.post1
+(setup pid=9142) pip install numpy pandas requests tqdm datasets
+(setup pid=9142) Successfully installed numpy-1.24.3 pandas-2.0.3 requests-2.31.0 tqdm-4.66.1 datasets-2.14.6
+(setup pid=9142) pip install nltk hf_transfer
+(setup pid=9142) Successfully installed nltk-3.8.1 hf_transfer-0.1.6
+
+(setup pid=9142) Environment variables:
+(setup pid=9142) START_IDX=10000
+(setup pid=9142) END_IDX=20000
+(setup pid=9142) MODEL_NAME=Alibaba-NLP/gte-Qwen2-7B-instruct
+(setup pid=9142) EMBEDDINGS_BUCKET_NAME=sky-rag-embeddings
+
+(setup pid=9142) Initializing and downloading the model
+(setup pid=9142) HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli download --local-dir /tmp/model Alibaba-NLP/gte-Qwen2-7B-instruct
+(setup pid=9142) Found cached model at /tmp/model from previous runs
+(setup pid=9142) Verifying model integrity...
+(setup pid=9142) Model verification complete. Using cached model.
+
+(run pid=9142) Starting vLLM service in background
+(run pid=9142) python -m vllm.entrypoints.openai.api_server --host 0.0.0.0 --model /tmp/model --max-model-len 3072 --task embed &
+(run pid=9423) INFO:     Started server process [9423]
+(run pid=9423) INFO:     Waiting for application startup.
+(run pid=9423) INFO:vllm.engine.llm_engine:Initializing an LLM engine (v0.6.6.post1) with config: model='/tmp/model', speculative_config=None, tokenizer='/tmp/model', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, rope_scaling=None, rope_theta=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=3072, download_dir=None, load_format=LoadFormat.SAFETENSORS, tensor_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, quantization_param_path=None, device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='outlines'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None), seed=0, served_model_name=None, use_v2_block_manager=False, enable_prefix_caching=False)
+(run pid=9423) INFO:vllm.model_executor.model_loader:Loading model weights took 14.6734 GB GPU memory. Using torch.bfloat16.
+(run pid=9423) INFO:vllm.engine.llm_engine:# GPU blocks: 2847, # CPU blocks: 2048
+(run pid=9423) INFO:vllm.engine.llm_engine:Maximum concurrency for embedding models: 32
+(run pid=9423) INFO:vllm.engine.llm_engine:Model initialization complete. Ready for embedding requests.
+(run pid=9423) INFO:     Application startup complete.
+(run pid=9423) INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+(run pid=9142) Waiting for vLLM service to be ready...
+(run pid=9142) Still waiting for vLLM service...
+(run pid=9142) vLLM service is ready!
+
+(run pid=9142) Processing documents from 10000 to 20000
+(run pid=9142) python scripts/compute_embeddings.py --output-path "/output/embeddings_10000_20000.parquet" --start-idx 10000 --end-idx 20000 --chunk-size 2048 --chunk-overlap 512 --vllm-endpoint http://localhost:8000 --batch-size 32
+
+(run pid=9654) === Compute Embeddings Job Started ===
+(run pid=9654) Configuration:
+(run pid=9654) - Document range: 10000 to 20000
+(run pid=9654) - Chunk size: 2048 tokens
+(run pid=9654) - Chunk overlap: 512 tokens
+(run pid=9654) - Batch size: 32
+(run pid=9654) - vLLM endpoint: http://localhost:8000
+(run pid=9654) - Output path: /output/embeddings_10000_20000.parquet
+
+(run pid=9654) Loading document dataset...
+(run pid=9654) Successfully loaded 10,000 documents from the corpus (range: 10000-20000)
+(run pid=9654) Total documents to process: 10,000
+(run pid=9654) Average document length: 1,923 tokens
+
+(run pid=9654) Starting document chunking...
+(run pid=9654) Processed: 1000/10000 documents (10.0%) | Chunks created: 1,267 | ETA: 13m 45s
+(run pid=9654) Processed: 2000/10000 documents (20.0%) | Chunks created: 2,534 | ETA: 12m 12s  
+(run pid=9654) Processed: 3000/10000 documents (30.0%) | Chunks created: 3,801 | ETA: 10m 48s
+(run pid=9654) Processed: 4000/10000 documents (40.0%) | Chunks created: 5,068 | ETA: 9m 23s
+(run pid=9654) Processed: 5000/10000 documents (50.0%) | Chunks created: 6,335 | ETA: 7m 58s
+(run pid=9654) Processed: 6000/10000 documents (60.0%) | Chunks created: 7,602 | ETA: 6m 34s
+(run pid=9654) Processed: 7000/10000 documents (70.0%) | Chunks created: 8,869 | ETA: 5m 10s
+(run pid=9654) Processed: 8000/10000 documents (80.0%) | Chunks created: 10,136 | ETA: 3m 45s
+(run pid=9654) Processed: 9000/10000 documents (90.0%) | Chunks created: 11,403 | ETA: 1m 52s
+(run pid=9654) Processed: 10000/10000 documents (100.0%) | Chunks created: 12,670 | Completed!
+
+(run pid=9654) Document chunking completed.
+(run pid=9654) Total chunks created: 12,670
+(run pid=9654) Average chunks per document: 1.27
+
+(run pid=9654) Starting embedding computation...
+(run pid=9654) Total batches to process: 396 (batch_size=32)
+
+(run pid=9654) [Batch 1/396] Processing chunks 0-31 | GPU Memory: 18.1GB/22.5GB | Speed: 46.8 chunks/sec
+(run pid=9654) [Batch 10/396] Processing chunks 288-319 | GPU Memory: 18.3GB/22.5GB | Speed: 47.2 chunks/sec | ETA: 14m 23s
+(run pid=9654) [Batch 20/396] Processing chunks 608-639 | GPU Memory: 18.2GB/22.5GB | Speed: 46.9 chunks/sec | ETA: 13m 47s
+(run pid=9654) [Batch 50/396] Processing chunks 1568-1599 | GPU Memory: 18.4GB/22.5GB | Speed: 47.1 chunks/sec | ETA: 12m 18s
+(run pid=9654) [Batch 100/396] Processing chunks 3168-3199 | GPU Memory: 18.3GB/22.5GB | Speed: 47.0 chunks/sec | ETA: 10m 34s
+
+(run pid=9654) === Checkpoint 1/4 ===
+(run pid=9654) Processed: 3,200/12,670 chunks (25.3%)
+(run pid=9654) Embeddings computed: 3,200
+(run pid=9654) Average embedding dimension: 3,584
+(run pid=9654) Current throughput: 47.0 chunks/sec
+(run pid=9654) Estimated completion: 10:26 remaining
+
+(run pid=9654) [Batch 150/396] Processing chunks 4768-4799 | GPU Memory: 18.5GB/22.5GB | Speed: 47.3 chunks/sec | ETA: 8m 45s
+(run pid=9654) [Batch 200/396] Processing chunks 6368-6399 | GPU Memory: 18.2GB/22.5GB | Speed: 46.8 chunks/sec | ETA: 6m 58s
+
+(run pid=9654) === Checkpoint 2/4 ===
+(run pid=9654) Processed: 6,400/12,670 chunks (50.5%)
+(run pid=9654) Embeddings computed: 6,400
+(run pid=9654) Current throughput: 47.0 chunks/sec
+(run pid=9654) Estimated completion: 06:41 remaining
+
+(run pid=9654) [Batch 250/396] Processing chunks 7968-7999 | GPU Memory: 18.4GB/22.5GB | Speed: 47.2 chunks/sec | ETA: 5m 12s
+(run pid=9654) [Batch 300/396] Processing chunks 9568-9599 | GPU Memory: 18.3GB/22.5GB | Speed: 46.9 chunks/sec | ETA: 3m 25s
+
+(run pid=9654) === Checkpoint 3/4 ===
+(run pid=9654) Processed: 9,600/12,670 chunks (75.8%)
+(run pid=9654) Embeddings computed: 9,600
+(run pid=9654) Current throughput: 47.0 chunks/sec
+(run pid=9654) Estimated completion: 03:15 remaining
+
+(run pid=9654) [Batch 350/396] Processing chunks 11168-11199 | GPU Memory: 18.5GB/22.5GB | Speed: 47.1 chunks/sec | ETA: 1m 38s
+(run pid=9654) [Batch 375/396] Processing chunks 11968-11999 | GPU Memory: 18.3GB/22.5GB | Speed: 46.8 chunks/sec | ETA: 0m 45s
+(run pid=9654) [Batch 390/396] Processing chunks 12448-12479 | GPU Memory: 18.4GB/22.5GB | Speed: 47.0 chunks/sec | ETA: 0m 13s
+
+(run pid=9654) Current progress: 390/396 batches completed (98.5%)
+(run pid=9654) Processed: 12,480/12,670 chunks (98.5%)
+(run pid=9654) Remaining chunks: 190
+(run pid=9654) Estimated completion: 00:04 remaining
+
+(run pid=9654) [Batch 395/396] Processing chunks 12640-12669 | GPU Memory: 18.3GB/22.5GB | Speed: 46.9 chunks/sec | ETA: 0m 02s
+
+# Job is currently processing the final batch
+# Real-time metrics:
+# - GPU utilization: 96.2%
+# - Memory usage: 18.3GB/22.5GB (81.3%)
+# - Current throughput: 46.9 chunks/sec
+# - Embeddings computed so far: 12,640/12,670
+# - Progress: 99.8% complete
+# - Expected completion: 2025-01-15 16:47:23 UTC
+
+Note: This embedding computation job is still running in demo mode.
