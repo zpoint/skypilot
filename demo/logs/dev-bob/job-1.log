@@ -1,228 +1,266 @@
-=== Job 1 (code-testing) on dev-cluster-alice ===
+=== Job 1 (jupyter-notebook) on dev-bob ===
 Job started at: 2024-01-13 08:00:00 UTC
 Resources: 4CPU--16GB
 
-Setting up testing environment...
-Installing dependencies...
-pip install pytest pytest-cov black flake8 mypy bandit safety
-Successfully installed pytest-7.4.3 pytest-cov-4.1.0 black-23.9.1 flake8-6.1.0 mypy-1.7.1 bandit-1.7.5 safety-2.3.5
-
-Cloning repository...
-git clone https://github.com/skypilot-org/skypilot.git
-Cloning into 'skypilot'...
-remote: Enumerating objects: 25847, done.
-remote: Counting objects: 100% (25847/25847), done.
-remote: Compressing objects: 100% (8934/8934), done.
-remote: Total 25847 (delta 16234), used 16234 (delta 16234), pack-reused 0
-Receiving objects: 100% (25847/25847), 12.34 MiB | 15.2 MiB/s, done.
-Resolving deltas: 100% (16234/16234), done.
-
 Setting up development environment...
-cd skypilot
-pip install -e .
-Successfully installed skypilot-dev
+Installing dependencies...
+pip install jupyter numpy pandas matplotlib seaborn scikit-learn plotly
+Successfully installed jupyter-1.0.0 numpy-1.24.3 pandas-2.0.3 matplotlib-3.7.2 seaborn-0.12.2 scikit-learn-1.3.0 plotly-5.15.0
 
-=== Code Quality Checks ===
+Starting Jupyter Notebook server...
+jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 
-1. Running Black (code formatter)...
-black --check --diff .
-would reformat sky/clouds/gcp.py
-would reformat sky/backends/backend_utils.py
-would reformat tests/test_optimizer.py
-3 files would be reformatted, 247 files already formatted.
+[I 08:00:15.123 NotebookApp] JupyterLab extension loaded from /opt/conda/lib/python3.10/site-packages/jupyterlab
+[I 08:00:15.123 NotebookApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
+[I 08:00:15.125 NotebookApp] Serving notebooks from local directory: /home/gcpuser
+[I 08:00:15.125 NotebookApp] Jupyter Notebook 6.5.4 is running at:
+[I 08:00:15.125 NotebookApp] http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+[I 08:00:15.125 NotebookApp]  or http://127.0.0.1:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+[I 08:00:15.125 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[I 08:00:15.125 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///home/gcpuser/.local/share/jupyter/runtime/nbserver-1-open.html
+    Or copy and paste one of these URLs:
+        http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+     or http://127.0.0.1:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
 
-2. Running Flake8 (linting)...
-flake8 sky/ tests/ --max-line-length=88 --extend-ignore=E203,W503
-sky/backends/cloud_vm_ray_backend.py:234: E501 line too long (92 > 88 characters)
-sky/optimizer.py:567: F401 'typing.Optional' imported but unused
-tests/test_smoke.py:123: E302 expected 2 blank lines, found 1
-3 violations found.
+[I 08:00:32.456 NotebookApp] Kernel started: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c, session: data-exploration
+[I 08:00:32.456 NotebookApp] Notebook opened: data_analysis.ipynb
 
-3. Running MyPy (static type checking)...
-mypy sky/ --ignore-missing-imports
-sky/clouds/service_catalog.py:145: error: Argument 1 to "get" has incompatible type "Optional[str]"; expected "str"
-sky/utils/subprocess_utils.py:89: error: Incompatible return value type (got "Optional[str]", expected "str")
-Found 2 type errors.
+=== Notebook Session Activity ===
 
-4. Running Bandit (security analysis)...
-bandit -r sky/ -f json
-Issues found: 1
-- [B108:hardcoded_tmp_directory] Possible hardcoded temporary file/directory
-  Location: sky/utils/log_utils.py:45
-  Confidence: MEDIUM
-  Severity: MEDIUM
+[08:00:45] New notebook created: data_analysis.ipynb
+[08:01:12] Cell 1 executed: Import statements
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+```
 
-5. Running Safety (dependency vulnerability check)...
-safety check --json
-No known security vulnerabilities found.
+[08:01:28] Cell 2 executed: Data generation
+```python
+# Generate sample dataset
+X, y = make_classification(n_samples=1000, n_features=20, n_informative=10, 
+                          n_redundant=5, n_clusters_per_class=1, random_state=42)
+feature_names = [f'feature_{i}' for i in range(20)]
+df = pd.DataFrame(X, columns=feature_names)
+df['target'] = y
 
-=== Unit Tests ===
+print(f"Dataset shape: {df.shape}")
+print(f"Target distribution:\n{df['target'].value_counts()}")
+```
+Output: Dataset shape: (1000, 21)
+        Target distribution:
+        0    500
+        1    500
+        Name: target, dtype: int64
 
-Running pytest with coverage...
-pytest tests/ -v --cov=sky --cov-report=html --cov-report=term
+[08:02:45] Cell 3 executed: Data exploration
+```python
+# Basic statistics
+print("Dataset Info:")
+print(df.info())
+print("\nBasic Statistics:")
+print(df.describe())
+```
 
-test_clouds.py::test_aws_regions ✓
-test_clouds.py::test_gcp_regions ✓
-test_clouds.py::test_azure_regions ✓
-test_clouds.py::test_kubernetes_context ✓
-test_backend_utils.py::test_get_cluster_name ✓
-test_backend_utils.py::test_validate_cluster_name ✓
-test_backend_utils.py::test_generate_cluster_name ✓
-test_task.py::test_task_from_yaml ✓
-test_task.py::test_task_resources ✓
-test_task.py::test_task_environment ✓
-test_optimizer.py::test_optimize_simple ✓
-test_optimizer.py::test_optimize_with_constraints ✓
-test_optimizer.py::test_optimize_multi_cloud ✓
-test_resources.py::test_accelerator_parsing ✓
-test_resources.py::test_memory_parsing ✓
-test_resources.py::test_disk_parsing ✓
-test_storage.py::test_s3_mount ✓
-test_storage.py::test_gcs_mount ✓
-test_storage.py::test_azure_mount ✓
-test_global_user_state.py::test_cluster_operations ✓
-test_global_user_state.py::test_cluster_status ✓
-test_launch.py::test_launch_simple ✓
-test_launch.py::test_launch_with_storage ✓
-test_exec.py::test_exec_basic ✓
-test_exec.py::test_exec_env_vars ✓
-test_down.py::test_down_cluster ✓
-test_status.py::test_status_all ✓
-test_status.py::test_status_single ✓
-test_yaml_utils.py::test_load_yaml ✓
-test_yaml_utils.py::test_validate_yaml ✓
-test_common_utils.py::test_run_command ✓
-test_common_utils.py::test_fill_template ✓
-test_log_utils.py::test_create_logger ✓
-test_subprocess_utils.py::test_run_command ✓
-test_subprocess_utils.py::test_run_command_with_env ✓
-test_ux_utils.py::test_console_newlines ✓
-test_ux_utils.py::test_print_exception ✓
+[08:03:12] Cell 4 executed: Visualization
+```python
+# Create correlation heatmap
+plt.figure(figsize=(12, 8))
+correlation_matrix = df.corr()
+sns.heatmap(correlation_matrix, annot=False, cmap='coolwarm', center=0)
+plt.title('Feature Correlation Heatmap')
+plt.tight_layout()
+plt.show()
+```
 
-test_jobs/test_job_queue.py::test_job_submit ✓
-test_jobs/test_job_queue.py::test_job_cancel ✓
-test_jobs/test_job_queue.py::test_job_logs ✓
-test_jobs/test_managed_jobs.py::test_jobs_launch ✓
-test_jobs/test_managed_jobs.py::test_jobs_status ✓
+[08:03:45] Cell 5 executed: Feature importance analysis
+```python
+# Train model to analyze feature importance
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
 
-test_kubernetes/test_gpu_labeler.py::test_label_nodes ✓
-test_kubernetes/test_networking.py::test_service_discovery ✓
-test_kubernetes/test_storage.py::test_pvc_creation ✓
+# Feature importance plot
+feature_importance = pd.DataFrame({
+    'feature': feature_names,
+    'importance': rf_model.feature_importances_
+}).sort_values('importance', ascending=False)
 
-test_cli/test_cli_basic.py::test_cli_help ✓
-test_cli/test_cli_basic.py::test_cli_version ✓
-test_cli/test_cli_launch.py::test_launch_cli ✓
-test_cli/test_cli_exec.py::test_exec_cli ✓
+plt.figure(figsize=(10, 6))
+sns.barplot(data=feature_importance.head(10), x='importance', y='feature')
+plt.title('Top 10 Feature Importance')
+plt.tight_layout()
+plt.show()
+```
 
-================= Test Results =================
-47 passed, 0 failed, 0 error
-Test coverage: 87.3%
+[08:04:23] Cell 6 executed: Model evaluation
+```python
+# Model predictions and evaluation
+y_pred = rf_model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
 
-=== Integration Tests ===
+print(f"Model Accuracy: {accuracy:.4f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+```
+Output: Model Accuracy: 0.9350
+        Classification Report:
+                     precision    recall  f1-score   support
+        
+                0       0.93      0.95      0.94       102
+                1       0.94      0.92      0.93        98
+        
+         accuracy                           0.93       200
+        macro avg       0.94      0.93      0.93       200
+     weighted avg       0.94      0.93      0.93       200
 
-Running integration test suite...
+[08:05:15] Cell 7 executed: Advanced visualization
+```python
+# Distribution plots
+fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+axes = axes.ravel()
 
-test_integration/test_aws_integration.py::test_aws_launch ✓
-test_integration/test_gcp_integration.py::test_gcp_launch ✓
-test_integration/test_k8s_integration.py::test_k8s_basic ✓
-test_integration/test_storage_integration.py::test_s3_mount ✓
-test_integration/test_multi_node.py::test_ray_cluster ✓
+for i, feature in enumerate(feature_names[:4]):
+    sns.histplot(data=df, x=feature, hue='target', ax=axes[i], alpha=0.7)
+    axes[i].set_title(f'Distribution of {feature}')
 
-================= Integration Results =================
-5 passed, 0 failed, 0 error
+plt.tight_layout()
+plt.show()
+```
 
-=== Performance Tests ===
+[08:06:32] Cell 8 executed: Time series simulation
+```python
+# Create time series data for demonstration
+dates = pd.date_range('2024-01-01', periods=100, freq='D')
+values = np.cumsum(np.random.randn(100)) + 100
+ts_df = pd.DataFrame({'date': dates, 'value': values})
 
-Running performance benchmarks...
+plt.figure(figsize=(12, 6))
+plt.plot(ts_df['date'], ts_df['value'], linewidth=2)
+plt.title('Simulated Time Series Data')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.xticks(rotation=45)
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
 
-1. Launch time benchmark:
-   - AWS t3.micro: 2.3 minutes
-   - GCP e2-micro: 2.1 minutes  
-   - Azure B1s: 2.5 minutes
-   - K8s pod: 45 seconds
+[08:07:45] Cell 9 executed: Statistical analysis
+```python
+# Perform statistical tests
+from scipy import stats
 
-2. Task execution benchmark:
-   - Simple Python script: 12 seconds
-   - Multi-node PyTorch: 8.7 minutes
-   - Data processing: 3.2 minutes
+feature_0_class_0 = df[df['target'] == 0]['feature_0']
+feature_0_class_1 = df[df['target'] == 1]['feature_0']
 
-3. Resource optimization benchmark:
-   - Single constraint: 0.8 seconds
-   - Multi-cloud optimization: 2.1 seconds
-   - Complex workload: 4.3 seconds
+t_stat, p_value = stats.ttest_ind(feature_0_class_0, feature_0_class_1)
+print(f"T-test results for feature_0:")
+print(f"T-statistic: {t_stat:.4f}")
+print(f"P-value: {p_value:.4f}")
 
-=== Security Tests ===
+if p_value < 0.05:
+    print("Significant difference between classes")
+else:
+    print("No significant difference between classes")
+```
 
-1. Credential handling test: ✓ PASS
-   - AWS credentials not leaked in logs
-   - GCP service account keys properly secured
-   - SSH keys have correct permissions (600)
+[08:08:12] New notebook created: ml_experiments.ipynb
+[08:08:45] Cell 1 executed: Hyperparameter tuning
+```python
+from sklearn.model_selection import GridSearchCV
 
-2. Network security test: ✓ PASS
-   - All connections use TLS/SSH
-   - No plaintext credential transmission
-   - Firewall rules properly configured
+# Hyperparameter grid
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [5, 10, 15],
+    'min_samples_split': [2, 5, 10]
+}
 
-3. Code injection prevention: ✓ PASS
-   - YAML parsing safe from injection
-   - Command execution properly escaped
-   - Environment variables sanitized
+grid_search = GridSearchCV(RandomForestClassifier(random_state=42), 
+                          param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train, y_train)
 
-=== Documentation Tests ===
+print(f"Best parameters: {grid_search.best_params_}")
+print(f"Best cross-validation score: {grid_search.best_score_:.4f}")
+```
 
-1. Code documentation coverage: 89.2%
-2. Example scripts validation: ✓ ALL PASS
-3. API documentation sync: ✓ UP TO DATE
+[08:15:23] Cell 2 executed: Model comparison
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
-=== Test Summary ===
+models = {
+    'Random Forest': RandomForestClassifier(random_state=42),
+    'Logistic Regression': LogisticRegression(random_state=42),
+    'SVM': SVC(random_state=42),
+    'Decision Tree': DecisionTreeClassifier(random_state=42)
+}
 
-Total tests run: 52
-- Unit tests: 47/47 ✓
-- Integration tests: 5/5 ✓
-- Performance tests: 3/3 ✓
-- Security tests: 3/3 ✓
+results = {}
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    results[name] = accuracy
+    print(f"{name}: {accuracy:.4f}")
+```
 
-Code quality issues:
-- Black formatting: 3 files need formatting
-- Flake8 linting: 3 minor violations
-- MyPy typing: 2 type errors
-- Bandit security: 1 low-risk finding
+[08:22:15] Cell 3 executed: Results visualization
+```python
+# Plot model comparison
+plt.figure(figsize=(10, 6))
+models_df = pd.DataFrame(list(results.items()), columns=['Model', 'Accuracy'])
+sns.barplot(data=models_df, x='Accuracy', y='Model')
+plt.title('Model Comparison')
+plt.xlabel('Accuracy')
+plt.tight_layout()
+plt.show()
+```
 
-Test coverage: 87.3% (target: 85%)
-Performance: All benchmarks within acceptable ranges
-Security: No critical vulnerabilities found
+[08:25:34] Notebook saved: data_analysis.ipynb
+[08:25:35] Notebook saved: ml_experiments.ipynb
 
-=== Recommendations ===
+=== Session Summary ===
 
-1. Fix code formatting issues with: black sky/ tests/
-2. Address the 3 linting violations
-3. Fix type annotations for mypy compliance
-4. Consider replacing hardcoded temp directory with tempfile module
-5. Increase test coverage for edge cases in optimizer module
+Active kernels: 2
+- data-exploration (Python 3)
+- ml-experiments (Python 3)
 
-=== Output Files ===
+Notebooks created: 2
+- data_analysis.ipynb (9 cells executed)
+- ml_experiments.ipynb (3 cells executed)
 
-Test reports saved to:
-- test_results.xml (JUnit format)
-- coverage.html (HTML coverage report)
-- coverage.json (JSON coverage data)
-- performance_benchmark.json
-- security_scan_results.json
+Total cells executed: 12
+Total execution time: 25 minutes 34 seconds
 
-Code quality reports:
-- black_report.txt
-- flake8_report.txt  
-- mypy_report.txt
-- bandit_report.json
+Libraries used:
+- numpy: Data manipulation and mathematical operations
+- pandas: Data analysis and manipulation
+- matplotlib: Data visualization
+- seaborn: Statistical data visualization
+- scikit-learn: Machine learning algorithms and tools
+- scipy: Scientific computing and statistics
 
-All reports saved to: /outputs/test_results/
+Analysis completed:
+✓ Data exploration and basic statistics
+✓ Feature correlation analysis
+✓ Machine learning model training
+✓ Model evaluation and comparison
+✓ Statistical hypothesis testing
+✓ Time series visualization
+✓ Hyperparameter tuning
 
-Testing completed successfully!
-Overall result: ✓ PASS (52/52 tests passed)
-Code quality: GOOD (minor issues to address)
-Security: EXCELLENT (no critical issues)
+Server still running - ready for more analysis...
+Access notebook at: http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
 
-Total testing time: 2 hours 15 minutes
-Job finished at: 2024-01-13 10:15:00 UTC
-
-✓ Job completed successfully! 
+Note: This is a development session in demo mode. 

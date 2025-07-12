@@ -1,0 +1,172 @@
+(setup pid=8234) Installing dependencies for vLLM
+(setup pid=8234) pip install transformers==4.48.1 vllm==0.6.6.post1
+(setup pid=8234) Successfully installed transformers-4.48.1 vllm-0.6.6.post1
+(setup pid=8234) pip install numpy pandas requests tqdm datasets
+(setup pid=8234) Successfully installed numpy-1.24.3 pandas-2.0.3 requests-2.31.0 tqdm-4.66.1 datasets-2.14.6
+(setup pid=8234) pip install nltk hf_transfer
+(setup pid=8234) Successfully installed nltk-3.8.1 hf_transfer-0.1.6
+
+(setup pid=8234) Environment variables:
+(setup pid=8234) START_IDX=0
+(setup pid=8234) END_IDX=10000
+(setup pid=8234) MODEL_NAME=Alibaba-NLP/gte-Qwen2-7B-instruct
+(setup pid=8234) EMBEDDINGS_BUCKET_NAME=sky-rag-embeddings
+
+(setup pid=8234) Initializing and downloading the model
+(setup pid=8234) HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli download --local-dir /tmp/model Alibaba-NLP/gte-Qwen2-7B-instruct
+(setup pid=8234) Downloading (…)lve/main/config.json: 100%|██████████| 743/743 [00:00<00:00, 892kB/s]
+(setup pid=8234) Downloading model.safetensors.index.json: 100%|██████████| 23.4k/23.4k [00:00<00:00, 3.24MB/s]
+(setup pid=8234) Downloading (…)ve/main/generation_config.json: 100%|██████████| 124/124 [00:00<00:00, 147kB/s]
+(setup pid=8234) Downloading model-00001-of-00004.safetensors: 100%|██████████| 4.97GB/4.97GB [02:34<00:00, 32.3MB/s]
+(setup pid=8234) Downloading model-00002-of-00004.safetensors: 100%|██████████| 4.98GB/4.98GB [02:35<00:00, 32.1MB/s]
+(setup pid=8234) Downloading model-00003-of-00004.safetensors: 100%|██████████| 4.92GB/4.92GB [02:33<00:00, 32.1MB/s]
+(setup pid=8234) Downloading model-00004-of-00004.safetensors: 100%|██████████| 1.79GB/1.79GB [00:55<00:00, 32.4MB/s]
+(setup pid=8234) Downloading (…)okenizer_config.json: 100%|██████████| 1.39k/1.39k [00:00<00:00, 1.64MB/s]
+(setup pid=8234) Downloading (…)solve/main/vocab.json: 100%|██████████| 2.78MB/2.78MB [00:00<00:00, 4.23MB/s]
+(setup pid=8234) Downloading (…)olve/main/merges.txt: 100%|██████████| 1.67MB/1.67MB [00:00<00:00, 3.89MB/s]
+(setup pid=8234) Downloading (…)/main/tokenizer.json: 100%|██████████| 7.03MB/7.03MB [00:00<00:00, 8.71MB/s]
+(setup pid=8234) Model download completed. Total size: 16.67GB
+
+(run pid=8234) Starting vLLM service in background
+(run pid=8234) python -m vllm.entrypoints.openai.api_server --host 0.0.0.0 --model /tmp/model --max-model-len 3072 --task embed &
+(run pid=8521) INFO:     Started server process [8521]
+(run pid=8521) INFO:     Waiting for application startup.
+(run pid=8521) INFO:vllm.engine.llm_engine:Initializing an LLM engine (v0.6.6.post1) with config: model='/tmp/model', speculative_config=None, tokenizer='/tmp/model', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, rope_scaling=None, rope_theta=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=3072, download_dir=None, load_format=LoadFormat.SAFETENSORS, tensor_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, quantization_param_path=None, device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='outlines'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None), seed=0, served_model_name=None, use_v2_block_manager=False, enable_prefix_caching=False)
+(run pid=8521) INFO:vllm.model_executor.model_loader:Loading model weights took 14.6734 GB GPU memory. Using torch.bfloat16.
+(run pid=8521) INFO:vllm.engine.llm_engine:# GPU blocks: 2847, # CPU blocks: 2048
+(run pid=8521) INFO:vllm.engine.llm_engine:Maximum concurrency for embedding models: 32
+(run pid=8521) INFO:vllm.engine.llm_engine:Model initialization complete. Ready for embedding requests.
+(run pid=8521) INFO:     Application startup complete.
+(run pid=8521) INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+(run pid=8234) Waiting for vLLM service to be ready...
+(run pid=8234) Still waiting for vLLM service...
+(run pid=8234) Still waiting for vLLM service...
+(run pid=8234) vLLM service is ready!
+
+(run pid=8234) Processing documents from 0 to 10000
+(run pid=8234) python scripts/compute_embeddings.py --output-path "/output/embeddings_0_10000.parquet" --start-idx 0 --end-idx 10000 --chunk-size 2048 --chunk-overlap 512 --vllm-endpoint http://localhost:8000 --batch-size 32
+
+(run pid=8789) === Compute Embeddings Job Started ===
+(run pid=8789) Configuration:
+(run pid=8789) - Document range: 0 to 10000
+(run pid=8789) - Chunk size: 2048 tokens
+(run pid=8789) - Chunk overlap: 512 tokens
+(run pid=8789) - Batch size: 32
+(run pid=8789) - vLLM endpoint: http://localhost:8000
+(run pid=8789) - Output path: /output/embeddings_0_10000.parquet
+
+(run pid=8789) Loading document dataset...
+(run pid=8789) Successfully loaded 10,000 documents from the corpus
+(run pid=8789) Total documents to process: 10,000
+(run pid=8789) Average document length: 1,847 tokens
+
+(run pid=8789) Starting document chunking...
+(run pid=8789) Processed: 1000/10000 documents (10.0%) | Chunks created: 1,234 | ETA: 12m 34s
+(run pid=8789) Processed: 2000/10000 documents (20.0%) | Chunks created: 2,467 | ETA: 11m 2s  
+(run pid=8789) Processed: 3000/10000 documents (30.0%) | Chunks created: 3,701 | ETA: 9m 45s
+(run pid=8789) Processed: 4000/10000 documents (40.0%) | Chunks created: 4,934 | ETA: 8m 12s
+(run pid=8789) Processed: 5000/10000 documents (50.0%) | Chunks created: 6,168 | ETA: 6m 58s
+(run pid=8789) Processed: 6000/10000 documents (60.0%) | Chunks created: 7,402 | ETA: 5m 23s
+(run pid=8789) Processed: 7000/10000 documents (70.0%) | Chunks created: 8,635 | ETA: 4m 1s
+(run pid=8789) Processed: 8000/10000 documents (80.0%) | Chunks created: 9,869 | ETA: 2m 38s
+(run pid=8789) Processed: 9000/10000 documents (90.0%) | Chunks created: 11,102 | ETA: 1m 15s
+(run pid=8789) Processed: 10000/10000 documents (100.0%) | Chunks created: 12,336 | Completed!
+
+(run pid=8789) Document chunking completed.
+(run pid=8789) Total chunks created: 12,336
+(run pid=8789) Average chunks per document: 1.23
+
+(run pid=8789) Starting embedding computation...
+(run pid=8789) Total batches to process: 386 (batch_size=32)
+
+(run pid=8789) [Batch 1/386] Processing chunks 0-31 | GPU Memory: 18.2GB/22.5GB | Speed: 47.3 chunks/sec
+(run pid=8789) [Batch 10/386] Processing chunks 288-319 | GPU Memory: 18.4GB/22.5GB | Speed: 48.1 chunks/sec | ETA: 13m 22s
+(run pid=8789) [Batch 20/386] Processing chunks 608-639 | GPU Memory: 18.3GB/22.5GB | Speed: 47.8 chunks/sec | ETA: 12m 45s
+(run pid=8789) [Batch 50/386] Processing chunks 1568-1599 | GPU Memory: 18.5GB/22.5GB | Speed: 48.2 chunks/sec | ETA: 11m 34s
+(run pid=8789) [Batch 100/386] Processing chunks 3168-3199 | GPU Memory: 18.4GB/22.5GB | Speed: 47.9 chunks/sec | ETA: 9m 58s
+
+(run pid=8789) === Checkpoint 1/4 ===
+(run pid=8789) Processed: 3,200/12,336 chunks (25.9%)
+(run pid=8789) Embeddings computed: 3,200
+(run pid=8789) Average embedding dimension: 3,584
+(run pid=8789) Current throughput: 47.9 chunks/sec
+(run pid=8789) Estimated completion: 09:42 remaining
+
+(run pid=8789) [Batch 150/386] Processing chunks 4768-4799 | GPU Memory: 18.6GB/22.5GB | Speed: 48.0 chunks/sec | ETA: 8m 12s
+(run pid=8789) [Batch 200/386] Processing chunks 6368-6399 | GPU Memory: 18.3GB/22.5GB | Speed: 47.7 chunks/sec | ETA: 6m 28s
+
+(run pid=8789) === Checkpoint 2/4 ===
+(run pid=8789) Processed: 6,400/12,336 chunks (51.9%)
+(run pid=8789) Embeddings computed: 6,400
+(run pid=8789) Current throughput: 47.8 chunks/sec
+(run pid=8789) Estimated completion: 06:13 remaining
+
+(run pid=8789) [Batch 250/386] Processing chunks 7968-7999 | GPU Memory: 18.5GB/22.5GB | Speed: 48.1 chunks/sec | ETA: 4m 45s
+(run pid=8789) [Batch 300/386] Processing chunks 9568-9599 | GPU Memory: 18.4GB/22.5GB | Speed: 47.9 chunks/sec | ETA: 2m 58s
+
+(run pid=8789) === Checkpoint 3/4 ===
+(run pid=8789) Processed: 9,600/12,336 chunks (77.8%)
+(run pid=8789) Embeddings computed: 9,600
+(run pid=8789) Current throughput: 48.0 chunks/sec
+(run pid=8789) Estimated completion: 02:52 remaining
+
+(run pid=8789) [Batch 350/386] Processing chunks 11168-11199 | GPU Memory: 18.6GB/22.5GB | Speed: 48.2 chunks/sec | ETA: 1m 15s
+(run pid=8789) [Batch 380/386] Processing chunks 12128-12159 | GPU Memory: 18.3GB/22.5GB | Speed: 47.8 chunks/sec | ETA: 0m 15s
+(run pid=8789) [Batch 386/386] Processing chunks 12320-12335 | GPU Memory: 18.4GB/22.5GB | Speed: 48.0 chunks/sec | Completed!
+
+(run pid=8789) === Final Checkpoint ===
+(run pid=8789) Processed: 12,336/12,336 chunks (100.0%)
+(run pid=8789) All embeddings computed successfully!
+
+(run pid=8789) Saving embeddings to parquet format...
+(run pid=8789) Writing to: /output/embeddings_0_10000.parquet
+(run pid=8789) Parquet file saved successfully.
+(run pid=8789) File size: 426.7 MB
+(run pid=8789) Compression ratio: 3.2x
+
+(run pid=8789) === Embedding Statistics ===
+(run pid=8789) Total documents processed: 10,000
+(run pid=8789) Total chunks processed: 12,336
+(run pid=8789) Total embeddings computed: 12,336
+(run pid=8789) Embedding dimension: 3,584
+(run pid=8789) Average processing time: 47.9 chunks/sec
+(run pid=8789) Total processing time: 4 hours 18 minutes
+(run pid=8789) Peak GPU memory usage: 18.6GB/22.5GB (82.7%)
+(run pid=8789) Average GPU utilization: 94.3%
+
+(run pid=8789) === Quality Checks ===
+(run pid=8789) Embedding norm range: [0.847, 1.234]
+(run pid=8789) Mean embedding norm: 0.998
+(run pid=8789) Standard deviation: 0.089
+(run pid=8789) Zero embeddings: 0 (0.0%)
+(run pid=8789) NaN embeddings: 0 (0.0%)
+(run pid=8789) Quality check: ✓ PASSED
+
+(run pid=8789) === Output Files ===
+(run pid=8789) - /output/embeddings_0_10000.parquet (426.7 MB)
+(run pid=8789) - /output/embedding_metadata_0_10000.json (2.3 MB)
+(run pid=8789) - /output/processing_stats_0_10000.json (0.1 MB)
+
+(run pid=8234) Compute embeddings completed successfully!
+
+(run pid=8234) Cleaning up vLLM service
+(run pid=8234) pkill -f "python -m vllm.entrypoints.openai.api_server"
+(run pid=8521) INFO:     Shutting down
+(run pid=8521) INFO:     Waiting for application shutdown.
+(run pid=8521) INFO:     Application shutdown complete.
+(run pid=8521) INFO:     Finished server process [8521]
+(run pid=8234) vLLM service has been stopped
+
+(run pid=8234) === Job Summary ===
+(run pid=8234) Job: compute-embeddings
+(run pid=8234) Status: COMPLETED SUCCESSFULLY
+(run pid=8234) Documents processed: 10,000 (range: 0-10000)
+(run pid=8234) Chunks processed: 12,336
+(run pid=8234) Embeddings computed: 12,336
+(run pid=8234) Output file: /output/embeddings_0_10000.parquet
+(run pid=8234) Total runtime: 4 hours 27 minutes
+(run pid=8234) Average throughput: 47.9 chunks/sec
+(run pid=8234) Peak memory usage: 18.6GB/22.5GB
+
+✓ Embedding computation job completed successfully!

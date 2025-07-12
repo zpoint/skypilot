@@ -1,5 +1,8 @@
 name: distributed-training
 
+secrets:
+  HF_TOKEN: null
+
 resources:
   accelerators: A100:8
 

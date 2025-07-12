@@ -21,7 +21,7 @@ demo/
 ├── logs/                         # Realistic log files for cluster jobs
 │   ├── dev-alice/                # Logs for dev-alice cluster
 │   ├── training-multinode/       # Logs for training-multinode cluster
-│   ├── inference-cluster/        # Logs for inference-cluster cluster
+│   ├── inference/        # Logs for inference cluster
 │   └── dev-cluster-alice/        # Logs for dev-cluster-alice cluster
 ├── demo_mode.py                  # Main demo mode implementation
 └── README.md                     # This file
@@ -64,7 +64,7 @@ demo/
 
 The demo includes:
 
-- **4 Clusters**: `dev-alice`, `training-multinode`, `inference-cluster`, `dev-cluster-alice`
+- **4 Clusters**: `dev-alice`, `training-multinode`, `inference`, `dev-cluster-alice`
 - **7 Cluster Jobs**: Various jobs running on different clusters with different statuses
 - **3 Users**: Demo users with different roles and permissions
 - **Multiple Workspaces**: Different workspace configurations
