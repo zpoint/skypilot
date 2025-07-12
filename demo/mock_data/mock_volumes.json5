@@ -18,9 +18,9 @@
       "user_name": "alice@skypilot.co",
       "workspace": "research-private",
       "last_attached_at_offset": -3600,
-      "last_use": "sky exec lambda-k8s train.yaml",
+      "last_use": "sky exec training-multinode train.yaml",
       "status": "IN_USE",
-      "usedby_clusters": ["lambda-k8s"],
+      "usedby_clusters": ["training-multinode"],
       "usedby_pods": []
     },
     {

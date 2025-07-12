@@ -24,6 +24,7 @@ JSON5 file and refresh your browser to see changes immediately!
 import copy
 import json
 import json5
+import multiprocessing
 import os
 import time
 from typing import Any, Dict, List, Optional, Set
@@ -180,17 +181,20 @@ def _convert_clusters_from_json(clusters_data):
     for cluster_data in clusters_data['clusters']:
         # Load the YAML config from the cluster_yamls directory
         yaml_config_name = cluster_data['last_creation_yaml']
-        yaml_config_path = os.path.join(os.path.dirname(__file__), 'cluster_yamls', f'{yaml_config_name}.yaml')
-        
-        try:
-            with open(yaml_config_path, 'r') as f:
-                yaml_config = f.read()
-        except FileNotFoundError:
-            logger.warning(f"Demo mode: YAML config file not found: {yaml_config_path}")
-            yaml_config = f"# YAML config '{yaml_config_name}' not found"
-        except Exception as e:
-            logger.warning(f"Demo mode: Error reading YAML config file {yaml_config_path}: {e}")
-            yaml_config = f"# Error reading YAML config '{yaml_config_name}'"
+        if yaml_config_name is None:
+            yaml_config = None
+        else:
+            yaml_config_path = os.path.join(os.path.dirname(__file__), 'cluster_yamls', f'{yaml_config_name}.yaml')
+            
+            try:
+                with open(yaml_config_path, 'r') as f:
+                    yaml_config = f.read()
+            except FileNotFoundError:
+                logger.warning(f"Demo mode: YAML config file not found: {yaml_config_path}")
+                yaml_config = f"# YAML config '{yaml_config_name}' not found"
+            except Exception as e:
+                logger.warning(f"Demo mode: Error reading YAML config file {yaml_config_path}: {e}")
+                yaml_config = f"# Error reading YAML config '{yaml_config_name}'"
         
         cluster = {
             'name': cluster_data['name'],
@@ -199,7 +203,8 @@ def _convert_clusters_from_json(clusters_data):
                 cluster_data['name'], 
                 _get_cloud_from_string(cluster_data['cloud']), 
                 cluster_data['region'], 
-                cluster_data['nodes']
+                cluster_data['nodes'],
+                cluster_data.get('resources')
             ),
             'last_use': cluster_data['last_use'],
             'status': _get_status_from_string(cluster_data['status']),
@@ -305,22 +310,36 @@ def _convert_cluster_jobs_from_json(cluster_jobs_data):
 
 # Helper function to create demo cluster handles
 def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, region: str,
-                       nodes: int = 1) -> CloudVmRayResourceHandle:
+                       nodes: int = 1, resources_config: Optional[Dict[str, Any]] = None) -> CloudVmRayResourceHandle:
     """Creates a realistic CloudVmRayResourceHandle for demo purposes."""
-    # Create appropriate resources based on cluster type
-    # TODO(romilb): We should include and parse this from the job definition
-    if 'kubernetes' in str(cloud).lower():
-        instance_type = '4CPU--16GB'
-        accelerators = None
-    elif 'multinode' in cluster_name:
-        instance_type = 'n1-standard-8'
-        accelerators = {'A100': 8}
-    elif 'inference' in cluster_name:
-        instance_type = 'g4dn.xlarge'
-        accelerators = {'A100': 1}
+    # Use resources from cluster configuration if provided
+    if resources_config:
+        instance_type = resources_config.get('instance_type', 'n1-standard-4')
+        accelerators = resources_config.get('accelerators')
+        cpus = resources_config.get('cpus')
+        memory = resources_config.get('memory')
     else:
-        instance_type = 'n1-standard-4'
-        accelerators = None
+        # Fallback to old hard-coded logic if no resources provided
+        if 'kubernetes' in str(cloud).lower():
+            instance_type = '4CPU--16GB'
+            accelerators = None
+            cpus = 4
+            memory = 16
+        elif 'multinode' in cluster_name:
+            instance_type = 'n1-standard-8'
+            accelerators = {'A100': 8}
+            cpus = None
+            memory = None
+        elif 'inference' in cluster_name:
+            instance_type = 'g4dn.xlarge'
+            accelerators = {'A100': 1}
+            cpus = None
+            memory = None
+        else:
+            instance_type = 'n1-standard-4'
+            accelerators = None
+            cpus = None
+            memory = None
     
     # Create Resources object
     resources = resources_lib.Resources(
@@ -328,8 +347,8 @@ def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, region: str,
         region=region,
         instance_type=instance_type,
         accelerators=accelerators,
-        cpus=None,
-        memory=None,
+        cpus=cpus,
+        memory=memory,
         use_spot=False
     )
     
@@ -1064,7 +1083,7 @@ def patch_workspaces_functions():
     try:
         from sky.workspaces import core as workspaces_core
         
-        # Mock the main get_workspaces function
+        # Mock the main get_workspaces function for API endpoints
         workspaces_core.get_workspaces = mock_get_workspaces
         
         logger.info("Demo mode: Successfully patched workspaces functions")
@@ -1084,6 +1103,15 @@ def patch_permission_functions():
             # Store the original method for potential restoration
             permission.permission_service._original_get_user_roles = permission.permission_service.get_user_roles
             permission.permission_service.get_user_roles = mock_get_user_roles
+            
+            # Mock workspace permission check to always return True in demo mode
+            def mock_check_workspace_permission(user_id: str, workspace_name: str) -> bool:
+                """Mock workspace permission check - always return True in demo mode."""
+                logger.info(f"Demo mode: Allowing workspace '{workspace_name}' access for user '{user_id}'")
+                return True
+            
+            permission.permission_service._original_check_workspace_permission = permission.permission_service.check_workspace_permission
+            permission.permission_service.check_workspace_permission = mock_check_workspace_permission
         
         logger.info("Demo mode: Successfully patched permission functions")
     except ImportError as e:
@@ -1118,7 +1146,80 @@ def enable_demo_mode():
     # Patch permission functions
     patch_permission_functions()
     
+    # CRITICAL: Patch executor to apply demo patches in worker processes
+    patch_executor_initializer()
+    
     logger.info("Demo mode enabled successfully")
+
+def enable_demo_mode_worker():
+    """Enable essential demo mode patches for worker processes (no server endpoints)."""
+    pid = multiprocessing.current_process().pid
+    logger.info(f"Demo mode: Enabling worker patches in process {pid}")
+    
+    # Apply only the essential patches needed
+    logger.info(f"Demo mode: Worker {pid} - Applying permission patches") 
+    patch_permission_functions()
+    logger.info(f"Demo mode: Worker {pid} - Applying core patches")
+    patch_core_functions()
+    
+    # CRITICAL: Need skypilot_config.get_nested patch for workspace validation in worker processes
+    logger.info(f"Demo mode: Worker {pid} - Applying skypilot_config patches")
+    try:
+        from sky import skypilot_config
+        
+        def mock_get_nested_worker(keys, default_value, override_configs=None):
+            """Mock get_nested for worker processes - return workspace data from demo files."""
+            if keys == ('workspaces',):
+                workspaces_data = load_mock_data_file('workspaces')
+                return workspaces_data.get('workspaces', {})
+            # For other keys, return default value
+            return default_value
+        
+        # Store original and patch
+        if not hasattr(skypilot_config, '_original_get_nested_worker'):
+            skypilot_config._original_get_nested_worker = skypilot_config.get_nested
+        skypilot_config.get_nested = mock_get_nested_worker
+        logger.info(f"Demo mode: Worker {pid} - Patched skypilot_config.get_nested")
+        
+    except Exception as e:
+        logger.error(f"Demo mode: Worker {pid} - Error patching skypilot_config: {e}")
+    
+    logger.info(f"Demo mode: Worker {pid} - Worker patches applied successfully")
+
+# Global variable to store original initializer
+_ORIGINAL_EXECUTOR_INITIALIZER = None
+
+def demo_executor_initializer(proc_group: str):
+    """Demo mode executor initializer that applies patches in worker processes.
+    
+    This needs to be at module level (not nested) so it can be pickled by multiprocessing.
+    """
+    # Call original initializer first
+    if _ORIGINAL_EXECUTOR_INITIALIZER is not None:
+        _ORIGINAL_EXECUTOR_INITIALIZER(proc_group)
+    
+    # Apply demo mode patches in worker process
+    enable_demo_mode_worker()
+    logger.info(f"Demo mode: Patches applied in worker process {multiprocessing.current_process().pid}")
+
+def patch_executor_initializer():
+    """Patch the executor initializer to apply demo mode patches in worker processes."""
+    logger.info("Demo mode: Patching executor initializer")
+    try:
+        from sky.server.requests import executor
+        global _ORIGINAL_EXECUTOR_INITIALIZER
+        
+        # Store the original initializer
+        _ORIGINAL_EXECUTOR_INITIALIZER = executor.executor_initializer
+        
+        # Replace the executor initializer with our module-level function
+        executor.executor_initializer = demo_executor_initializer
+        
+        logger.info("Demo mode: Successfully patched executor initializer")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import executor module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching executor initializer: {e}")
 
 def patch_server_endpoints(app):
     """Patch server write endpoints to be read-only. Call this after app is created."""
