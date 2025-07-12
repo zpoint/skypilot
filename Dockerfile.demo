@@ -38,7 +38,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     rm -rf ~/.cache/pip ~/.cache/uv
 
 # Install additional dependencies for demo mode
-RUN pip install fastapi uvicorn
+RUN pip install fastapi uvicorn json5
 
 # Create sky config directory
 RUN mkdir -p ~/.sky
