@@ -1,0 +1,89 @@
+(setup pid=2841) Setting up inference environment
+(setup pid=2841) pip install torch==2.1.0 transformers==4.35.2 vllm==0.2.5
+(setup pid=2841) Successfully installed torch-2.1.0 transformers-4.35.2 vllm-0.2.5
+(setup pid=2841) pip install datasets==2.14.6 accelerate==0.24.1 numpy pandas
+(setup pid=2841) Successfully installed datasets-2.14.6 accelerate-0.24.1 numpy-1.24.3 pandas-2.0.3
+
+(setup pid=2841) Environment variables:
+(setup pid=2841) CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+(setup pid=2841) WORLD_SIZE=8
+(setup pid=2841) LOCAL_RANK=0
+
+(run pid=2841) Loading model: meta-llama/Llama-2-13b-chat-hf
+(run pid=2841) Initializing vLLM engine with 8 L4 GPUs
+(run pid=2841) Model loading across 8 GPUs...
+(run pid=2841) GPU 0: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 1: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 2: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 3: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 4: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 5: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 6: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) GPU 7: L4 24GB | Memory: 22.1GB/24GB
+(run pid=2841) Model loaded successfully. Total GPU memory: 176.8GB/192GB
+
+(run pid=2841) vLLM engine configuration:
+(run pid=2841) - Tensor parallel size: 8
+(run pid=2841) - Max sequence length: 4096
+(run pid=2841) - Max batch size: 128
+(run pid=2841) - KV cache size: 28.4GB total
+
+(run pid=2841) Loading input file: data/prompts.jsonl
+(run pid=2841) Found 8,547 prompts to process
+(run pid=2841) Estimated processing time: 2.1 hours
+
+(run pid=2841) Starting batch inference...
+(run pid=2841) Batch 1/67 | Processed: 128/8547 prompts (1.5%) | Speed: 61.2 prompts/min | ETA: 2h 18m
+(run pid=2841) Batch 2/67 | Processed: 256/8547 prompts (3.0%) | Speed: 62.4 prompts/min | ETA: 2h 12m
+(run pid=2841) Batch 3/67 | Processed: 384/8547 prompts (4.5%) | Speed: 61.8 prompts/min | ETA: 2h 14m
+(run pid=2841) Batch 5/67 | Processed: 640/8547 prompts (7.5%) | Speed: 62.1 prompts/min | ETA: 2h 13m
+
+(run pid=2841) Performance metrics (5 minutes):
+(run pid=2841) - Average response length: 298 tokens
+(run pid=2841) - Tokens/second: 306.7 (across 8 GPUs)
+(run pid=2841) - GPU utilization: 87.3% average
+(run pid=2841) - Memory efficiency: 92.1%
+
+(run pid=2841) Batch 10/67 | Processed: 1280/8547 prompts (15.0%) | Speed: 61.9 prompts/min | ETA: 1h 56m
+(run pid=2841) Batch 15/67 | Processed: 1920/8547 prompts (22.5%) | Speed: 62.3 prompts/min | ETA: 1h 44m
+(run pid=2841) Batch 20/67 | Processed: 2560/8547 prompts (30.0%) | Speed: 61.7 prompts/min | ETA: 1h 35m
+
+(run pid=2841) Checkpoint saved: results/checkpoint_2560.jsonl
+(run pid=2841) Quality sample check:
+(run pid=2841) - Coherence: 9.2/10
+(run pid=2841) - Relevance: 9.4/10
+(run pid=2841) - Completeness: 8.9/10
+
+(run pid=2841) Batch 30/67 | Processed: 3840/8547 prompts (45.0%) | Speed: 62.0 prompts/min | ETA: 1h 15m
+(run pid=2841) Batch 40/67 | Processed: 5120/8547 prompts (60.0%) | Speed: 61.8 prompts/min | ETA: 0h 55m
+(run pid=2841) Batch 50/67 | Processed: 6400/8547 prompts (75.0%) | Speed: 62.2 prompts/min | ETA: 0h 34m
+
+(run pid=2841) Checkpoint saved: results/checkpoint_6400.jsonl
+(run pid=2841) Performance update:
+(run pid=2841) - Total tokens generated: 1,906,752
+(run pid=2841) - Average latency: 0.96 seconds/prompt
+(run pid=2841) - Peak throughput: 64.3 prompts/minute
+(run pid=2841) - Error rate: 0.01% (1 failed prompt)
+
+(run pid=2841) Batch 60/67 | Processed: 7680/8547 prompts (90.0%) | Speed: 61.9 prompts/min | ETA: 0h 14m
+(run pid=2841) Batch 65/67 | Processed: 8320/8547 prompts (97.3%) | Speed: 62.1 prompts/min | ETA: 0h 4m
+(run pid=2841) Batch 67/67 | Processed: 8547/8547 prompts (100.0%) | Speed: 61.8 prompts/min | Completed!
+
+(run pid=2841) Final processing statistics:
+(run pid=2841) - Total prompts processed: 8,547
+(run pid=2841) - Total tokens generated: 2,451,089
+(run pid=2841) - Average response length: 287 tokens
+(run pid=2841) - Average latency: 2.51 seconds/prompt
+(run pid=2841) - Overall throughput: 23.9 prompts/minute
+(run pid=2841) - Success rate: 99.98% (2 failed prompts)
+(run pid=2841) - Total runtime: 2 hours 17 minutes
+
+(run pid=2841) GPU utilization summary:
+(run pid=2841) - Average utilization: 87.3%
+(run pid=2841) - Peak memory usage: 22.8GB/24GB per GPU
+(run pid=2841) - Temperature range: 68-74°C
+(run pid=2841) - Power consumption: 165W average per GPU
+
+(run pid=2841) Saving final results to: results/outputs.jsonl
+(run pid=2841) Results validation: ✓ All 8,545 valid responses saved
+(run pid=2841) Batch inference completed successfully!

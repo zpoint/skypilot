@@ -63,3 +63,4 @@ run: |
   # Clean up vLLM service
   pkill -f "python -m vllm.entrypoints.openai.api_server"
   echo "vLLM service has been stopped"
+ 
