@@ -1,0 +1,21 @@
+resources:
+  accelerators: A100:1
+  cloud: aws
+  region: us-west-2
+
+setup: |
+  pip install vllm transformers
+
+run: |
+  python -c "
+  from vllm import LLM, SamplingParams
+  
+  llm = LLM(model='meta-llama/Llama-2-13b-chat-hf')
+  sampling_params = SamplingParams(temperature=0.7, top_p=0.9)
+  
+  prompts = ['Tell me about artificial intelligence']
+  outputs = llm.generate(prompts, sampling_params)
+  
+  for output in outputs:
+      print(output.outputs[0].text)
+  " 

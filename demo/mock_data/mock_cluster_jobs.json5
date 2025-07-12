@@ -1,0 +1,95 @@
+{
+  "cluster_jobs": [
+    {
+      "cluster_name": "dev-alice",
+      "job_id": 1,
+      "job_name": "jupyter-notebook",
+      "username": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "submitted_at_offset": -7200,
+      "start_at_offset": -7000,
+      "end_at": null,
+      "resources": "4CPU--16GB",
+      "status": "RUNNING",
+      "log_path": "logs/dev-alice/job-1.log"
+    },
+    {
+      "cluster_name": "dev-alice",
+      "job_id": 2,
+      "job_name": "data-analysis",
+      "username": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "submitted_at_offset": -14400,
+      "start_at_offset": -14200,
+      "end_at_offset": -10800,
+      "resources": "4CPU--16GB",
+      "status": "SUCCEEDED",
+      "log_path": "logs/dev-alice/job-2.log"
+    },
+    {
+      "cluster_name": "training-multinode",
+      "job_id": 1,
+      "job_name": "distributed-training",
+      "username": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "submitted_at_offset": -10800,
+      "start_at_offset": -10600,
+      "end_at": null,
+      "resources": "4x[A100:8]",
+      "status": "RUNNING",
+      "log_path": "logs/training-multinode/job-1.log"
+    },
+    {
+      "cluster_name": "training-multinode",
+      "job_id": 2,
+      "job_name": "model-validation",
+      "username": "alice@skypilot.co", 
+      "user_hash": "alice123",
+      "submitted_at_offset": -21600,
+      "start_at_offset": -21400,
+      "end_at_offset": -18000,
+      "resources": "4x[A100:8]",
+      "status": "SUCCEEDED",
+      "log_path": "logs/training-multinode/job-2.log"
+    },
+    {
+      "cluster_name": "inference-cluster",
+      "job_id": 1,
+      "job_name": "batch-inference",
+      "username": "mike@skypilot.co",
+      "user_hash": "mike789",
+      "submitted_at_offset": -5400,
+      "start_at_offset": -5200,
+      "end_at": null,
+      "resources": "1x[A100:1]",
+      "status": "RUNNING",
+      "log_path": "logs/inference-cluster/job-1.log"
+    },
+    {
+      "cluster_name": "inference-cluster",
+      "job_id": 2,
+      "job_name": "model-evaluation",
+      "username": "mike@skypilot.co",
+      "user_hash": "mike789",
+      "submitted_at_offset": -28800,
+      "start_at_offset": -28600,
+      "end_at_offset": -25200,
+      "resources": "1x[A100:1]",
+      "status": "SUCCEEDED",
+      "log_path": "logs/inference-cluster/job-2.log"
+    },
+    {
+      "cluster_name": "dev-cluster-alice",
+      "job_id": 1,
+      "job_name": "code-testing",
+      "username": "alice@skypilot.co",
+      "user_hash": "alice123",
+      "submitted_at_offset": -172800,
+      "start_at_offset": -172600,
+      "end_at_offset": -172000,
+      "resources": "4CPU--16GB",
+      "status": "SUCCEEDED",
+      "log_path": "logs/dev-cluster-alice/job-1.log"
+    }
+  ]
+} 

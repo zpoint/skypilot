@@ -3,17 +3,27 @@
 This module monkey-patches global_user_state functions and server endpoints
 to provide a read-only demo experience with realistic fake data.
 
-The demo data is loaded from demo/mock_data.json file, which contains all the
-fake users, clusters, jobs, volumes, and other resources to simulate a 
-realistic SkyPilot environment.
+The demo data is loaded from multiple JSON5 files in the demo/mock_data/ directory:
+- mock_data/mock_users.json5: User accounts and roles
+- mock_data/mock_clusters.json5: Cluster configurations and YAML configs  
+- mock_data/mock_jobs.json5: Managed jobs data
+- mock_data/mock_cluster_jobs.json5: Cluster-specific jobs
+- mock_data/mock_volumes.json5: Volume and storage data
+- mock_data/mock_workspaces.json5: Workspace configurations
+- mock_data/mock_infrastructure.json5: Infrastructure data (clouds, GPUs, nodes)
 
-HOT RELOADING: The JSON file is loaded fresh on every API query, enabling
-real-time editing of mock data without server restarts. Simply edit the
-JSON file and refresh your browser to see changes immediately!
+Log files are stored in demo/logs/ directory with realistic content for each job.
+
+All files support JSON5 format with comments for easy editing.
+
+HOT RELOADING: The JSON5 files are loaded fresh on every API query, enabling
+real-time editing of mock data without server restarts. Simply edit any
+JSON5 file and refresh your browser to see changes immediately!
 """
 
 import copy
 import json
+import json5
 import os
 import time
 from typing import Any, Dict, List, Optional, Set
@@ -27,6 +37,8 @@ from sky import resources as resources_lib
 from sky import sky_logging
 from sky.backends.cloud_vm_ray_backend import CloudVmRayResourceHandle
 from sky.jobs.state import ManagedJobStatus, ManagedJobScheduleState
+from sky.skylet import constants
+from sky.skylet import job_lib
 from sky.utils import common_utils
 from sky.utils import status_lib
 
@@ -35,38 +47,61 @@ logger = sky_logging.init_logger(__name__)
 # Demo data timestamps
 CURRENT_TIME = int(time.time())
 
-# Path to mock data file
-MOCK_DATA_FILE = os.path.join(os.path.dirname(__file__), 'mock_data.json')
+# Path to demo directory containing mock data files
+DEMO_DIR = os.path.dirname(__file__)
 
-def load_mock_data():
-    """Load mock data from JSON file."""
+# Mock data file paths
+MOCK_DATA_FILES = {
+    'users': os.path.join(DEMO_DIR, 'mock_data', 'mock_users.json5'),
+    'clusters': os.path.join(DEMO_DIR, 'mock_data', 'mock_clusters.json5'),
+    'jobs': os.path.join(DEMO_DIR, 'mock_data', 'mock_jobs.json5'),
+    'cluster_jobs': os.path.join(DEMO_DIR, 'mock_data', 'mock_cluster_jobs.json5'),
+    'volumes': os.path.join(DEMO_DIR, 'mock_data', 'mock_volumes.json5'),
+    'workspaces': os.path.join(DEMO_DIR, 'mock_data', 'mock_workspaces.json5'),
+    'infrastructure': os.path.join(DEMO_DIR, 'mock_data', 'mock_infrastructure.json5'),
+}
+
+def load_mock_data_file(data_type: str):
+    """Load mock data from a specific JSON5 file with comments support."""
+    file_path = MOCK_DATA_FILES.get(data_type)
+    if not file_path:
+        raise ValueError(f"Unknown data type: {data_type}")
+    
     try:
-        with open(MOCK_DATA_FILE, 'r') as f:
-            return json.load(f)
+        with open(file_path, 'r') as f:
+            return json5.load(f)
     except FileNotFoundError:
-        logger.error(f"Mock data file not found: {MOCK_DATA_FILE}")
+        logger.error(f"Mock data file not found: {file_path}")
         raise
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in mock data file: {e}")
+    except json5.JSONError as e:
+        logger.error(f"Invalid JSON5 in mock data file {file_path}: {e}")
         raise
 
 def reload_mock_data():
-    """Reload mock data from JSON file for hot reloading.
+    """Reload mock data from JSON5 files for hot reloading.
     
     This function is now deprecated since data is loaded fresh on every query.
     It's kept for backward compatibility.
     """
     logger.info("Mock data is now loaded fresh on every query - reload_mock_data() is deprecated")
     
-    # Test loading to ensure the JSON file is valid
+    # Test loading to ensure all JSON5 files are valid
     try:
-        mock_data = _get_fresh_mock_data()
-        users = _convert_users_from_json(mock_data)
-        clusters = _convert_clusters_from_json(mock_data)
-        volumes = _convert_volumes_from_json(mock_data)
-        jobs = _convert_jobs_from_json(mock_data)
+        users_data = load_mock_data_file('users')
+        clusters_data = load_mock_data_file('clusters')
+        jobs_data = load_mock_data_file('jobs')
+        cluster_jobs_data = load_mock_data_file('cluster_jobs')
+        volumes_data = load_mock_data_file('volumes')
+        workspaces_data = load_mock_data_file('workspaces')
+        infrastructure_data = load_mock_data_file('infrastructure')
         
-        logger.info(f"Mock data validated successfully - {len(users)} users, {len(clusters)} clusters, {len(jobs)} jobs, {len(volumes)} volumes")
+        users = _convert_users_from_json(users_data)
+        clusters = _convert_clusters_from_json(clusters_data)
+        jobs = _convert_jobs_from_json(jobs_data)
+        cluster_jobs = _convert_cluster_jobs_from_json(cluster_jobs_data)
+        volumes = _convert_volumes_from_json(volumes_data)
+        
+        logger.info(f"Mock data validated successfully - {len(users)} users, {len(clusters)} clusters, {len(jobs)} jobs, {len(cluster_jobs)} cluster jobs, {len(volumes)} volumes")
     except Exception as e:
         logger.error(f"Failed to reload mock data: {e}")
         raise
@@ -111,6 +146,13 @@ def _get_job_status_from_string(status_str):
     else:
         raise ValueError(f"Unknown job status: {status_str}")
 
+def _get_cluster_job_status_from_string(status_str):
+    """Convert cluster job status string to cluster job status enum."""
+    if hasattr(job_lib.JobStatus, status_str):
+        return getattr(job_lib.JobStatus, status_str)
+    else:
+        raise ValueError(f"Unknown cluster job status: {status_str}")
+
 def _get_schedule_state_from_string(state_str):
     """Convert schedule state string to schedule state enum."""
     if hasattr(ManagedJobScheduleState, state_str):
@@ -118,14 +160,10 @@ def _get_schedule_state_from_string(state_str):
     else:
         raise ValueError(f"Unknown schedule state: {state_str}")
 
-def _get_fresh_mock_data():
-    """Load fresh mock data from JSON file for hot reloading."""
-    return load_mock_data()
-
-def _convert_users_from_json(mock_data):
+def _convert_users_from_json(users_data):
     """Convert users from JSON data to User objects."""
     users = []
-    for user_data in mock_data['users']:
+    for user_data in users_data['users']:
         user = models.User(
             id=user_data['id'],
             name=user_data['name'],
@@ -135,13 +173,25 @@ def _convert_users_from_json(mock_data):
         users.append(user)
     return users
 
-def _convert_clusters_from_json(mock_data):
+def _convert_clusters_from_json(clusters_data):
     """Convert clusters from JSON data to cluster objects."""
     clusters = []
-    yaml_configs = mock_data['yaml_configs']
     
-    for cluster_data in mock_data['clusters']:
-        yaml_config = yaml_configs[cluster_data['last_creation_yaml']]
+    for cluster_data in clusters_data['clusters']:
+        # Load the YAML config from the cluster_yamls directory
+        yaml_config_name = cluster_data['last_creation_yaml']
+        yaml_config_path = os.path.join(os.path.dirname(__file__), 'cluster_yamls', f'{yaml_config_name}.yaml')
+        
+        try:
+            with open(yaml_config_path, 'r') as f:
+                yaml_config = f.read()
+        except FileNotFoundError:
+            logger.warning(f"Demo mode: YAML config file not found: {yaml_config_path}")
+            yaml_config = f"# YAML config '{yaml_config_name}' not found"
+        except Exception as e:
+            logger.warning(f"Demo mode: Error reading YAML config file {yaml_config_path}: {e}")
+            yaml_config = f"# Error reading YAML config '{yaml_config_name}'"
+        
         cluster = {
             'name': cluster_data['name'],
             'launched_at': _convert_timestamp_offset(cluster_data['launched_at_offset']),
@@ -171,10 +221,10 @@ def _convert_clusters_from_json(mock_data):
         clusters.append(cluster)
     return clusters
 
-def _convert_volumes_from_json(mock_data):
+def _convert_volumes_from_json(volumes_data):
     """Convert volumes from JSON data to volume objects."""
     volumes = []
-    for volume_data in mock_data['volumes']:
+    for volume_data in volumes_data['volumes']:
         volume = {
             'name': volume_data['name'],
             'type': volume_data['type'],
@@ -197,10 +247,10 @@ def _convert_volumes_from_json(mock_data):
         volumes.append(volume)
     return volumes
 
-def _convert_jobs_from_json(mock_data):
+def _convert_jobs_from_json(jobs_data):
     """Convert jobs from JSON data to job objects."""
     jobs = []
-    for job_data in mock_data['jobs']:
+    for job_data in jobs_data['jobs']:
         job = {
             'job_id': job_data['job_id'],
             'task_id': job_data['task_id'],
@@ -222,14 +272,36 @@ def _convert_jobs_from_json(mock_data):
             'resources': job_data['resources'],
             'recovery_count': job_data['recovery_count'],
             'failure_reason': job_data['failure_reason'],
-            'schedule_state': _get_schedule_state_from_string(job_data['schedule_state']),
+            'schedule_state': job_data['schedule_state'],
             'specs': job_data['specs'],
+            'entrypoint': job_data['entrypoint'],
             'run_timestamp': str(_convert_timestamp_offset(job_data['run_timestamp_offset'])),
             'last_recovered_at': _convert_timestamp_offset(job_data['last_recovered_at_offset']),
         }
         jobs.append(job)
     jobs.sort(key=lambda x: x['job_id'], reverse=True)
     return jobs
+
+def _convert_cluster_jobs_from_json(cluster_jobs_data):
+    """Convert cluster jobs from JSON data to cluster job objects."""
+    cluster_jobs = []
+    for job_data in cluster_jobs_data['cluster_jobs']:
+        job = {
+            'job_id': job_data['job_id'],
+            'job_name': job_data['job_name'],
+            'username': job_data['username'],
+            'user_hash': job_data['user_hash'],
+            'submitted_at': _convert_timestamp_offset(job_data['submitted_at_offset']),
+            'start_at': _convert_timestamp_offset(job_data.get('start_at_offset')) if 'start_at_offset' in job_data else job_data.get('start_at'),
+            'end_at': _convert_timestamp_offset(job_data.get('end_at_offset')) if 'end_at_offset' in job_data else job_data.get('end_at'),
+            'resources': job_data['resources'],
+            'status': _get_cluster_job_status_from_string(job_data['status']),
+            'log_path': job_data['log_path'],
+            'cluster_name': job_data['cluster_name'],
+        }
+        cluster_jobs.append(job)
+    cluster_jobs.sort(key=lambda x: x['job_id'], reverse=True)
+    return cluster_jobs
 
 # Helper function to create demo cluster handles
 def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, region: str,
@@ -284,8 +356,8 @@ def _create_demo_handle(cluster_name: str, cloud: clouds.Cloud, region: str,
 def mock_get_clusters() -> List[Dict[str, Any]]:
     """Mock implementation of get_clusters."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    result = _convert_clusters_from_json(mock_data)
+    clusters_data = load_mock_data_file('clusters')
+    result = _convert_clusters_from_json(clusters_data)
     
     cluster_names = [c['name'] for c in result]
     logger.info(f"Demo mode: mock_get_clusters() returning {len(result)} clusters: {cluster_names}")
@@ -305,8 +377,8 @@ def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str
         return None
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    clusters = _convert_clusters_from_json(mock_data)
+    clusters_data = load_mock_data_file('clusters')
+    clusters = _convert_clusters_from_json(clusters_data)
     
     for cluster in clusters:
         if cluster['name'] == cluster_name:
@@ -319,14 +391,14 @@ def mock_get_cluster_from_name(cluster_name: Optional[str]) -> Optional[Dict[str
 def mock_get_all_users() -> List[models.User]:
     """Mock implementation of get_all_users."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    return _convert_users_from_json(mock_data)
+    users_data = load_mock_data_file('users')
+    return _convert_users_from_json(users_data)
 
 def mock_get_user(user_id: str) -> Optional[models.User]:
     """Mock implementation of get_user."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    users = _convert_users_from_json(mock_data)
+    users_data = load_mock_data_file('users')
+    users = _convert_users_from_json(users_data)
     
     for user in users:
         if user.id == user_id:
@@ -336,20 +408,20 @@ def mock_get_user(user_id: str) -> Optional[models.User]:
 def mock_get_storage() -> List[Dict[str, Any]]:
     """Mock implementation of get_storage."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    return mock_data['storage'].copy()
+    volumes_data = load_mock_data_file('volumes')
+    return volumes_data['storage'].copy()
 
 def mock_get_volumes() -> List[Dict[str, Any]]:
     """Mock implementation of get_volumes."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    return _convert_volumes_from_json(mock_data)
+    volumes_data = load_mock_data_file('volumes')
+    return _convert_volumes_from_json(volumes_data)
 
 def mock_get_cached_enabled_clouds(cloud_capability, workspace: str) -> List:
     """Mock implementation of get_cached_enabled_clouds."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    enabled_clouds = mock_data['enabled_clouds']
+    infrastructure_data = load_mock_data_file('infrastructure')
+    enabled_clouds = infrastructure_data['enabled_clouds']
     
     # Return actual cloud objects for demo
     mock_clouds = []
@@ -362,8 +434,8 @@ def mock_get_cached_enabled_clouds(cloud_capability, workspace: str) -> List:
 def mock_get_cluster_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_cluster_names_start_with."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    clusters = _convert_clusters_from_json(mock_data)
+    clusters_data = load_mock_data_file('clusters')
+    clusters = _convert_clusters_from_json(clusters_data)
     
     return [cluster['name'] for cluster in clusters 
             if cluster['name'].startswith(starts_with)]
@@ -374,8 +446,8 @@ def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
     logger.info(f"Demo mode: mock_get_glob_cluster_names() called with pattern='{cluster_name}'")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    clusters = _convert_clusters_from_json(mock_data)
+    clusters_data = load_mock_data_file('clusters')
+    clusters = _convert_clusters_from_json(clusters_data)
     
     # Get all cluster names from demo data
     all_cluster_names = [cluster['name'] for cluster in clusters]
@@ -389,8 +461,8 @@ def mock_get_glob_cluster_names(cluster_name: str) -> List[str]:
 def mock_get_storage_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_storage_names_start_with."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    storage = mock_data['storage']
+    volumes_data = load_mock_data_file('volumes')
+    storage = volumes_data['storage']
     
     return [storage_item['name'] for storage_item in storage 
             if storage_item['name'].startswith(starts_with)]
@@ -398,8 +470,8 @@ def mock_get_storage_names_start_with(starts_with: str) -> List[str]:
 def mock_get_volume_names_start_with(starts_with: str) -> List[str]:
     """Mock implementation of get_volume_names_start_with."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    volumes = _convert_volumes_from_json(mock_data)
+    volumes_data = load_mock_data_file('volumes')
+    volumes = _convert_volumes_from_json(volumes_data)
     
     return [volume['name'] for volume in volumes 
             if volume['name'].startswith(starts_with)]
@@ -410,8 +482,8 @@ def mock_enabled_clouds(workspace: Optional[str] = None, expand: bool = False) -
     logger.info(f"Demo mode: mock_enabled_clouds() called with workspace={workspace}, expand={expand}")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    enabled_clouds = mock_data['enabled_clouds']
+    infrastructure_data = load_mock_data_file('infrastructure')
+    enabled_clouds = infrastructure_data['enabled_clouds']
     
     if not expand:
         return enabled_clouds.copy()
@@ -425,10 +497,10 @@ def mock_get_all_contexts() -> List[str]:
     logger.info("Demo mode: mock_get_all_contexts() called")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
+    infrastructure_data = load_mock_data_file('infrastructure')
     
     # Return the contexts from our demo node info (these are the available Kubernetes contexts)
-    contexts = list(mock_data['node_info'].keys())
+    contexts = list(infrastructure_data['node_info'].keys())
     
     logger.info(f"Demo mode: Returning {len(contexts)} contexts: {contexts}")
     return contexts
@@ -446,8 +518,8 @@ def mock_realtime_kubernetes_gpu_availability(
     from sky import models
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    demo_gpu_data = mock_data['gpu_availability']
+    infrastructure_data = load_mock_data_file('infrastructure')
+    demo_gpu_data = infrastructure_data['gpu_availability']
     
     # Build the response as list of tuples: (context_name, list_of_gpu_availability)
     result = []
@@ -500,8 +572,8 @@ def mock_kubernetes_node_info(context: Optional[str] = None):
     from sky import models
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    demo_node_data = mock_data['node_info']
+    infrastructure_data = load_mock_data_file('infrastructure')
+    demo_node_data = infrastructure_data['node_info']
     
     # Get node data for the specified context, or return empty if context not found
     node_info_dict = {}
@@ -529,8 +601,8 @@ def mock_volume_list() -> List[Dict[str, Any]]:
     logger.info("Demo mode: mock_volume_list() called")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    volumes = _convert_volumes_from_json(mock_data)
+    volumes_data = load_mock_data_file('volumes')
+    volumes = _convert_volumes_from_json(volumes_data)
     
     # Convert VolumeStatus enum objects to string values for JSON serialization
     for volume in volumes:
@@ -545,8 +617,8 @@ def mock_get_workspaces() -> Dict[str, Any]:
     logger.info("Demo mode: mock_get_workspaces() called")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    workspaces = copy.deepcopy(mock_data['workspaces'])
+    workspaces_data = load_mock_data_file('workspaces')
+    workspaces = copy.deepcopy(workspaces_data['workspaces'])
     
     logger.info(f"Demo mode: Returning {len(workspaces)} demo workspaces: {list(workspaces.keys())}")
     return workspaces
@@ -562,8 +634,8 @@ def mock_readonly_operation(*args, **kwargs):
 def mock_add_or_update_user(user: models.User, allow_duplicate_name: bool = True) -> bool:
     """Mock add_or_update_user - adds user to demo users if not exists."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    users = _convert_users_from_json(mock_data)
+    users_data = load_mock_data_file('users')
+    users = _convert_users_from_json(users_data)
     
     # Check if user already exists
     for existing_user in users:
@@ -584,23 +656,45 @@ def mock_get_ssh_keys(user_hash: str) -> tuple:
 def mock_get_current_user() -> models.User:
     """Mock get_current_user - returns current demo user."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    current_user_id = mock_data['current_user']
+    users_data = load_mock_data_file('users')
+    current_user_id = users_data['current_user']
     return mock_get_user(current_user_id)
 
 def mock_get_user_hash() -> str:
     """Mock get_user_hash - returns default demo user hash."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    users = _convert_users_from_json(mock_data)
+    users_data = load_mock_data_file('users')
+    users = _convert_users_from_json(users_data)
     return users[0].id
+
 
 def mock_get_user_roles(user_id: str) -> List[str]:
     """Mock implementation of get_user_roles."""
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    user_roles = mock_data.get('user_roles', {})
+    users_data = load_mock_data_file('users')
+    user_roles = users_data.get('user_roles', {})
     return user_roles.get(user_id, [])
+
+
+def mock_override_user_info_in_request_body(request_body: dict, auth_user: models.User):
+    """Mock implementation of user info injection into request body."""
+    if not auth_user:
+        return request_body
+    
+    # Inject user environment variables into the request body
+    if 'env_vars' in request_body:
+        if isinstance(request_body.get('env_vars'), dict):
+            request_body['env_vars'][constants.USER_ID_ENV_VAR] = auth_user.id
+            request_body['env_vars'][constants.USER_ENV_VAR] = auth_user.name
+        else:
+            logger.warning('env_vars in request body is not a dictionary. Skipping user info injection.')
+    else:
+        request_body['env_vars'] = {
+            constants.USER_ID_ENV_VAR: auth_user.id,
+            constants.USER_ENV_VAR: auth_user.name
+        }
+    
+    return request_body
 
 # Jobs-related mock functions
 def mock_jobs_queue(*args, **kwargs) -> List[Dict[str, Any]]:
@@ -608,8 +702,8 @@ def mock_jobs_queue(*args, **kwargs) -> List[Dict[str, Any]]:
     logger.info(f"Demo mode: mock_jobs_queue() called with args={args}, kwargs={kwargs}")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    jobs = _convert_jobs_from_json(mock_data)
+    jobs_data = load_mock_data_file('jobs')
+    jobs = _convert_jobs_from_json(jobs_data)
     
     # Handle skip_finished filter
     if kwargs.get('skip_finished', False):
@@ -639,6 +733,142 @@ def mock_maybe_restart_controller(*args, **kwargs):
     fake_controller_handle = _create_demo_handle('sky-jobs-controller-fake', clouds.GCP(), 'us-central1', 1)
     logger.info(f"Demo mode: Returning fake jobs controller handle")
     return fake_controller_handle
+
+def mock_cluster_jobs_queue(cluster_name: str, 
+                          skip_finished: bool = False,
+                          all_users: bool = False) -> List[Dict[str, Any]]:
+    """Mock implementation of core.queue for cluster jobs - returns demo cluster job data."""
+    logger.info(f"Demo mode: mock_cluster_jobs_queue() called with cluster_name='{cluster_name}', skip_finished={skip_finished}, all_users={all_users}")
+    print(f"[DEBUG] mock_cluster_jobs_queue called with cluster_name='{cluster_name}'", flush=True)
+    
+    # Load fresh data from JSON for hot reloading
+    cluster_jobs_data = load_mock_data_file('cluster_jobs')
+    cluster_jobs = _convert_cluster_jobs_from_json(cluster_jobs_data)
+    
+    # Filter jobs for the specific cluster
+    cluster_jobs = [job for job in cluster_jobs if job['cluster_name'] == cluster_name]
+    logger.info(f"Demo mode: Found {len(cluster_jobs)} jobs for cluster '{cluster_name}'")
+    print(f"[DEBUG] Found {len(cluster_jobs)} jobs for cluster '{cluster_name}'", flush=True)
+    
+    # Handle skip_finished filter
+    if skip_finished:
+        cluster_jobs = [job for job in cluster_jobs if not job['status'].is_terminal()]
+        logger.info(f"Demo mode: After skip_finished filtering: {len(cluster_jobs)} jobs")
+    
+    # Handle all_users filter
+    if not all_users:
+        current_user_hash = mock_get_user_hash()
+        cluster_jobs = [job for job in cluster_jobs if job['user_hash'] == current_user_hash]
+        logger.info(f"Demo mode: After user filtering: {len(cluster_jobs)} jobs")
+    
+    # Ensure we return the correct format matching core.queue docstring
+    result = []
+    for job in cluster_jobs:
+        job_dict = {
+            'job_id': job['job_id'],
+            'job_name': job['job_name'],
+            'username': job['username'],
+            'user_hash': job['user_hash'],
+            'submitted_at': job['submitted_at'],
+            'start_at': job['start_at'],
+            'end_at': job['end_at'],
+            'resources': job['resources'],
+            'status': job['status'],
+            'log_path': job['log_path'],
+        }
+        result.append(job_dict)
+    
+    logger.info(f"Demo mode: Returning {len(result)} demo cluster jobs")
+    print(f"[DEBUG] Returning {len(result)} demo cluster jobs: {[job['job_name'] for job in result]}", flush=True)
+    return result
+
+def mock_cluster_tail_logs(cluster_name: str,
+                         job_id: Optional[int],
+                         follow: bool = True,
+                         tail: int = 0) -> int:
+    """Mock implementation of core.tail_logs for cluster jobs - reads from actual log files."""
+    logger.info(f"Demo mode: mock_cluster_tail_logs() called with cluster_name='{cluster_name}', job_id={job_id}, follow={follow}, tail={tail}")
+    
+    # Load fresh data from JSON for hot reloading
+    cluster_jobs_data = load_mock_data_file('cluster_jobs')
+    cluster_jobs = _convert_cluster_jobs_from_json(cluster_jobs_data)
+    
+    # Find the specific job or get the latest one
+    target_job = None
+    if job_id is not None:
+        target_job = next((job for job in cluster_jobs 
+                         if job['cluster_name'] == cluster_name and job['job_id'] == job_id), None)
+    else:
+        # Get the latest job for this cluster
+        cluster_jobs_filtered = [job for job in cluster_jobs if job['cluster_name'] == cluster_name]
+        if cluster_jobs_filtered:
+            target_job = cluster_jobs_filtered[0]  # Already sorted by job_id desc
+    
+    if target_job is None:
+        logger.warning(f"Demo mode: No job found for cluster '{cluster_name}' with job_id={job_id}")
+        print(f"No job found for cluster '{cluster_name}'" + (f" with job_id={job_id}" if job_id else ""), flush=True)
+        return 1
+    
+    # Get the log file path (relative to demo directory)
+    log_path = target_job['log_path']
+    full_log_path = os.path.join(DEMO_DIR, log_path)
+    
+    # Check if log file exists
+    if not os.path.exists(full_log_path):
+        logger.warning(f"Demo mode: Log file not found: {full_log_path}")
+        print(f"Log file not found: {log_path}", flush=True)
+        return 1
+    
+    try:
+        # Read the log file
+        with open(full_log_path, 'r') as f:
+            log_lines = f.readlines()
+        
+        # Remove newline characters but preserve empty lines
+        log_lines = [line.rstrip('\n\r') for line in log_lines]
+        
+        # Apply tail filtering if specified
+        if tail > 0:
+            log_lines = log_lines[-tail:]
+        
+        # Print the log content
+        for log_line in log_lines:
+            print(log_line, flush=True)
+        
+        # If following and job is not terminal, simulate some additional ongoing logs
+        job_status = target_job['status']
+        job_name = target_job['job_name']
+        
+        if follow and not job_status.is_terminal():
+            import time
+            time.sleep(1)
+            if 'training' in job_name.lower():
+                print("Epoch 6/10: loss=1.089, accuracy=0.678", flush=True)
+                time.sleep(1)
+                print("Validation accuracy: 0.645", flush=True)
+            elif 'inference' in job_name.lower():
+                print("Processing batch 221/496 | Processed: 7072/15847 (44.6%) | Speed: 28.9 requests/min | ETA: 3h 37m", flush=True)
+                time.sleep(1)
+                print("Processing batch 222/496 | Processed: 7104/15847 (44.8%) | Speed: 29.1 requests/min | ETA: 3h 35m", flush=True)
+            elif 'jupyter' in job_name.lower():
+                print("New connection from 192.168.1.100", flush=True)
+            else:
+                print("Task is still running...", flush=True)
+        
+        # Return exit code based on job status
+        if job_status == job_lib.JobStatus.SUCCEEDED:
+            return 0
+        elif job_status in [job_lib.JobStatus.FAILED, job_lib.JobStatus.FAILED_SETUP, job_lib.JobStatus.FAILED_DRIVER]:
+            return 100  # Failed exit code
+        elif job_status == job_lib.JobStatus.CANCELLED:
+            return 103  # Cancelled exit code
+        else:
+            return 101  # Not finished exit code
+            
+    except Exception as e:
+        logger.error(f"Demo mode: Error reading log file {full_log_path}: {e}")
+        print(f"Error reading log file: {e}", flush=True)
+        return 1
 
 # Patch global_user_state functions
 def patch_global_user_state():
@@ -677,8 +907,8 @@ def mock_load_managed_job_queue(payload: str) -> List[Dict[str, Any]]:
     logger.info(f"Demo mode: mock_load_managed_job_queue() called")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    jobs = _convert_jobs_from_json(mock_data)
+    jobs_data = load_mock_data_file('jobs')
+    jobs = _convert_jobs_from_json(jobs_data)
     
     logger.info(f"Demo mode: Returning {len(jobs)} demo jobs from load_managed_job_queue")
     return jobs
@@ -691,8 +921,8 @@ def mock_jobs_queue_direct(refresh: bool,
     logger.info(f"Demo mode: mock_jobs_queue_direct() called with refresh={refresh}, skip_finished={skip_finished}, all_users={all_users}, job_ids={job_ids}")
     
     # Load fresh data from JSON for hot reloading
-    mock_data = _get_fresh_mock_data()
-    demo_jobs = _convert_jobs_from_json(mock_data)
+    jobs_data = load_mock_data_file('jobs')
+    demo_jobs = _convert_jobs_from_json(jobs_data)
     
     # Convert demo data to API format (matching core.queue docstring format exactly)
     api_jobs = []
@@ -713,11 +943,16 @@ def mock_jobs_queue_direct(refresh: bool,
             'region': job['region'],
             'user_name': job['user_name'],
             'user_hash': job['user_hash'],
+            'workspace': job['workspace'],
+            'cloud': job['cloud'],
+            'region': job['region'],
+            'zone': job['zone'],
         }
         api_jobs.append(api_job)
+    jobs = demo_jobs.copy()
     
     # Apply filtering based on parameters (same logic as real core.queue)
-    jobs = api_jobs
+    # jobs = api_jobs
     
     # User filtering
     if not all_users:
@@ -762,6 +997,30 @@ def patch_jobs_functions():
         logger.warning(f"Demo mode: Could not import jobs core module: {e}")
     except Exception as e:
         logger.warning(f"Demo mode: Error patching jobs functions: {e}")
+
+def patch_core_functions():
+    """Patch core functions for cluster jobs."""
+    logger.info("Demo mode: Patching core functions")
+    try:
+        from sky import core
+        
+        # Store original functions for debugging
+        original_queue = getattr(core, 'queue', None)
+        original_tail_logs = getattr(core, 'tail_logs', None)
+        
+        # Mock the cluster jobs queue function
+        core.queue = mock_cluster_jobs_queue
+        logger.info(f"Demo mode: Patched core.queue (was: {original_queue}, now: {core.queue})")
+        
+        # Mock the cluster jobs tail_logs function
+        core.tail_logs = mock_cluster_tail_logs
+        logger.info(f"Demo mode: Patched core.tail_logs (was: {original_tail_logs}, now: {core.tail_logs})")
+        
+        logger.info("Demo mode: Successfully patched core functions")
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import core module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching core functions: {e}")
 
 def patch_infrastructure_functions():
     """Patch infrastructure-related functions."""
@@ -844,6 +1103,9 @@ def enable_demo_mode():
     # Patch jobs functions
     patch_jobs_functions()
     
+    # Patch core functions (for cluster jobs)
+    patch_core_functions()
+    
     # Patch infrastructure functions
     patch_infrastructure_functions()
     
@@ -874,7 +1136,25 @@ def patch_server_endpoints(app):
     async def demo_readonly_middleware(request: fastapi.Request, call_next):
         """Middleware to block write operations in demo mode."""
         # Set current user from demo data for all requests
-        request.state.auth_user = mock_get_current_user()
+        auth_user = mock_get_current_user()
+        request.state.auth_user = auth_user
+        
+        # Override user info in request body if needed
+        if request.method in ['POST', 'PUT', 'PATCH'] and auth_user:
+            # Get the body and inject user info
+            body = await request.body()
+            if body:
+                try:
+                    import json
+                    original_json = json.loads(body.decode('utf-8'))
+                    # Inject user environment variables
+                    modified_json = mock_override_user_info_in_request_body(original_json, auth_user)
+                    # Replace the request body
+                    request._body = json.dumps(modified_json).encode('utf-8')
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.warning(f'Demo mode: Error parsing request JSON for user injection: {e}')
+                except Exception as e:
+                    logger.warning(f'Demo mode: Error injecting user info into request: {e}')
         
         # Block write operations
         if (request.method in ['POST', 'PUT', 'PATCH', 'DELETE'] and 

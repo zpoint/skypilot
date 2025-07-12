@@ -1,0 +1,51 @@
+=== Job 1 (jupyter-notebook) on dev-alice ===
+Job started at: 2024-01-15 14:20:00 UTC
+Resources: 4CPU--16GB
+
+Setting up job environment...
+Installing dependencies...
+Collecting jupyter
+  Downloading jupyter-1.0.0-py2.py3-none-any.whl (2.7 kB)
+Collecting notebook
+  Downloading notebook-7.0.6-py3-none-any.whl (5.0 MB)
+Collecting ipykernel
+  Downloading ipykernel-6.26.0-py3-none-any.whl (116 kB)
+Successfully installed jupyter-1.0.0 notebook-7.0.6 ipykernel-6.26.0
+
+Installing additional packages...
+pip install numpy pandas matplotlib seaborn scikit-learn
+Successfully installed numpy-1.24.3 pandas-2.1.3 matplotlib-3.7.2 seaborn-0.12.2 scikit-learn-1.3.2
+
+Starting Jupyter notebook server...
+[I 14:21:15.234 NotebookApp] Writing notebook server cookie secret to /home/sky/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 14:21:15.567 NotebookApp] Serving notebooks from local directory: /home/sky
+[I 14:21:15.567 NotebookApp] Jupyter Notebook 7.0.6 is running at:
+[I 14:21:15.567 NotebookApp] http://0.0.0.0:8888/?token=abc123def456789
+[I 14:21:15.567 NotebookApp]  or http://127.0.0.1:8888/?token=abc123def456789
+[I 14:21:15.567 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 14:21:15.572 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///home/sky/.local/share/jupyter/runtime/nbserver-1-open.html
+    Or copy and paste one of these URLs:
+        http://0.0.0.0:8888/?token=abc123def456789
+        http://127.0.0.1:8888/?token=abc123def456789
+
+[I 14:21:18.234 NotebookApp] 302 GET /?token=abc123def456789 (192.168.1.100) 1.25ms
+[I 14:21:18.456 NotebookApp] 200 GET /tree (192.168.1.100) 45.23ms
+[I 14:21:22.789 NotebookApp] 200 GET /api/contents (192.168.1.100) 12.34ms
+
+[I 14:22:15.123 NotebookApp] Creating new notebook untitled.ipynb
+[I 14:22:15.234 NotebookApp] 201 PUT /api/contents/untitled.ipynb (192.168.1.100) 67.89ms
+[I 14:22:18.345 NotebookApp] Kernel started: python3 (kernel-123-abc)
+[I 14:22:22.567 NotebookApp] Connecting to kernel python3
+
+[I 14:25:34.123 NotebookApp] 200 POST /api/kernels/123-abc/execute (192.168.1.100) 234.56ms
+[I 14:27:45.234 NotebookApp] 200 POST /api/kernels/123-abc/execute (192.168.1.100) 123.45ms
+
+[I 14:30:12.345 NotebookApp] New connection from 10.0.1.15
+[I 14:30:12.456 NotebookApp] 302 GET /?token=abc123def456789 (10.0.1.15) 2.34ms
+[I 14:30:12.567 NotebookApp] 200 GET /tree (10.0.1.15) 34.56ms
+
+# Server is running and accepting connections
+# Access the notebook at: http://dev-alice:8888/?token=abc123def456789 

@@ -1,0 +1,156 @@
+=== Job 2 (data-analysis) on dev-alice ===
+Job started at: 2024-01-15 10:15:00 UTC
+Resources: 4CPU--16GB
+
+Setting up job environment...
+Installing dependencies...
+pip install pandas numpy matplotlib seaborn scikit-learn
+Successfully installed pandas-2.1.3 numpy-1.24.3 matplotlib-3.7.2 seaborn-0.12.2 scikit-learn-1.3.2
+
+Loading dataset...
+Reading data from /data/customer_transactions.csv...
+Dataset loaded successfully: 45,873 rows, 18 columns
+
+Data shape: (45873, 18)
+Columns: ['customer_id', 'transaction_date', 'amount', 'category', 'merchant', 'payment_method', 'location', 'age', 'gender', 'income_bracket', 'credit_score', 'tenure_months', 'churn_flag', 'satisfaction_score', 'complaints', 'support_calls', 'referrals', 'last_activity']
+
+Data Quality Assessment:
+- Missing values: 234 (0.5%)
+- Duplicate rows: 12 (0.026%)
+- Outliers detected: 1,245 (2.7%)
+
+Cleaning data...
+- Removed 12 duplicate rows
+- Handled 234 missing values using forward fill
+- Capped outliers at 95th percentile
+Final dataset: 45,861 rows, 18 columns
+
+Performing Exploratory Data Analysis...
+
+=== Customer Demographics ===
+Age distribution:
+  18-25: 8,234 (18.0%)
+  26-35: 12,456 (27.1%)
+  36-45: 11,234 (24.5%)
+  46-55: 8,901 (19.4%)
+  55+:   5,036 (11.0%)
+
+Gender distribution:
+  Female: 23,456 (51.1%)
+  Male:   22,405 (48.9%)
+
+Income brackets:
+  Low:    12,345 (26.9%)
+  Medium: 20,123 (43.9%)
+  High:   13,393 (29.2%)
+
+=== Transaction Analysis ===
+Total transaction volume: $12,456,789.45
+Average transaction: $271.23
+Median transaction: $89.50
+
+Transaction categories:
+  Groceries:    15,234 (33.2%) - $3,456,789
+  Entertainment: 8,901 (19.4%) - $2,123,456
+  Gas:          7,654 (16.7%) - $1,876,543
+  Dining:       6,789 (14.8%) - $1,654,321
+  Shopping:     4,567 (10.0%) - $2,098,765
+  Other:        2,716 (5.9%)  - $1,246,912
+
+Payment methods:
+  Credit Card: 28,456 (62.1%)
+  Debit Card:  12,345 (26.9%)
+  Cash:        3,456 (7.5%)
+  Digital:     1,604 (3.5%)
+
+=== Customer Behavior Insights ===
+High-value customers (>$1000/month):
+- Count: 2,345 (5.1%)
+- Average age: 42.3 years
+- Average income: High bracket (87.2%)
+- Average satisfaction: 4.2/5.0
+
+Churn analysis:
+- Overall churn rate: 8.3% (3,810 customers)
+- High-risk indicators:
+  * Low satisfaction score (<3.0): 23.4% churn rate
+  * High complaint frequency (>3/month): 45.6% churn rate
+  * Low engagement (no activity >30 days): 67.8% churn rate
+
+Customer lifetime value:
+- Average CLV: $2,456.78
+- Top 10% CLV: $8,234.56
+- Bottom 25% CLV: $456.23
+
+=== Machine Learning Models ===
+
+Training churn prediction model...
+Features: age, income_bracket, satisfaction_score, complaints, support_calls, tenure_months
+Target: churn_flag
+
+Train/Test split: 80/20
+Training samples: 36,689
+Test samples: 9,172
+
+Model performance:
+- Random Forest Classifier
+  * Accuracy: 89.4%
+  * Precision: 0.847
+  * Recall: 0.823
+  * F1-Score: 0.834
+  * AUC-ROC: 0.912
+
+Feature importance:
+1. satisfaction_score: 0.286
+2. complaints: 0.234
+3. tenure_months: 0.189
+4. support_calls: 0.167
+5. age: 0.078
+6. income_bracket: 0.046
+
+=== Recommendations ===
+
+1. Customer Retention:
+   - Focus on customers with satisfaction <3.0 (high churn risk)
+   - Implement proactive support for customers with >2 complaints/month
+   - Re-engagement campaigns for inactive customers (>30 days)
+
+2. Revenue Optimization:
+   - Target high-value customer segments (age 35-50, high income)
+   - Promote credit card usage (higher transaction values)
+   - Expand in entertainment and shopping categories
+
+3. Operational Improvements:
+   - Reduce support call volume through self-service options
+   - Implement early warning system for churn prediction
+   - Enhance customer satisfaction measurement
+
+=== Visualizations Generated ===
+Created 15 plots:
+1. customer_age_distribution.png
+2. transaction_volume_by_category.png
+3. churn_rate_by_satisfaction.png
+4. clv_distribution.png
+5. payment_method_trends.png
+6. feature_importance_plot.png
+7. confusion_matrix.png
+8. roc_curve.png
+9. monthly_transaction_trends.png
+10. geographic_distribution.png
+11. correlation_heatmap.png
+12. customer_segmentation.png
+13. retention_cohort_analysis.png
+14. revenue_forecast.png
+15. executive_summary_dashboard.png
+
+=== Output Files ===
+Generated analysis report: /outputs/customer_analysis_report.html
+Saved processed dataset: /outputs/cleaned_customer_data.csv
+Model artifacts: /outputs/churn_model.pkl
+Visualizations: /outputs/plots/ (15 files)
+
+Analysis completed successfully!
+Total runtime: 47 minutes 23 seconds
+Job finished at: 2024-01-15 11:02:23 UTC
+
+✓ Job completed successfully! 
