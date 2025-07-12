@@ -1,4 +1,4 @@
-name: minGPT-ddp
+name: distributed-training
 
 resources:
   accelerators: A100:8

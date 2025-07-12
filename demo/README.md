@@ -1,114 +1,150 @@
-# SkyPilot Demo Mode Mock Data
+# SkyPilot Demo Mode
 
-This directory contains the mock data files for SkyPilot's demo mode. The data has been organized into multiple focused JSON5 files for better maintainability and performance.
+This directory contains the demo mode implementation for SkyPilot, providing a read-only demonstration experience with realistic fake data.
 
-## File Structure
+## Directory Structure
 
-### Core Data Files
-
-- **`mock_data/mock_users.json5`** - User accounts, roles, and authentication
-- **`mock_data/mock_clusters.json5`** - Cluster configurations and YAML templates
-- **`mock_data/mock_jobs.json5`** - Managed jobs (jobs controller)
-- **`mock_data/mock_cluster_jobs.json5`** - Cluster-specific jobs (jobs running on clusters)
-- **`mock_data/mock_volumes.json5`** - Volume and storage configurations
-- **`mock_data/mock_workspaces.json5`** - Workspace configurations and permissions
-- **`mock_data/mock_infrastructure.json5`** - Infrastructure data (clouds, GPUs, nodes)
-
-### Configuration Files
-
-- **`demo_mode.py`** - Main demo mode implementation
-- **`README.md`** - This documentation file
-
-### Log Files
-
-- **`logs/`** - Directory containing realistic log files for cluster jobs
-  - **`logs/dev-alice/`** - Logs for jobs on the dev-alice cluster
-  - **`logs/training-multinode/`** - Logs for jobs on the training-multinode cluster
-  - **`logs/inference-cluster/`** - Logs for jobs on the inference-cluster cluster
-  - **`logs/dev-cluster-alice/`** - Logs for jobs on the dev-cluster-alice cluster
+```
+demo/
+├── mock_data/                     # Mock data files (JSON5 format)
+│   ├── mock_users.json5          # User accounts and roles
+│   ├── mock_clusters.json5       # Cluster configurations
+│   ├── mock_jobs.json5           # Managed jobs data
+│   ├── mock_cluster_jobs.json5   # Cluster-specific jobs
+│   ├── mock_volumes.json5        # Volume and storage data
+│   ├── mock_workspaces.json5     # Workspace configurations
+│   └── mock_infrastructure.json5 # Infrastructure data (clouds, GPUs, nodes)
+├── cluster_yamls/                 # YAML configurations for clusters
+│   ├── dev.yaml                  # Development cluster config
+│   ├── inference.yaml            # Inference cluster config
+│   └── training.yaml             # Training cluster config
+├── logs/                         # Realistic log files for cluster jobs
+│   ├── dev-alice/                # Logs for dev-alice cluster
+│   ├── training-multinode/       # Logs for training-multinode cluster
+│   ├── inference-cluster/        # Logs for inference-cluster cluster
+│   └── dev-cluster-alice/        # Logs for dev-cluster-alice cluster
+├── demo_mode.py                  # Main demo mode implementation
+└── README.md                     # This file
+```
 
 ## Features
 
-### Hot Reloading
-All JSON5 files are loaded fresh on every API request, enabling real-time editing without server restarts. Simply edit any file and refresh your browser to see changes immediately.
+- **Hot Reloading**: JSON5 files are loaded fresh on every API query - edit any file and refresh to see changes
+- **Real Log Files**: Authentic log content for different job types stored in actual files
+- **Cluster Job Support**: Realistic cluster-specific job data with proper status enums
+- **User Management**: Multiple demo users with different roles and permissions
+- **Infrastructure Data**: Mock GPU availability, cloud configurations, and node information
 
-### JSON5 Format
-All files support JSON5 format with:
-- Comments (`// single line` and `/* multi-line */`)
-- Trailing commas
-- Unquoted keys
-- Multi-line strings
+## Starting the Demo
 
-## Data Types
+### Option 1: Using the API Server
 
-### Users (`mock_users.json5`)
-- User accounts with IDs, names, and creation timestamps
-- User roles (admin, user, etc.)
-- Current user designation
+1. **Start the API Server with Demo Mode**:
+   ```bash
+   cd /path/to/skypilot
+   SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true python -m sky.server.server
+   ```
 
-### Clusters (`mock_clusters.json5`)
-- Cluster configurations with cloud providers, regions, and resources
-- YAML templates for different workload types
-- Cluster status and metadata
+2. **Access the Dashboard**:
+   - Open your browser and go to `http://localhost:8000`
+   - You'll see the SkyPilot dashboard with demo data
 
-### Jobs (`mock_jobs.json5`)
-- Managed jobs from the jobs controller
-- Job status, resources, and execution details
-- Job scheduling and recovery information
+### Option 2: Using the Development Server
 
-### Cluster Jobs (`mock_cluster_jobs.json5`)
-- Jobs running directly on clusters (not through jobs controller)
-- Cluster-specific job logs and resources
-- Job execution status and timing
+1. **Start the Development Server**:
+   ```bash
+   cd /path/to/skypilot
+   SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true python -m sky.server.server --dev
+   ```
 
-### Volumes (`mock_volumes.json5`)
-- Storage volumes and persistent volumes
-- Volume configurations and attachments
-- Storage class and access mode information
+2. **Access the Dashboard**:
+   - The development server typically runs on `http://localhost:8000`
 
-### Workspaces (`mock_workspaces.json5`)
-- Workspace configurations and permissions
-- Cloud provider settings per workspace
-- Access control and user restrictions
+## Demo Data
 
-### Infrastructure (`mock_infrastructure.json5`)
-- Available cloud providers and regions
-- GPU availability and node information
-- Kubernetes cluster details and capacity
+The demo includes:
 
-## Usage
+- **4 Clusters**: `dev-alice`, `training-multinode`, `inference-cluster`, `dev-cluster-alice`
+- **7 Cluster Jobs**: Various jobs running on different clusters with different statuses
+- **3 Users**: Demo users with different roles and permissions
+- **Multiple Workspaces**: Different workspace configurations
+- **Infrastructure Data**: Mock GPU availability and cloud information
 
-### Editing Demo Data
-1. Edit any JSON5 file in the `mock_data/` directory
-2. Refresh your browser or make a new API request
-3. Changes will be reflected immediately
+## Customizing Demo Data
+
+### Editing Mock Data
+
+All mock data files are in JSON5 format (JSON with comments). You can edit them directly:
+
+```bash
+# Edit cluster data
+vim demo/mock_data/mock_clusters.json5
+
+# Edit cluster jobs
+vim demo/mock_data/mock_cluster_jobs.json5
+
+# Edit user data
+vim demo/mock_data/mock_users.json5
+```
+
+### Editing Cluster YAML Configurations
+
+Cluster YAML files are stored in `demo/cluster_yamls/`:
+
+```bash
+# Edit development cluster config
+vim demo/cluster_yamls/dev.yaml
+
+# Edit training cluster config
+vim demo/cluster_yamls/training.yaml
+
+# Edit inference cluster config
+vim demo/cluster_yamls/inference.yaml
+```
 
 ### Editing Log Files
-1. Edit any log file in the `logs/` directory
-2. Log changes are reflected immediately when viewing job logs
-3. Create new log files by adding entries to `mock_data/mock_cluster_jobs.json5`
 
-### Adding New Data
-1. Follow the existing data structure patterns
-2. Use relative timestamps (negative offsets from current time)
-3. Ensure consistent user_hash and cluster references
+Log files are stored in `demo/logs/` and are read by the demo mode:
 
-### Troubleshooting
-- Check server logs for JSON5 parsing errors
-- Validate JSON5 syntax online if needed
-- Ensure all referenced IDs exist across files
+```bash
+# Edit logs for dev-alice cluster
+vim demo/logs/dev-alice/job-1.log
 
-## Data Relationships
+# Edit logs for training cluster
+vim demo/logs/training-multinode/job-1.log
+```
 
-- Users are referenced by `user_hash` in other files
-- Clusters are referenced by `name` in jobs and volumes
-- Workspaces are referenced by `workspace` field
-- Cloud regions must match available infrastructure
+## Important Notes
 
-## Time Handling
+1. **Read-Only Mode**: Demo mode blocks all write operations to prevent modifications
+2. **Environment Variable**: You must set `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` to enable demo mode
+3. **Hot Reloading**: Changes to JSON5 files are reflected immediately without server restart
+4. **Realistic Data**: All data is designed to be realistic for demonstration purposes
 
-All timestamps use offset-based values:
-- Negative values: relative to current time (e.g., -3600 = 1 hour ago)
-- Positive values: absolute Unix timestamps
-- null values: not set/applicable
-- -1 values: special "never" indicator
+## Troubleshooting
+
+### Cluster Jobs Not Showing
+
+If cluster jobs aren't appearing in the dashboard:
+
+1. **Check Demo Mode**: Ensure `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` is set
+2. **Verify Server Logs**: Look for "Demo mode enabled" messages in the server logs
+3. **Check Mock Data**: Verify `mock_cluster_jobs.json5` contains jobs for your cluster
+
+### Server Not Starting
+
+If the server fails to start:
+
+1. **Check Dependencies**: Ensure all required packages are installed
+2. **Check Port**: Make sure port 8000 is not already in use
+3. **Check Environment**: Verify you're in the correct directory and virtual environment
+
+## Development
+
+To modify the demo mode behavior:
+
+1. **Edit `demo_mode.py`**: Main implementation file
+2. **Add New Mock Data**: Add new JSON5 files and update the loading logic
+3. **Extend Functionality**: Add new mock functions as needed
+
+The demo mode automatically patches SkyPilot functions when `demo_mode.py` is imported, making it easy to extend and customize.

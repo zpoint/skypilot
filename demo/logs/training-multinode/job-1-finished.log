@@ -580,4 +580,42 @@ Rewrite d47f0f34f18c8a16ed3d9bf264305b8f988a7c93 (1/1) (0 seconds passed, remain
 (worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 9 | Iter 0 | Eval Loss 2.18397
 (worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 9 | Iter 0 | Eval Loss 2.17928
 (worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 9 | Iter 0 | Eval Loss 2.17475
-Note: the log is not streaming as this is a demo.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 10 | Iter 0 | Train Loss 2.17032
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 10 | Iter 0 | Train Loss 2.17133
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 10 | Iter 0 | Train Loss 2.20404
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 10 | Iter 0 | Train Loss 2.16534
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 10 | Iter 0 | Train Loss 2.17174
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 10 | Iter 0 | Train Loss 2.16618[GPU10] Epoch 10 | Iter 0 | Train Loss 2.16232
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 10 | Iter 0 | Train Loss 2.18151
+(head, rank=0, pid=10020) [GPU6] Epoch 10 | Iter 0 | Train Loss 2.18251
+(head, rank=0, pid=10020) [GPU3] Epoch 10 | Iter 0 | Train Loss 2.16995
+(head, rank=0, pid=10020) [GPU0] Epoch 10 | Iter 0 | Train Loss 2.17609
+(head, rank=0, pid=10020) [GPU2] Epoch 10 | Iter 0 | Train Loss 2.18043
+(head, rank=0, pid=10020) [GPU5] Epoch 10 | Iter 0 | Train Loss 2.17422
+(head, rank=0, pid=10020) [GPU1] Epoch 10 | Iter 0 | Train Loss 2.17292
+(head, rank=0, pid=10020) [GPU4] Epoch 10 | Iter 0 | Train Loss 2.17909
+(head, rank=0, pid=10020) [GPU7] Epoch 10 | Iter 0 | Train Loss 2.18896
+(head, rank=0, pid=10020) [GPU0] Epoch 10 | Iter 0 | Eval Loss 2.13745
+(head, rank=0, pid=10020) [GPU7] Epoch 10 | Iter 0 | Eval Loss 2.15038
+(head, rank=0, pid=10020) [GPU5] Epoch 10 | Iter 0 | Eval Loss 2.13194
+(head, rank=0, pid=10020) [GPU3] Epoch 10 | Iter 0 | Eval Loss 2.14332
+(head, rank=0, pid=10020) [GPU4] Epoch 10 | Iter 0 | Eval Loss 2.15317
+(head, rank=0, pid=10020) [GPU2] Epoch 10 | Iter 0 | Eval Loss 2.14513
+(head, rank=0, pid=10020) [GPU6] Epoch 10 | Iter 0 | Eval Loss 2.13554
+(head, rank=0, pid=10020) [GPU1] Epoch 10 | Iter 0 | Eval Loss 2.14350
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 10 | Iter 0 | Eval Loss 2.15412[GPU14] Epoch 10 | Iter 0 | Eval Loss 2.15209
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 10 | Iter 0 | Eval Loss 2.12848[GPU8] Epoch 10 | Iter 0 | Eval Loss 2.14231
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 10 | Iter 0 | Eval Loss 2.13561
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 10 | Iter 0 | Eval Loss 2.15040
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 10 | Iter 0 | Eval Loss 2.14473[GPU13] Epoch 10 | Iter 0 | Eval Loss 2.14221
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] worker group successfully finished. Waiting 300 seconds for other agents to finish.
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:Local worker group finished (SUCCEEDED). Waiting 300 seconds for other agents to finish
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] worker group successfully finished. Waiting 300 seconds for other agents to finish.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:Local worker group finished (SUCCEEDED). Waiting 300 seconds for other agents to finish
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.0006403923034667969 seconds
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.062013864517211914 seconds
+✓ Job finished (status: SUCCEEDED).
