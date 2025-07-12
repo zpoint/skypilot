@@ -1,159 +1,114 @@
-# SkyPilot Demo Mode
+# SkyPilot Demo Mode Mock Data
 
-This directory contains the demo mode implementation and mock data for SkyPilot's demo.
+This directory contains the mock data files for SkyPilot's demo mode. The data has been organized into multiple focused JSON5 files for better maintainability and performance.
 
-## Overview
+## File Structure
 
-The demo mode loads realistic fake data from `mock_data.json` to simulate a working SkyPilot environment without requiring actual cloud resources. This allows users to explore the SkyPilot API and web interface safely.
+### Core Data Files
 
-## Enabling Demo Mode
+- **`mock_data/mock_users.json5`** - User accounts, roles, and authentication
+- **`mock_data/mock_clusters.json5`** - Cluster configurations and YAML templates
+- **`mock_data/mock_jobs.json5`** - Managed jobs (jobs controller)
+- **`mock_data/mock_cluster_jobs.json5`** - Cluster-specific jobs (jobs running on clusters)
+- **`mock_data/mock_volumes.json5`** - Volume and storage configurations
+- **`mock_data/mock_workspaces.json5`** - Workspace configurations and permissions
+- **`mock_data/mock_infrastructure.json5`** - Infrastructure data (clouds, GPUs, nodes)
 
-Demo mode is only enabled when the environment variable `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH` is set to `true`:
+### Configuration Files
 
-```bash
-export SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true
-# Then start your SkyPilot server or application
-```
+- **`demo_mode.py`** - Main demo mode implementation
+- **`README.md`** - This documentation file
 
-When enabled, demo mode will:
-- ✅ **Load fake data** from `mock_data.json`
-- ✅ **Block write operations** (returns HTTP 403 errors)
-- ✅ **Enable hot reloading** of mock data
-- ✅ **Patch all SkyPilot functions** to use demo data
-- ✅ **Mock user authentication** and role-based permissions
-- ✅ **Set current user** from demo data on all requests
+### Log Files
 
-## Files
+- **`logs/`** - Directory containing realistic log files for cluster jobs
+  - **`logs/dev-alice/`** - Logs for jobs on the dev-alice cluster
+  - **`logs/training-multinode/`** - Logs for jobs on the training-multinode cluster
+  - **`logs/inference-cluster/`** - Logs for jobs on the inference-cluster cluster
+  - **`logs/dev-cluster-alice/`** - Logs for jobs on the dev-cluster-alice cluster
 
-- `demo_mode.py` - The main demo mode implementation that patches SkyPilot functions
-- `mock_data.json` - Contains all demo data including users, clusters, jobs, volumes, workspaces, and infrastructure information
+## Features
 
-## Mock Data Structure
+### Hot Reloading
+All JSON5 files are loaded fresh on every API request, enabling real-time editing without server restarts. Simply edit any file and refresh your browser to see changes immediately.
 
-The JSON file contains the following sections:
+### JSON5 Format
+All files support JSON5 format with:
+- Comments (`// single line` and `/* multi-line */`)
+- Trailing commas
+- Unquoted keys
+- Multi-line strings
 
-### Users
-Demo users that can access the system:
-- `alice@skypilot.co` - Primary user with access to multiple workspaces
-- `bob@skypilot.co` - Standard user with default workspace access  
-- `mike@skypilot.co` - User with limited workspace access
+## Data Types
 
-### Clusters
-Sample clusters in different states:
-- Kubernetes clusters on Lambda Cloud and Nebius
-- GCP and AWS clusters with various configurations
-- Different statuses: UP, STOPPED, etc.
+### Users (`mock_users.json5`)
+- User accounts with IDs, names, and creation timestamps
+- User roles (admin, user, etc.)
+- Current user designation
 
-### Jobs
-Sample managed jobs showing different states:
-- Running training jobs
-- Completed inference jobs
-- Failed experiments
-- Pending and cancelled jobs
+### Clusters (`mock_clusters.json5`)
+- Cluster configurations with cloud providers, regions, and resources
+- YAML templates for different workload types
+- Cluster status and metadata
 
-### Volumes
-Sample Kubernetes persistent volumes:
-- Different storage classes and sizes
-- Various usage states (IN_USE, READY)
+### Jobs (`mock_jobs.json5`)
+- Managed jobs from the jobs controller
+- Job status, resources, and execution details
+- Job scheduling and recovery information
 
-### Workspaces
-Three demo workspaces:
-- `default` - Open access workspace
-- `ml-team` - Team workspace with GCP and AWS access
-- `research-private` - Private workspace with limited access
+### Cluster Jobs (`mock_cluster_jobs.json5`)
+- Jobs running directly on clusters (not through jobs controller)
+- Cluster-specific job logs and resources
+- Job execution status and timing
 
-### User Roles & Permissions
-Demo users with different role assignments:
-- `alice@skypilot.co` - Admin with multiple roles: `["admin", "user"]`
-- `bob@skypilot.co` - Standard user: `["user"]`
-- `mike@skypilot.co` - User with viewer access: `["user", "viewer"]`
+### Volumes (`mock_volumes.json5`)
+- Storage volumes and persistent volumes
+- Volume configurations and attachments
+- Storage class and access mode information
 
-The current user is set to `alice@skypilot.co` by default and can be changed by modifying the `current_user` field in the JSON.
+### Workspaces (`mock_workspaces.json5`)
+- Workspace configurations and permissions
+- Cloud provider settings per workspace
+- Access control and user restrictions
 
-## Modifying Mock Data
+### Infrastructure (`mock_infrastructure.json5`)
+- Available cloud providers and regions
+- GPU availability and node information
+- Kubernetes cluster details and capacity
 
-To customize the demo data:
+## Usage
 
-1. **Edit `mock_data.json`** directly with your preferred editor
-2. **Timestamps** - All timestamps use offsets from current time:
-   - `-3600` = 1 hour ago
-   - `-86400` = 1 day ago
-   - `-172800` = 2 days ago
-3. **Status values** - Use string values like "UP", "STOPPED", "RUNNING", "FAILED", etc.
-4. **Cloud types** - Use "gcp", "aws", "kubernetes"
+### Editing Demo Data
+1. Edit any JSON5 file in the `mock_data/` directory
+2. Refresh your browser or make a new API request
+3. Changes will be reflected immediately
 
-### Example: Adding a New User
+### Editing Log Files
+1. Edit any log file in the `logs/` directory
+2. Log changes are reflected immediately when viewing job logs
+3. Create new log files by adding entries to `mock_data/mock_cluster_jobs.json5`
 
-```json
-{
-  "id": "charlie999",
-  "name": "charlie@skypilot.co",
-  "password": null,
-  "created_at_offset": -86400
-}
-```
+### Adding New Data
+1. Follow the existing data structure patterns
+2. Use relative timestamps (negative offsets from current time)
+3. Ensure consistent user_hash and cluster references
 
-### Example: Adding a New User with Roles
+### Troubleshooting
+- Check server logs for JSON5 parsing errors
+- Validate JSON5 syntax online if needed
+- Ensure all referenced IDs exist across files
 
-```json
-{
-  "id": "charlie999",
-  "name": "charlie@skypilot.co",
-  "password": null,
-  "created_at_offset": -86400
-}
-```
+## Data Relationships
 
-And add their roles to the `user_roles` section:
+- Users are referenced by `user_hash` in other files
+- Clusters are referenced by `name` in jobs and volumes
+- Workspaces are referenced by `workspace` field
+- Cloud regions must match available infrastructure
 
-```json
-"user_roles": {
-  "alice123": ["admin", "user"],
-  "bob456": ["user"],
-  "mike789": ["user", "viewer"],
-  "charlie999": ["user", "operator"]
-}
-```
+## Time Handling
 
-### Example: Adding a New Cluster
-
-```json
-{
-  "name": "my-cluster",
-  "launched_at_offset": -3600,
-  "cloud": "aws",
-  "region": "us-east-1",
-  "nodes": 1,
-  "last_use": "sky launch my-app.yaml",
-  "status": "UP",
-  "autostop": 30,
-  "to_down": false,
-  "owner": ["charlie999"],
-  "metadata": {"cloud": "aws", "region": "us-east-1"},
-  "cluster_hash": "cluster-hash-my-cluster",
-  "storage_mounts_metadata": null,
-  "cluster_ever_up": true,
-  "status_updated_at_offset": -1800,
-  "user_hash": "charlie999", 
-  "user_name": "charlie@skypilot.co",
-  "config_hash": "config-hash-new",
-  "workspace": "default",
-  "last_creation_yaml": "dev",
-  "last_creation_command": "sky launch -c my-cluster app.yaml"
-}
-```
-
-## Hot Reloading
-
-The demo mode now features **automatic hot reloading** - the JSON file is loaded fresh on every API query! This means:
-
-- ✅ **No server restart required** - Changes are reflected immediately
-- ✅ **No manual reload needed** - Just edit the JSON file and refresh your browser
-- ✅ **Real-time development** - Perfect for testing different data scenarios
-
-### Example Hot Edit Workflow:
-
-1. Edit `mock_data.json` with your changes
-2. Save the file
-3. Make any API request or refresh the SkyPilot web interface
-4. See your changes immediately!
+All timestamps use offset-based values:
+- Negative values: relative to current time (e.g., -3600 = 1 hour ago)
+- Positive values: absolute Unix timestamps
+- null values: not set/applicable
+- -1 values: special "never" indicator

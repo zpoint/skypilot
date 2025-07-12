@@ -1,0 +1,28 @@
+{
+  "current_user": "alice123",
+  "users": [
+    {
+      "id": "alice123",
+      "name": "alice@skypilot.co",
+      "password": null,
+      "created_at_offset": -172800
+    },
+    {
+      "id": "bob456", 
+      "name": "bob@skypilot.co",
+      "password": null,
+      "created_at_offset": -172800
+    },
+    {
+      "id": "mike789",
+      "name": "mike@skypilot.co", 
+      "password": null,
+      "created_at_offset": -86400
+    }
+  ],
+  "user_roles": {
+    "alice123": ["admin"],
+    "bob456": ["user"],
+    "mike789": ["user"]
+  }
+} 

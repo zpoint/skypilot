@@ -1,0 +1,621 @@
+(setup pid=10020) Cloning into 'examples'...
+(setup pid=8631, ip=10.128.0.83) Cloning into 'examples'...
+(setup pid=10020) WARNING: git-filter-branch has a glut of gotchas generating mangled history
+(setup pid=10020) 	 rewrites.  Hit Ctrl-C before proceeding to abort, then use an
+(setup pid=10020) 	 alternative filtering tool such as 'git filter-repo'
+(setup pid=10020) 	 (https://github.com/newren/git-filter-repo/) instead.  See the
+(setup pid=10020) 	 filter-branch manual page for more details; to squelch this warning,
+(setup pid=10020) 	 set FILTER_BRANCH_SQUELCH_WARNING=1.
+(setup pid=8631, ip=10.128.0.83) WARNING: git-filter-branch has a glut of gotchas generating mangled history
+(setup pid=8631, ip=10.128.0.83) 	 rewrites.  Hit Ctrl-C before proceeding to abort, then use an
+(setup pid=8631, ip=10.128.0.83) 	 alternative filtering tool such as 'git filter-repo'
+(setup pid=8631, ip=10.128.0.83) 	 (https://github.com/newren/git-filter-repo/) instead.  See the
+(setup pid=8631, ip=10.128.0.83) 	 filter-branch manual page for more details; to squelch this warning,
+(setup pid=8631, ip=10.128.0.83) 	 set FILTER_BRANCH_SQUELCH_WARNING=1.
+(setup pid=10020) Proceeding with filter-branch...
+(setup pid=10020) 
+(setup pid=10020) 
+Rewrite d47f0f34f18c8a16ed3d9bf264305b8f988a7c93 (1/1) (0 seconds passed, remaining 0 predicted)    
+(setup pid=10020) Ref 'refs/heads/main' was rewritten
+(setup pid=10020) Using CPython 3.10.13 interpreter at: /home/gcpuser/miniconda3/bin/python3.10
+(setup pid=10020) Creating virtual environment at: .venv
+(setup pid=10020) Activate with: source .venv/bin/activate
+(setup pid=8631, ip=10.128.0.83) Proceeding with filter-branch...
+(setup pid=8631, ip=10.128.0.83) 
+(setup pid=8631, ip=10.128.0.83) 
+Rewrite d47f0f34f18c8a16ed3d9bf264305b8f988a7c93 (1/1) (0 seconds passed, remaining 0 predicted)    
+(setup pid=8631, ip=10.128.0.83) Ref 'refs/heads/main' was rewritten
+(setup pid=8631, ip=10.128.0.83) Using CPython 3.10.13 interpreter at: /home/gcpuser/miniconda3/bin/python3.10
+(setup pid=8631, ip=10.128.0.83) Creating virtual environment at: .venv
+(setup pid=8631, ip=10.128.0.83) Activate with: source .venv/bin/activate
+(setup pid=8631, ip=10.128.0.83) Resolved 29 packages in 1.43s
+(setup pid=8631, ip=10.128.0.83)    Building antlr4-python3-runtime==4.9.3
+(setup pid=8631, ip=10.128.0.83) Downloading aiohttp (1.6MiB)
+(setup pid=8631, ip=10.128.0.83) Downloading numpy (17.4MiB)
+(setup pid=8631, ip=10.128.0.83) Downloading botocore (13.2MiB)
+(setup pid=10020) Resolved 29 packages in 1.90s
+(setup pid=10020)    Building antlr4-python3-runtime==4.9.3
+(setup pid=10020) Downloading numpy (17.4MiB)
+(setup pid=10020) Downloading botocore (13.2MiB)
+(setup pid=10020) Downloading aiohttp (1.6MiB)
+(setup pid=8631, ip=10.128.0.83) Downloading torch (1.7GiB)
+(setup pid=10020) Downloading torch (1.7GiB)
+(setup pid=8631, ip=10.128.0.83)  Downloading aiohttp
+(setup pid=10020)  Downloading aiohttp
+(setup pid=10020)       Built antlr4-python3-runtime==4.9.3
+(setup pid=8631, ip=10.128.0.83)       Built antlr4-python3-runtime==4.9.3
+(setup pid=8631, ip=10.128.0.83)  Downloading numpy
+(setup pid=10020)  Downloading numpy
+(setup pid=8631, ip=10.128.0.83)  Downloading botocore
+(setup pid=10020)  Downloading botocore
+(setup pid=8631, ip=10.128.0.83)  Downloading torch
+(setup pid=8631, ip=10.128.0.83) Prepared 29 packages in 25.97s
+(setup pid=10020)  Downloading torch
+(setup pid=10020) Prepared 29 packages in 26.03s
+(setup pid=8631, ip=10.128.0.83) Installed 29 packages in 273ms
+(setup pid=8631, ip=10.128.0.83)  + aiohappyeyeballs==2.6.1
+(setup pid=8631, ip=10.128.0.83)  + aiohttp==3.12.14
+(setup pid=8631, ip=10.128.0.83)  + aiosignal==1.4.0
+(setup pid=8631, ip=10.128.0.83)  + antlr4-python3-runtime==4.9.3
+(setup pid=8631, ip=10.128.0.83)  + async-timeout==5.0.1
+(setup pid=8631, ip=10.128.0.83)  + attrs==25.3.0
+(setup pid=8631, ip=10.128.0.83)  + boto3==1.39.4
+(setup pid=8631, ip=10.128.0.83)  + botocore==1.39.4
+(setup pid=8631, ip=10.128.0.83)  + certifi==2022.12.7
+(setup pid=8631, ip=10.128.0.83)  + charset-normalizer==2.1.1
+(setup pid=8631, ip=10.128.0.83)  + frozenlist==1.7.0
+(setup pid=8631, ip=10.128.0.83)  + fsspec==2024.6.1
+(setup pid=8631, ip=10.128.0.83)  + hydra-core==1.3.2
+(setup pid=8631, ip=10.128.0.83)  + idna==3.4
+(setup pid=8631, ip=10.128.0.83)  + jmespath==1.0.1
+(setup pid=8631, ip=10.128.0.83)  + multidict==6.6.3
+(setup pid=8631, ip=10.128.0.83)  + numpy==1.26.3
+(setup pid=8631, ip=10.128.0.83)  + omegaconf==2.3.0
+(setup pid=8631, ip=10.128.0.83)  + packaging==24.1
+(setup pid=8631, ip=10.128.0.83)  + propcache==0.3.2
+(setup pid=8631, ip=10.128.0.83)  + python-dateutil==2.9.0.post0
+(setup pid=8631, ip=10.128.0.83)  + pyyaml==6.0.2
+(setup pid=8631, ip=10.128.0.83)  + requests==2.28.1
+(setup pid=8631, ip=10.128.0.83)  + s3transfer==0.13.0
+(setup pid=8631, ip=10.128.0.83)  + six==1.17.0
+(setup pid=8631, ip=10.128.0.83)  + torch==1.12.1+cu113
+(setup pid=8631, ip=10.128.0.83)  + typing-extensions==4.12.2
+(setup pid=8631, ip=10.128.0.83)  + urllib3==1.26.13
+(setup pid=8631, ip=10.128.0.83)  + yarl==1.20.1
+(setup pid=10020) Installed 29 packages in 374ms
+(setup pid=10020)  + aiohappyeyeballs==2.6.1
+(setup pid=10020)  + aiohttp==3.12.14
+(setup pid=10020)  + aiosignal==1.4.0
+(setup pid=10020)  + antlr4-python3-runtime==4.9.3
+(setup pid=10020)  + async-timeout==5.0.1
+(setup pid=10020)  + attrs==25.3.0
+(setup pid=10020)  + boto3==1.39.4
+(setup pid=10020)  + botocore==1.39.4
+(setup pid=10020)  + certifi==2022.12.7
+(setup pid=10020)  + charset-normalizer==2.1.1
+(setup pid=10020)  + frozenlist==1.7.0
+(setup pid=10020)  + fsspec==2024.6.1
+(setup pid=10020)  + hydra-core==1.3.2
+(setup pid=10020)  + idna==3.4
+(setup pid=10020)  + jmespath==1.0.1
+(setup pid=10020)  + multidict==6.6.3
+(setup pid=10020)  + numpy==1.26.3
+(setup pid=10020)  + omegaconf==2.3.0
+(setup pid=10020)  + packaging==24.1
+(setup pid=10020)  + propcache==0.3.2
+(setup pid=10020)  + python-dateutil==2.9.0.post0
+(setup pid=10020)  + pyyaml==6.0.2
+(setup pid=10020)  + requests==2.28.1
+(setup pid=10020)  + s3transfer==0.13.0
+(setup pid=10020)  + six==1.17.0
+(setup pid=10020)  + torch==1.12.1+cu113
+(setup pid=10020)  + typing-extensions==4.12.2
+(setup pid=10020)  + urllib3==1.26.13
+(setup pid=10020)  + yarl==1.20.1
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Starting distributed training, head node: 10.128.0.52
+(head, rank=0, pid=10020) Starting distributed training, head node: 10.128.0.52
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.launcher.api:Starting elastic_operator with launch configs:
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   entrypoint       : main.py
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   min_nodes        : 2
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   max_nodes        : 2
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   nproc_per_node   : 8
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   run_id           : none
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   rdzv_backend     : static
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   rdzv_endpoint    : 10.128.0.52:8008
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   rdzv_configs     : {'rank': 1, 'timeout': 900}
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   max_restarts     : 0
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   monitor_interval : 5
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   log_dir          : None
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   metrics_cfg      : {}
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.local_elastic_agent:log directory set to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] starting workers for entrypoint: python3
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous'ing worker group
+(head, rank=0, pid=10020) INFO:torch.distributed.launcher.api:Starting elastic_operator with launch configs:
+(head, rank=0, pid=10020)   entrypoint       : main.py
+(head, rank=0, pid=10020)   min_nodes        : 2
+(head, rank=0, pid=10020)   max_nodes        : 2
+(head, rank=0, pid=10020)   nproc_per_node   : 8
+(head, rank=0, pid=10020)   run_id           : none
+(head, rank=0, pid=10020)   rdzv_backend     : static
+(head, rank=0, pid=10020)   rdzv_endpoint    : 10.128.0.52:8008
+(head, rank=0, pid=10020)   rdzv_configs     : {'rank': 0, 'timeout': 900}
+(head, rank=0, pid=10020)   max_restarts     : 0
+(head, rank=0, pid=10020)   monitor_interval : 5
+(head, rank=0, pid=10020)   log_dir          : None
+(head, rank=0, pid=10020)   metrics_cfg      : {}
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.local_elastic_agent:log directory set to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] starting workers for entrypoint: python3
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous'ing worker group
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous complete for workers. Result:
+(head, rank=0, pid=10020)   restart_count=0
+(head, rank=0, pid=10020)   master_addr=10.128.0.52
+(head, rank=0, pid=10020)   master_port=8008
+(head, rank=0, pid=10020)   group_rank=0
+(head, rank=0, pid=10020)   group_world_size=2
+(head, rank=0, pid=10020)   local_ranks=[0, 1, 2, 3, 4, 5, 6, 7]
+(head, rank=0, pid=10020)   role_ranks=[0, 1, 2, 3, 4, 5, 6, 7]
+(head, rank=0, pid=10020)   global_ranks=[0, 1, 2, 3, 4, 5, 6, 7]
+(head, rank=0, pid=10020)   role_world_sizes=[16, 16, 16, 16, 16, 16, 16, 16]
+(head, rank=0, pid=10020)   global_world_sizes=[16, 16, 16, 16, 16, 16, 16, 16]
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] Starting worker group
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker0 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/0/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker1 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/1/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker2 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/2/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker3 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/3/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker4 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/4/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker5 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/5/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker6 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/6/error.json
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.multiprocessing:Setting worker7 reply file to: /tmp/torchelastic_lj3uzb6j/none_wuiurxka/attempt_0/7/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous complete for workers. Result:
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   restart_count=0
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   master_addr=10.128.0.52
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   master_port=8008
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   group_rank=1
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   group_world_size=2
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   local_ranks=[0, 1, 2, 3, 4, 5, 6, 7]
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   role_ranks=[8, 9, 10, 11, 12, 13, 14, 15]
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   global_ranks=[8, 9, 10, 11, 12, 13, 14, 15]
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   role_world_sizes=[16, 16, 16, 16, 16, 16, 16, 16]
+(worker1, rank=1, pid=8631, ip=10.128.0.83)   global_world_sizes=[16, 16, 16, 16, 16, 16, 16, 16]
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] Starting worker group
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker0 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/0/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker1 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/1/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker2 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/2/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker3 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/3/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker4 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/4/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker5 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/5/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker6 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/6/error.json
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.multiprocessing:Setting worker7 reply file to: /tmp/torchelastic_huq0hj1j/none_8j3vpmmx/attempt_0/7/error.json
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,433][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 6
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,534][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 7
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,564][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 1
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,571][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,591][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 3
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,611][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 5
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,626][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 4
+(head, rank=0, pid=10020) [2025-07-12 01:16:47,627][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 2
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,406][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 15
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,502][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 13
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,535][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 14
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,555][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 8
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,628][torch.distributed.distributed_c10d][INFO] - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,628][torch.distributed.distributed_c10d][INFO] - Rank 5: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,628][torch.distributed.distributed_c10d][INFO] - Rank 3: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,631][torch.distributed.distributed_c10d][INFO] - Rank 4: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,631][torch.distributed.distributed_c10d][INFO] - Rank 7: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,632][torch.distributed.distributed_c10d][INFO] - Rank 1: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,632][torch.distributed.distributed_c10d][INFO] - Rank 6: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) [2025-07-12 01:16:48,633][torch.distributed.distributed_c10d][INFO] - Rank 2: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,612][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 12
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,617][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 9
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,623][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 10
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,627][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 11
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,627][torch.distributed.distributed_c10d][INFO] - Rank 9: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,627][torch.distributed.distributed_c10d][INFO] - Rank 8: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,627][torch.distributed.distributed_c10d][INFO] - Rank 11: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,628][torch.distributed.distributed_c10d][INFO] - Rank 14: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,632][torch.distributed.distributed_c10d][INFO] - Rank 15: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,633][torch.distributed.distributed_c10d][INFO] - Rank 12: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,633][torch.distributed.distributed_c10d][INFO] - Rank 10: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:48,635][torch.distributed.distributed_c10d][INFO] - Rank 13: Completed store-based barrier for key:store_based_barrier_key:1 with 16 nodes.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Data has 55769 characters, 59 unique.
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(head, rank=0, pid=10020) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) number of parameters: 27.32M
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) Snapshot not found. Training model from scratch
+(head, rank=0, pid=10020) [GPU6] Epoch 1 | Iter 0 | Train Loss 4.12019
+(head, rank=0, pid=10020) [GPU3] Epoch 1 | Iter 0 | Train Loss 4.11460
+(head, rank=0, pid=10020) [GPU2] Epoch 1 | Iter 0 | Train Loss 4.11370
+(head, rank=0, pid=10020) [GPU1] Epoch 1 | Iter 0 | Train Loss 4.11408
+(head, rank=0, pid=10020) [GPU5] Epoch 1 | Iter 0 | Train Loss 4.11579
+(head, rank=0, pid=10020) [GPU7] Epoch 1 | Iter 0 | Train Loss 4.11915
+(head, rank=0, pid=10020) [GPU0] Epoch 1 | Iter 0 | Train Loss 4.11542
+(head, rank=0, pid=10020) [GPU4] Epoch 1 | Iter 0 | Train Loss 4.12109
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,668][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,668][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,668][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,668][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 1 | Iter 0 | Train Loss 4.11512
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 1 | Iter 0 | Train Loss 4.11495
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 1 | Iter 0 | Train Loss 4.10997
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 1 | Iter 0 | Train Loss 4.10979
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 1 | Iter 0 | Train Loss 4.11451
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 1 | Iter 0 | Train Loss 4.11215
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 1 | Iter 0 | Train Loss 4.11489
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 1 | Iter 0 | Train Loss 4.10634
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,669][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,670][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,670][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,670][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [2025-07-12 01:16:57,670][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
+(head, rank=0, pid=10020) [GPU0] Epoch 1 | Iter 0 | Eval Loss 2.54843
+(head, rank=0, pid=10020) [GPU7] Epoch 1 | Iter 0 | Eval Loss 2.58074
+(head, rank=0, pid=10020) [GPU6] Epoch 1 | Iter 0 | Eval Loss 2.55241
+(head, rank=0, pid=10020) [GPU4] Epoch 1 | Iter 0 | Eval Loss 2.54871
+(head, rank=0, pid=10020) [GPU2] Epoch 1 | Iter 0 | Eval Loss 2.55568
+(head, rank=0, pid=10020) [GPU3] Epoch 1 | Iter 0 | Eval Loss 2.55353
+(head, rank=0, pid=10020) [GPU5] Epoch 1 | Iter 0 | Eval Loss 2.54975
+(head, rank=0, pid=10020) [GPU1] Epoch 1 | Iter 0 | Eval Loss 2.55716
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 1 | Iter 0 | Eval Loss 2.55754[GPU15] Epoch 1 | Iter 0 | Eval Loss 2.54995
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 1 | Iter 0 | Eval Loss 2.54351[GPU12] Epoch 1 | Iter 0 | Eval Loss 2.53704
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 1 | Iter 0 | Eval Loss 2.55806
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 1 | Iter 0 | Eval Loss 2.54617
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 1 | Iter 0 | Eval Loss 2.55294[GPU9] Epoch 1 | Iter 0 | Eval Loss 2.55639
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 2 | Iter 0 | Train Loss 2.54479
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 2 | Iter 0 | Train Loss 2.54229
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 2 | Iter 0 | Train Loss 2.54167
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 2 | Iter 0 | Train Loss 2.55488
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 2 | Iter 0 | Train Loss 2.54596
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 2 | Iter 0 | Train Loss 2.54791
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 2 | Iter 0 | Train Loss 2.56043
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 2 | Iter 0 | Train Loss 2.55730
+(head, rank=0, pid=10020) [GPU6] Epoch 2 | Iter 0 | Train Loss 2.54738
+(head, rank=0, pid=10020) [GPU0] Epoch 2 | Iter 0 | Train Loss 2.55723
+(head, rank=0, pid=10020) [GPU7] Epoch 2 | Iter 0 | Train Loss 2.55453
+(head, rank=0, pid=10020) [GPU3] Epoch 2 | Iter 0 | Train Loss 2.56319
+(head, rank=0, pid=10020) [GPU4] Epoch 2 | Iter 0 | Train Loss 2.57138
+(head, rank=0, pid=10020) [GPU5] Epoch 2 | Iter 0 | Train Loss 2.57680
+(head, rank=0, pid=10020) [GPU2] Epoch 2 | Iter 0 | Train Loss 2.54822
+(head, rank=0, pid=10020) [GPU1] Epoch 2 | Iter 0 | Train Loss 2.55887
+(head, rank=0, pid=10020) [GPU0] Epoch 2 | Iter 0 | Eval Loss 2.40995
+(head, rank=0, pid=10020) [GPU7] Epoch 2 | Iter 0 | Eval Loss 2.43691
+(head, rank=0, pid=10020) [GPU6] Epoch 2 | Iter 0 | Eval Loss 2.41044
+(head, rank=0, pid=10020) [GPU4] Epoch 2 | Iter 0 | Eval Loss 2.41727
+(head, rank=0, pid=10020) [GPU2] Epoch 2 | Iter 0 | Eval Loss 2.41717
+(head, rank=0, pid=10020) [GPU3] Epoch 2 | Iter 0 | Eval Loss 2.41811
+(head, rank=0, pid=10020) [GPU1] Epoch 2 | Iter 0 | Eval Loss 2.41765
+(head, rank=0, pid=10020) [GPU5] Epoch 2 | Iter 0 | Eval Loss 2.40853
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 2 | Iter 0 | Eval Loss 2.42138
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 2 | Iter 0 | Eval Loss 2.41858
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 2 | Iter 0 | Eval Loss 2.40931
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 2 | Iter 0 | Eval Loss 2.39809
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 2 | Iter 0 | Eval Loss 2.41898
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 2 | Iter 0 | Eval Loss 2.40777
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 2 | Iter 0 | Eval Loss 2.41137
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 2 | Iter 0 | Eval Loss 2.41993
+(head, rank=0, pid=10020) [GPU0] Epoch 3 | Iter 0 | Train Loss 2.41129
+(head, rank=0, pid=10020) [GPU4] Epoch 3 | Iter 0 | Train Loss 2.41187
+(head, rank=0, pid=10020) [GPU7] Epoch 3 | Iter 0 | Train Loss 2.41248[GPU2] Epoch 3 | Iter 0 | Train Loss 2.41557
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) [GPU6] Epoch 3 | Iter 0 | Train Loss 2.42255
+(head, rank=0, pid=10020) [GPU1] Epoch 3 | Iter 0 | Train Loss 2.39882
+(head, rank=0, pid=10020) [GPU5] Epoch 3 | Iter 0 | Train Loss 2.41280
+(head, rank=0, pid=10020) [GPU3] Epoch 3 | Iter 0 | Train Loss 2.42763
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 3 | Iter 0 | Train Loss 2.42398
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 3 | Iter 0 | Train Loss 2.41568
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 3 | Iter 0 | Train Loss 2.41143
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 3 | Iter 0 | Train Loss 2.40913
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 3 | Iter 0 | Train Loss 2.42765
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 3 | Iter 0 | Train Loss 2.42481
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 3 | Iter 0 | Train Loss 2.42346
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 3 | Iter 0 | Train Loss 2.41763
+(head, rank=0, pid=10020) Snapshot saved at epoch 3
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot saved at epoch 3
+(head, rank=0, pid=10020) [GPU7] Epoch 3 | Iter 0 | Eval Loss 2.38960
+(head, rank=0, pid=10020) [GPU6] Epoch 3 | Iter 0 | Eval Loss 2.36463
+(head, rank=0, pid=10020) [GPU4] Epoch 3 | Iter 0 | Eval Loss 2.37428
+(head, rank=0, pid=10020) [GPU5] Epoch 3 | Iter 0 | Eval Loss 2.35858
+(head, rank=0, pid=10020) [GPU2] Epoch 3 | Iter 0 | Eval Loss 2.37359
+(head, rank=0, pid=10020) [GPU3] Epoch 3 | Iter 0 | Eval Loss 2.36915
+(head, rank=0, pid=10020) [GPU1] Epoch 3 | Iter 0 | Eval Loss 2.37342
+(head, rank=0, pid=10020) [GPU0] Epoch 3 | Iter 0 | Eval Loss 2.36400
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 3 | Iter 0 | Eval Loss 2.37739
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 3 | Iter 0 | Eval Loss 2.37447
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 3 | Iter 0 | Eval Loss 2.37123[GPU12] Epoch 3 | Iter 0 | Eval Loss 2.35595
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 3 | Iter 0 | Eval Loss 2.36277[GPU10] Epoch 3 | Iter 0 | Eval Loss 2.36375
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 3 | Iter 0 | Eval Loss 2.37599
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 3 | Iter 0 | Eval Loss 2.36363
+(head, rank=0, pid=10020) [GPU3] Epoch 4 | Iter 0 | Train Loss 2.37027
+(head, rank=0, pid=10020) [GPU4] Epoch 4 | Iter 0 | Train Loss 2.36949
+(head, rank=0, pid=10020) [GPU0] Epoch 4 | Iter 0 | Train Loss 2.38541
+(head, rank=0, pid=10020) [GPU6] Epoch 4 | Iter 0 | Train Loss 2.35661
+(head, rank=0, pid=10020) [GPU2] Epoch 4 | Iter 0 | Train Loss 2.37019
+(head, rank=0, pid=10020) [GPU5] Epoch 4 | Iter 0 | Train Loss 2.36629
+(head, rank=0, pid=10020) [GPU1] Epoch 4 | Iter 0 | Train Loss 2.37661
+(head, rank=0, pid=10020) [GPU7] Epoch 4 | Iter 0 | Train Loss 2.36584
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 4 | Iter 0 | Train Loss 2.36295[GPU12] Epoch 4 | Iter 0 | Train Loss 2.36428
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 4 | Iter 0 | Train Loss 2.37480
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 4 | Iter 0 | Train Loss 2.36350
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 4 | Iter 0 | Train Loss 2.36660
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 4 | Iter 0 | Train Loss 2.37487[GPU10] Epoch 4 | Iter 0 | Train Loss 2.36953
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 4 | Iter 0 | Train Loss 2.36036
+(head, rank=0, pid=10020) [GPU0] Epoch 4 | Iter 0 | Eval Loss 2.33632
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 4 | Iter 0 | Eval Loss 2.35112[GPU14] Epoch 4 | Iter 0 | Eval Loss 2.34909
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 4 | Iter 0 | Eval Loss 2.33634
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 4 | Iter 0 | Eval Loss 2.34278
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 4 | Iter 0 | Eval Loss 2.32548
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 4 | Iter 0 | Eval Loss 2.33699
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 4 | Iter 0 | Eval Loss 2.33590
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 4 | Iter 0 | Eval Loss 2.34982
+(head, rank=0, pid=10020) [GPU7] Epoch 4 | Iter 0 | Eval Loss 2.35815
+(head, rank=0, pid=10020) [GPU4] Epoch 4 | Iter 0 | Eval Loss 2.34729
+(head, rank=0, pid=10020) [GPU5] Epoch 4 | Iter 0 | Eval Loss 2.33169
+(head, rank=0, pid=10020) [GPU3] Epoch 4 | Iter 0 | Eval Loss 2.34191
+(head, rank=0, pid=10020) [GPU2] Epoch 4 | Iter 0 | Eval Loss 2.34436
+(head, rank=0, pid=10020) [GPU1] Epoch 4 | Iter 0 | Eval Loss 2.34349
+(head, rank=0, pid=10020) [GPU6] Epoch 4 | Iter 0 | Eval Loss 2.33788
+(head, rank=0, pid=10020) [GPU4] Epoch 5 | Iter 0 | Train Loss 2.34469
+(head, rank=0, pid=10020) [GPU2] Epoch 5 | Iter 0 | Train Loss 2.33187
+(head, rank=0, pid=10020) [GPU3] Epoch 5 | Iter 0 | Train Loss 2.33370
+(head, rank=0, pid=10020) [GPU7] Epoch 5 | Iter 0 | Train Loss 2.33895[GPU6] Epoch 5 | Iter 0 | Train Loss 2.34163
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) [GPU1] Epoch 5 | Iter 0 | Train Loss 2.34322
+(head, rank=0, pid=10020) [GPU0] Epoch 5 | Iter 0 | Train Loss 2.33134
+(head, rank=0, pid=10020) [GPU5] Epoch 5 | Iter 0 | Train Loss 2.33512
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 5 | Iter 0 | Train Loss 2.33852
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 5 | Iter 0 | Train Loss 2.34424
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 5 | Iter 0 | Train Loss 2.35362
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 5 | Iter 0 | Train Loss 2.34522[GPU11] Epoch 5 | Iter 0 | Train Loss 2.34586
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 5 | Iter 0 | Train Loss 2.33288
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 5 | Iter 0 | Train Loss 2.35408
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 5 | Iter 0 | Train Loss 2.34946
+(head, rank=0, pid=10020) [GPU0] Epoch 5 | Iter 0 | Eval Loss 2.30818
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 5 | Iter 0 | Eval Loss 2.32294[GPU14] Epoch 5 | Iter 0 | Eval Loss 2.32123[GPU8] Epoch 5 | Iter 0 | Eval Loss 2.31096
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 5 | Iter 0 | Eval Loss 2.29796[GPU13] Epoch 5 | Iter 0 | Eval Loss 2.31297
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 5 | Iter 0 | Eval Loss 2.31429
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 5 | Iter 0 | Eval Loss 2.30435
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 5 | Iter 0 | Eval Loss 2.32087
+(head, rank=0, pid=10020) [GPU6] Epoch 5 | Iter 0 | Eval Loss 2.31031
+(head, rank=0, pid=10020) [GPU7] Epoch 5 | Iter 0 | Eval Loss 2.32900
+(head, rank=0, pid=10020) [GPU4] Epoch 5 | Iter 0 | Eval Loss 2.31973
+(head, rank=0, pid=10020) [GPU3] Epoch 5 | Iter 0 | Eval Loss 2.31564
+(head, rank=0, pid=10020) [GPU2] Epoch 5 | Iter 0 | Eval Loss 2.31416
+(head, rank=0, pid=10020) [GPU1] Epoch 5 | Iter 0 | Eval Loss 2.31619
+(head, rank=0, pid=10020) [GPU5] Epoch 5 | Iter 0 | Eval Loss 2.30236
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 6 | Iter 0 | Train Loss 2.32203
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 6 | Iter 0 | Train Loss 2.31990
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 6 | Iter 0 | Train Loss 2.31825
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 6 | Iter 0 | Train Loss 2.32403
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 6 | Iter 0 | Train Loss 2.31038
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 6 | Iter 0 | Train Loss 2.30627
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 6 | Iter 0 | Train Loss 2.33181
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 6 | Iter 0 | Train Loss 2.31210
+(head, rank=0, pid=10020) [GPU6] Epoch 6 | Iter 0 | Train Loss 2.30331
+(head, rank=0, pid=10020) [GPU0] Epoch 6 | Iter 0 | Train Loss 2.32572
+(head, rank=0, pid=10020) [GPU3] Epoch 6 | Iter 0 | Train Loss 2.31538
+(head, rank=0, pid=10020) [GPU2] Epoch 6 | Iter 0 | Train Loss 2.32962
+(head, rank=0, pid=10020) [GPU4] Epoch 6 | Iter 0 | Train Loss 2.32145
+(head, rank=0, pid=10020) [GPU5] Epoch 6 | Iter 0 | Train Loss 2.30929
+(head, rank=0, pid=10020) [GPU1] Epoch 6 | Iter 0 | Train Loss 2.31359
+(head, rank=0, pid=10020) [GPU7] Epoch 6 | Iter 0 | Train Loss 2.32511
+(head, rank=0, pid=10020) Snapshot saved at epoch 6
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot saved at epoch 6
+(head, rank=0, pid=10020) [GPU7] Epoch 6 | Iter 0 | Eval Loss 2.29331
+(head, rank=0, pid=10020) [GPU6] Epoch 6 | Iter 0 | Eval Loss 2.27438
+(head, rank=0, pid=10020) [GPU2] Epoch 6 | Iter 0 | Eval Loss 2.28132
+(head, rank=0, pid=10020) [GPU5] Epoch 6 | Iter 0 | Eval Loss 2.26218
+(head, rank=0, pid=10020) [GPU4] Epoch 6 | Iter 0 | Eval Loss 2.28452
+(head, rank=0, pid=10020) [GPU1] Epoch 6 | Iter 0 | Eval Loss 2.28129
+(head, rank=0, pid=10020) [GPU3] Epoch 6 | Iter 0 | Eval Loss 2.27796
+(head, rank=0, pid=10020) [GPU0] Epoch 6 | Iter 0 | Eval Loss 2.27051
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 6 | Iter 0 | Eval Loss 2.29084[GPU14] Epoch 6 | Iter 0 | Eval Loss 2.28538
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 6 | Iter 0 | Eval Loss 2.27699
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 6 | Iter 0 | Eval Loss 2.27726
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 6 | Iter 0 | Eval Loss 2.27128
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 6 | Iter 0 | Eval Loss 2.26464
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 6 | Iter 0 | Eval Loss 2.28623
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 6 | Iter 0 | Eval Loss 2.27670
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 7 | Iter 0 | Train Loss 2.28396
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 7 | Iter 0 | Train Loss 2.28622
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 7 | Iter 0 | Train Loss 2.26913
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 7 | Iter 0 | Train Loss 2.28243
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 7 | Iter 0 | Train Loss 2.26972
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 7 | Iter 0 | Train Loss 2.28157
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 7 | Iter 0 | Train Loss 2.27982[GPU14] Epoch 7 | Iter 0 | Train Loss 2.28595
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(head, rank=0, pid=10020) [GPU6] Epoch 7 | Iter 0 | Train Loss 2.28314
+(head, rank=0, pid=10020) [GPU2] Epoch 7 | Iter 0 | Train Loss 2.27400
+(head, rank=0, pid=10020) [GPU3] Epoch 7 | Iter 0 | Train Loss 2.29574
+(head, rank=0, pid=10020) [GPU4] Epoch 7 | Iter 0 | Train Loss 2.26388
+(head, rank=0, pid=10020) [GPU0] Epoch 7 | Iter 0 | Train Loss 2.28579[GPU1] Epoch 7 | Iter 0 | Train Loss 2.27772
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) [GPU7] Epoch 7 | Iter 0 | Train Loss 2.27793
+(head, rank=0, pid=10020) [GPU5] Epoch 7 | Iter 0 | Train Loss 2.28650
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 7 | Iter 0 | Eval Loss 2.24126[GPU14] Epoch 7 | Iter 0 | Eval Loss 2.24871[GPU15] Epoch 7 | Iter 0 | Eval Loss 2.25698
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 7 | Iter 0 | Eval Loss 2.23185[GPU13] Epoch 7 | Iter 0 | Eval Loss 2.24118
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 7 | Iter 0 | Eval Loss 2.24106
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 7 | Iter 0 | Eval Loss 2.23799
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 7 | Iter 0 | Eval Loss 2.25271
+(head, rank=0, pid=10020) [GPU7] Epoch 7 | Iter 0 | Eval Loss 2.25731
+(head, rank=0, pid=10020) [GPU6] Epoch 7 | Iter 0 | Eval Loss 2.23579
+(head, rank=0, pid=10020) [GPU0] Epoch 7 | Iter 0 | Eval Loss 2.23662
+(head, rank=0, pid=10020) [GPU4] Epoch 7 | Iter 0 | Eval Loss 2.25172
+(head, rank=0, pid=10020) [GPU2] Epoch 7 | Iter 0 | Eval Loss 2.24839
+(head, rank=0, pid=10020) [GPU3] Epoch 7 | Iter 0 | Eval Loss 2.24405
+(head, rank=0, pid=10020) [GPU1] Epoch 7 | Iter 0 | Eval Loss 2.24245
+(head, rank=0, pid=10020) [GPU5] Epoch 7 | Iter 0 | Eval Loss 2.22775
+(head, rank=0, pid=10020) [GPU6] Epoch 8 | Iter 0 | Train Loss 2.25067
+(head, rank=0, pid=10020) [GPU3] Epoch 8 | Iter 0 | Train Loss 2.24521[GPU2] Epoch 8 | Iter 0 | Train Loss 2.24289
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) [GPU4] Epoch 8 | Iter 0 | Train Loss 2.23574
+(head, rank=0, pid=10020) [GPU0] Epoch 8 | Iter 0 | Train Loss 2.24381
+(head, rank=0, pid=10020) [GPU1] Epoch 8 | Iter 0 | Train Loss 2.24829
+(head, rank=0, pid=10020) [GPU5] Epoch 8 | Iter 0 | Train Loss 2.26054
+(head, rank=0, pid=10020) [GPU7] Epoch 8 | Iter 0 | Train Loss 2.24306
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 8 | Iter 0 | Train Loss 2.24119
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 8 | Iter 0 | Train Loss 2.24785
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 8 | Iter 0 | Train Loss 2.26294
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 8 | Iter 0 | Train Loss 2.24870
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 8 | Iter 0 | Train Loss 2.24081
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 8 | Iter 0 | Train Loss 2.23935
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 8 | Iter 0 | Train Loss 2.24594
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 8 | Iter 0 | Train Loss 2.24871
+(head, rank=0, pid=10020) [GPU0] Epoch 8 | Iter 0 | Eval Loss 2.19925
+(head, rank=0, pid=10020) [GPU6] Epoch 8 | Iter 0 | Eval Loss 2.20188
+(head, rank=0, pid=10020) [GPU7] Epoch 8 | Iter 0 | Eval Loss 2.22026
+(head, rank=0, pid=10020) [GPU4] Epoch 8 | Iter 0 | Eval Loss 2.21760
+(head, rank=0, pid=10020) [GPU3] Epoch 8 | Iter 0 | Eval Loss 2.20433
+(head, rank=0, pid=10020) [GPU2] Epoch 8 | Iter 0 | Eval Loss 2.21309
+(head, rank=0, pid=10020) [GPU1] Epoch 8 | Iter 0 | Eval Loss 2.20649
+(head, rank=0, pid=10020) [GPU5] Epoch 8 | Iter 0 | Eval Loss 2.19219
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 8 | Iter 0 | Eval Loss 2.22005[GPU14] Epoch 8 | Iter 0 | Eval Loss 2.21437
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 8 | Iter 0 | Eval Loss 2.19664[GPU13] Epoch 8 | Iter 0 | Eval Loss 2.20724
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 8 | Iter 0 | Eval Loss 2.19900
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 8 | Iter 0 | Eval Loss 2.20998
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 8 | Iter 0 | Eval Loss 2.21704
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 8 | Iter 0 | Eval Loss 2.20633
+(head, rank=0, pid=10020) [GPU4] Epoch 9 | Iter 0 | Train Loss 2.18135[GPU6] Epoch 9 | Iter 0 | Train Loss 2.22161
+(head, rank=0, pid=10020) 
+(head, rank=0, pid=10020) [GPU2] Epoch 9 | Iter 0 | Train Loss 2.20844
+(head, rank=0, pid=10020) [GPU3] Epoch 9 | Iter 0 | Train Loss 2.20477
+(head, rank=0, pid=10020) [GPU0] Epoch 9 | Iter 0 | Train Loss 2.22704
+(head, rank=0, pid=10020) [GPU1] Epoch 9 | Iter 0 | Train Loss 2.19815
+(head, rank=0, pid=10020) [GPU5] Epoch 9 | Iter 0 | Train Loss 2.19864
+(head, rank=0, pid=10020) [GPU7] Epoch 9 | Iter 0 | Train Loss 2.20296
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 9 | Iter 0 | Train Loss 2.20479
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 9 | Iter 0 | Train Loss 2.21835
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 9 | Iter 0 | Train Loss 2.21144
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 9 | Iter 0 | Train Loss 2.19402
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 9 | Iter 0 | Train Loss 2.20364
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 9 | Iter 0 | Train Loss 2.21581
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 9 | Iter 0 | Train Loss 2.22220
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 9 | Iter 0 | Train Loss 2.21459
+(worker1, rank=1, pid=8631, ip=10.128.0.83) Snapshot saved at epoch 9
+(head, rank=0, pid=10020) Snapshot saved at epoch 9
+(head, rank=0, pid=10020) [GPU7] Epoch 9 | Iter 0 | Eval Loss 2.18741
+(head, rank=0, pid=10020) [GPU6] Epoch 9 | Iter 0 | Eval Loss 2.16854
+(head, rank=0, pid=10020) [GPU5] Epoch 9 | Iter 0 | Eval Loss 2.15876
+(head, rank=0, pid=10020) [GPU4] Epoch 9 | Iter 0 | Eval Loss 2.18334
+(head, rank=0, pid=10020) [GPU3] Epoch 9 | Iter 0 | Eval Loss 2.17376
+(head, rank=0, pid=10020) [GPU2] Epoch 9 | Iter 0 | Eval Loss 2.17686
+(head, rank=0, pid=10020) [GPU1] Epoch 9 | Iter 0 | Eval Loss 2.17381
+(head, rank=0, pid=10020) [GPU0] Epoch 9 | Iter 0 | Eval Loss 2.16622
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 9 | Iter 0 | Eval Loss 2.17997
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 9 | Iter 0 | Eval Loss 2.17452[GPU12] Epoch 9 | Iter 0 | Eval Loss 2.16228[GPU15] Epoch 9 | Iter 0 | Eval Loss 2.18554
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 9 | Iter 0 | Eval Loss 2.16603
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 9 | Iter 0 | Eval Loss 2.18397
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 9 | Iter 0 | Eval Loss 2.17928
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 9 | Iter 0 | Eval Loss 2.17475
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 10 | Iter 0 | Train Loss 2.17032
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU13] Epoch 10 | Iter 0 | Train Loss 2.17133
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 10 | Iter 0 | Train Loss 2.20404
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 10 | Iter 0 | Train Loss 2.16534
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 10 | Iter 0 | Train Loss 2.17174
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU8] Epoch 10 | Iter 0 | Train Loss 2.16618[GPU10] Epoch 10 | Iter 0 | Train Loss 2.16232
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU14] Epoch 10 | Iter 0 | Train Loss 2.18151
+(head, rank=0, pid=10020) [GPU6] Epoch 10 | Iter 0 | Train Loss 2.18251
+(head, rank=0, pid=10020) [GPU3] Epoch 10 | Iter 0 | Train Loss 2.16995
+(head, rank=0, pid=10020) [GPU0] Epoch 10 | Iter 0 | Train Loss 2.17609
+(head, rank=0, pid=10020) [GPU2] Epoch 10 | Iter 0 | Train Loss 2.18043
+(head, rank=0, pid=10020) [GPU5] Epoch 10 | Iter 0 | Train Loss 2.17422
+(head, rank=0, pid=10020) [GPU1] Epoch 10 | Iter 0 | Train Loss 2.17292
+(head, rank=0, pid=10020) [GPU4] Epoch 10 | Iter 0 | Train Loss 2.17909
+(head, rank=0, pid=10020) [GPU7] Epoch 10 | Iter 0 | Train Loss 2.18896
+(head, rank=0, pid=10020) [GPU0] Epoch 10 | Iter 0 | Eval Loss 2.13745
+(head, rank=0, pid=10020) [GPU7] Epoch 10 | Iter 0 | Eval Loss 2.15038
+(head, rank=0, pid=10020) [GPU5] Epoch 10 | Iter 0 | Eval Loss 2.13194
+(head, rank=0, pid=10020) [GPU3] Epoch 10 | Iter 0 | Eval Loss 2.14332
+(head, rank=0, pid=10020) [GPU4] Epoch 10 | Iter 0 | Eval Loss 2.15317
+(head, rank=0, pid=10020) [GPU2] Epoch 10 | Iter 0 | Eval Loss 2.14513
+(head, rank=0, pid=10020) [GPU6] Epoch 10 | Iter 0 | Eval Loss 2.13554
+(head, rank=0, pid=10020) [GPU1] Epoch 10 | Iter 0 | Eval Loss 2.14350
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU15] Epoch 10 | Iter 0 | Eval Loss 2.15412[GPU14] Epoch 10 | Iter 0 | Eval Loss 2.15209
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU12] Epoch 10 | Iter 0 | Eval Loss 2.12848[GPU8] Epoch 10 | Iter 0 | Eval Loss 2.14231
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU10] Epoch 10 | Iter 0 | Eval Loss 2.13561
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU9] Epoch 10 | Iter 0 | Eval Loss 2.15040
+(worker1, rank=1, pid=8631, ip=10.128.0.83) [GPU11] Epoch 10 | Iter 0 | Eval Loss 2.14473[GPU13] Epoch 10 | Iter 0 | Eval Loss 2.14221
+(worker1, rank=1, pid=8631, ip=10.128.0.83) 
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:[default] worker group successfully finished. Waiting 300 seconds for other agents to finish.
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:Local worker group finished (SUCCEEDED). Waiting 300 seconds for other agents to finish
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:[default] worker group successfully finished. Waiting 300 seconds for other agents to finish.
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:Local worker group finished (SUCCEEDED). Waiting 300 seconds for other agents to finish
+(worker1, rank=1, pid=8631, ip=10.128.0.83) INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.0006403923034667969 seconds
+(head, rank=0, pid=10020) INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.062013864517211914 seconds
+✓ Job finished (status: SUCCEEDED).

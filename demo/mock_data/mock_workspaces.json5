@@ -1,0 +1,26 @@
+{
+  "workspaces": {
+    "default": {},
+    "ml-team": {
+      "gcp": {
+        "project_id": "skypilot-ml-team-prod"
+      },
+      "aws": {
+        "disabled": false
+      }
+    },
+    "research-private": {
+      "private": true,
+      "allowed_users": [
+        "alice@skypilot.co",
+        "mike@skypilot.co"
+      ],
+      "gcp": {
+        "project_id": "skypilot-research-private"
+      },
+      "aws": {
+        "disabled": true
+      }
+    }
+  }
+} 

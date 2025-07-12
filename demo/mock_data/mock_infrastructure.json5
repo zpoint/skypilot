@@ -1,0 +1,81 @@
+{
+  "enabled_clouds": ["gcp", "aws"],
+  "gpu_availability": {
+    "lambda-k8s": [
+      {
+        "gpu_name": "A100",
+        "requestable_qtys": [1, 2, 4],
+        "total_capacity": 8,
+        "available": 6
+      },
+      {
+        "gpu_name": "H100",
+        "requestable_qtys": [1, 2],
+        "total_capacity": 4,
+        "available": 2
+      }
+    ],
+    "nebius-k8s": [
+      {
+        "gpu_name": "A100",
+        "requestable_qtys": [1, 2, 4, 8],
+        "total_capacity": 16,
+        "available": 8
+      },
+      {
+        "gpu_name": "V100",
+        "requestable_qtys": [1, 2],
+        "total_capacity": 4,
+        "available": 4
+      }
+    ]
+  },
+  "node_info": {
+    "lambda-k8s": {
+      "lambda-worker-1": {
+        "name": "lambda-worker-1",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.0.1.10"
+      },
+      "lambda-worker-2": {
+        "name": "lambda-worker-2",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.0.1.11"
+      },
+      "lambda-gpu-node-1": {
+        "name": "lambda-gpu-node-1",
+        "accelerator_type": "H100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 2},
+        "ip_address": "10.0.1.12"
+      }
+    },
+    "nebius-k8s": {
+      "nebius-worker-1": {
+        "name": "nebius-worker-1",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.10"
+      },
+      "nebius-worker-2": {
+        "name": "nebius-worker-2",
+        "accelerator_type": "A100",
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.11"
+      },
+      "nebius-v100-node": {
+        "name": "nebius-v100-node",
+        "accelerator_type": "V100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 4},
+        "ip_address": "10.0.2.12"
+      }
+    }
+  }
+} 

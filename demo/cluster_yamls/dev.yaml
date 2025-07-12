@@ -1,0 +1,10 @@
+resources:
+  cpus: 4
+  memory: 16
+  cloud: gcp
+
+setup: |
+  pip install jupyter numpy pandas matplotlib
+
+run: |
+  jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root 
