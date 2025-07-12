@@ -1,266 +1,96 @@
-=== Job 1 (jupyter-notebook) on dev-bob ===
-Job started at: 2024-01-13 08:00:00 UTC
-Resources: 4CPU--16GB
+(setup pid=7823) Installing dependencies
+(setup pid=7823) pip install jupyter numpy pandas matplotlib
+(setup pid=7823) Collecting jupyter
+(setup pid=7823) Downloading jupyter-1.0.0-py2.py3-none-any.whl (2.7 kB)
+(setup pid=7823) Collecting notebook
+(setup pid=7823) Downloading notebook-7.0.6-py3-none-any.whl (4.5 MB)
+(setup pid=7823) Collecting qtconsole
+(setup pid=7823) Downloading qtconsole-5.5.1-py3-none-any.whl (121 kB)
+(setup pid=7823) Collecting jupyter-console
+(setup pid=7823) Downloading jupyter_console-6.6.3-py3-none-any.whl (24 kB)
+(setup pid=7823) Collecting nbconvert
+(setup pid=7823) Downloading nbconvert-7.16.1-py3-none-any.whl (257 kB)
+(setup pid=7823) Collecting ipykernel
+(setup pid=7823) Downloading ipykernel-6.29.0-py3-none-any.whl (116 kB)
+(setup pid=7823) Collecting ipywidgets
+(setup pid=7823) Downloading ipywidgets-8.1.1-py3-none-any.whl (139 kB)
+(setup pid=7823) Collecting numpy
+(setup pid=7823) Downloading numpy-1.24.3-cp310-cp310-linux_x86_64.whl (17.3 MB)
+(setup pid=7823) Collecting pandas
+(setup pid=7823) Downloading pandas-2.0.3-cp310-cp310-linux_x86_64.whl (12.4 MB)
+(setup pid=7823) Collecting matplotlib
+(setup pid=7823) Downloading matplotlib-3.7.2-cp310-cp310-linux_x86_64.whl (9.2 MB)
+(setup pid=7823) Installing collected packages: numpy, matplotlib, pandas, jupyter, notebook, qtconsole, jupyter-console, nbconvert, ipykernel, ipywidgets
+(setup pid=7823) Successfully installed ipykernel-6.29.0 ipywidgets-8.1.1 jupyter-1.0.0 jupyter-console-6.6.3 matplotlib-3.7.2 nbconvert-7.16.1 notebook-7.0.6 numpy-1.24.3 pandas-2.0.3 qtconsole-5.5.1
 
-Setting up development environment...
-Installing dependencies...
-pip install jupyter numpy pandas matplotlib seaborn scikit-learn plotly
-Successfully installed jupyter-1.0.0 numpy-1.24.3 pandas-2.0.3 matplotlib-3.7.2 seaborn-0.12.2 scikit-learn-1.3.0 plotly-5.15.0
+(run pid=7823) Starting Jupyter Notebook server
+(run pid=7823) jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+(run pid=8145) [I 2024-01-13 08:00:15.123 ServerApp] Package jupyterlab took 0.0000s to import
+(run pid=8145) [I 2024-01-13 08:00:15.123 ServerApp] Package jupyter_server_mathjax took 0.0000s to import
+(run pid=8145) [I 2024-01-13 08:00:15.123 ServerApp] Package notebook took 0.0000s to import
+(run pid=8145) [I 2024-01-13 08:00:15.124 ServerApp] Package notebook_shim took 0.0000s to import
+(run pid=8145) [I 2024-01-13 08:00:15.124 ServerApp] Package nbclassic took 0.0000s to import
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp] Serving notebooks from local directory: /home/gcpuser
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp] Jupyter Server 2.10.0 is running at:
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp] http://0.0.0.0:8888/tree?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]     http://127.0.0.1:8888/tree?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp] 
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]     To access the notebook, open this file in a browser:
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]         file:///home/gcpuser/.local/share/jupyter/runtime/nbserver-1-open.html
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]     Or copy and paste one of these URLs:
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]         http://0.0.0.0:8888/tree?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+(run pid=8145) [I 2024-01-13 08:00:15.125 ServerApp]      or http://127.0.0.1:8888/tree?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
 
-Starting Jupyter Notebook server...
-jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+(run pid=8145) [I 2024-01-13 08:00:32.456 ServerApp] Kernel started: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c in session 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d (kernel_id=4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c)
+(run pid=8145) [I 2024-01-13 08:00:32.456 ServerApp] New session created: session_id=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d, kernel_id=4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c
 
-[I 08:00:15.123 NotebookApp] JupyterLab extension loaded from /opt/conda/lib/python3.10/site-packages/jupyterlab
-[I 08:00:15.123 NotebookApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
-[I 08:00:15.125 NotebookApp] Serving notebooks from local directory: /home/gcpuser
-[I 08:00:15.125 NotebookApp] Jupyter Notebook 6.5.4 is running at:
-[I 08:00:15.125 NotebookApp] http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
-[I 08:00:15.125 NotebookApp]  or http://127.0.0.1:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
-[I 08:00:15.125 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
-[I 08:00:15.125 NotebookApp] 
-    
-    To access the notebook, open this file in a browser:
-        file:///home/gcpuser/.local/share/jupyter/runtime/nbserver-1-open.html
-    Or copy and paste one of these URLs:
-        http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
-     or http://127.0.0.1:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+(run pid=8145) [I 2024-01-13 08:01:12.789 ServerApp] Creating new notebook: data_analysis.ipynb
+(run pid=8145) [I 2024-01-13 08:01:15.234 ServerApp] Cell execution started in data_analysis.ipynb: Cell 1
+(run pid=8145) [I 2024-01-13 08:01:16.123 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 1 (1.2s)
+(run pid=8145) [I 2024-01-13 08:01:28.567 ServerApp] Cell execution started in data_analysis.ipynb: Cell 2
+(run pid=8145) [I 2024-01-13 08:01:29.890 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 2 (1.3s)
+(run pid=8145) [I 2024-01-13 08:02:45.123 ServerApp] Cell execution started in data_analysis.ipynb: Cell 3
+(run pid=8145) [I 2024-01-13 08:02:46.456 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 3 (1.3s)
+(run pid=8145) [I 2024-01-13 08:03:12.789 ServerApp] Cell execution started in data_analysis.ipynb: Cell 4
+(run pid=8145) [I 2024-01-13 08:03:15.234 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 4 (2.4s)
+(run pid=8145) [I 2024-01-13 08:03:45.567 ServerApp] Cell execution started in data_analysis.ipynb: Cell 5
+(run pid=8145) [I 2024-01-13 08:03:48.890 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 5 (3.3s)
+(run pid=8145) [I 2024-01-13 08:04:23.123 ServerApp] Cell execution started in data_analysis.ipynb: Cell 6
+(run pid=8145) [I 2024-01-13 08:04:25.456 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 6 (2.3s)
+(run pid=8145) [I 2024-01-13 08:05:15.789 ServerApp] Cell execution started in data_analysis.ipynb: Cell 7
+(run pid=8145) [I 2024-01-13 08:05:18.234 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 7 (2.4s)
+(run pid=8145) [I 2024-01-13 08:06:32.567 ServerApp] Cell execution started in data_analysis.ipynb: Cell 8
+(run pid=8145) [I 2024-01-13 08:06:35.890 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 8 (3.3s)
+(run pid=8145) [I 2024-01-13 08:07:45.123 ServerApp] Cell execution started in data_analysis.ipynb: Cell 9
+(run pid=8145) [I 2024-01-13 08:07:47.456 ServerApp] Cell execution completed in data_analysis.ipynb: Cell 9 (2.3s)
 
-[I 08:00:32.456 NotebookApp] Kernel started: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c, session: data-exploration
-[I 08:00:32.456 NotebookApp] Notebook opened: data_analysis.ipynb
+(run pid=8145) [I 2024-01-13 08:08:12.789 ServerApp] Creating new notebook: ml_experiments.ipynb
+(run pid=8145) [I 2024-01-13 08:08:45.234 ServerApp] Cell execution started in ml_experiments.ipynb: Cell 1
+(run pid=8145) [I 2024-01-13 08:08:52.567 ServerApp] Cell execution completed in ml_experiments.ipynb: Cell 1 (7.3s)
+(run pid=8145) [I 2024-01-13 08:15:23.890 ServerApp] Cell execution started in ml_experiments.ipynb: Cell 2
+(run pid=8145) [I 2024-01-13 08:15:26.123 ServerApp] Cell execution completed in ml_experiments.ipynb: Cell 2 (2.2s)
+(run pid=8145) [I 2024-01-13 08:22:15.456 ServerApp] Cell execution started in ml_experiments.ipynb: Cell 3
+(run pid=8145) [I 2024-01-13 08:22:17.789 ServerApp] Cell execution completed in ml_experiments.ipynb: Cell 3 (2.3s)
 
-=== Notebook Session Activity ===
+(run pid=8145) [I 2024-01-13 08:25:34.234 ServerApp] Notebook saved: data_analysis.ipynb
+(run pid=8145) [I 2024-01-13 08:25:35.567 ServerApp] Notebook saved: ml_experiments.ipynb
 
-[08:00:45] New notebook created: data_analysis.ipynb
-[08:01:12] Cell 1 executed: Import statements
-```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report
-```
+(run pid=8145) [I 2024-01-13 08:30:15.890 ServerApp] Activity on session 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d (kernel: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c)
+(run pid=8145) [I 2024-01-13 08:45:22.123 ServerApp] Activity on session 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d (kernel: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c)
+(run pid=8145) [I 2024-01-13 09:15:47.456 ServerApp] Activity on session 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d (kernel: 4f8a6b2c-1d3e-4f7a-9b2c-8e5d7f3a9b1c)
 
-[08:01:28] Cell 2 executed: Data generation
-```python
-# Generate sample dataset
-X, y = make_classification(n_samples=1000, n_features=20, n_informative=10, 
-                          n_redundant=5, n_clusters_per_class=1, random_state=42)
-feature_names = [f'feature_{i}' for i in range(20)]
-df = pd.DataFrame(X, columns=feature_names)
-df['target'] = y
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] Session summary:
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] - Active kernels: 1
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] - Notebooks created: 2 (data_analysis.ipynb, ml_experiments.ipynb)
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] - Total cells executed: 12
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] - Session uptime: 2 hours 0 minutes
+(run pid=8145) [I 2024-01-13 10:00:33.789 ServerApp] - Server status: RUNNING
 
-print(f"Dataset shape: {df.shape}")
-print(f"Target distribution:\n{df['target'].value_counts()}")
-```
-Output: Dataset shape: (1000, 21)
-        Target distribution:
-        0    500
-        1    500
-        Name: target, dtype: int64
+# Jupyter Notebook server is running and ready for interactive development
+# Access URL: http://0.0.0.0:8888/tree?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
+# Current session: Active with 2 notebooks created
+# Resource utilization: 4CPU, 16GB memory on GCP
+# Job status: CANCELLED (as indicated in mock_cluster_jobs.json5)
 
-[08:02:45] Cell 3 executed: Data exploration
-```python
-# Basic statistics
-print("Dataset Info:")
-print(df.info())
-print("\nBasic Statistics:")
-print(df.describe())
-```
-
-[08:03:12] Cell 4 executed: Visualization
-```python
-# Create correlation heatmap
-plt.figure(figsize=(12, 8))
-correlation_matrix = df.corr()
-sns.heatmap(correlation_matrix, annot=False, cmap='coolwarm', center=0)
-plt.title('Feature Correlation Heatmap')
-plt.tight_layout()
-plt.show()
-```
-
-[08:03:45] Cell 5 executed: Feature importance analysis
-```python
-# Train model to analyze feature importance
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-rf_model.fit(X_train, y_train)
-
-# Feature importance plot
-feature_importance = pd.DataFrame({
-    'feature': feature_names,
-    'importance': rf_model.feature_importances_
-}).sort_values('importance', ascending=False)
-
-plt.figure(figsize=(10, 6))
-sns.barplot(data=feature_importance.head(10), x='importance', y='feature')
-plt.title('Top 10 Feature Importance')
-plt.tight_layout()
-plt.show()
-```
-
-[08:04:23] Cell 6 executed: Model evaluation
-```python
-# Model predictions and evaluation
-y_pred = rf_model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-
-print(f"Model Accuracy: {accuracy:.4f}")
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
-```
-Output: Model Accuracy: 0.9350
-        Classification Report:
-                     precision    recall  f1-score   support
-        
-                0       0.93      0.95      0.94       102
-                1       0.94      0.92      0.93        98
-        
-         accuracy                           0.93       200
-        macro avg       0.94      0.93      0.93       200
-     weighted avg       0.94      0.93      0.93       200
-
-[08:05:15] Cell 7 executed: Advanced visualization
-```python
-# Distribution plots
-fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-axes = axes.ravel()
-
-for i, feature in enumerate(feature_names[:4]):
-    sns.histplot(data=df, x=feature, hue='target', ax=axes[i], alpha=0.7)
-    axes[i].set_title(f'Distribution of {feature}')
-
-plt.tight_layout()
-plt.show()
-```
-
-[08:06:32] Cell 8 executed: Time series simulation
-```python
-# Create time series data for demonstration
-dates = pd.date_range('2024-01-01', periods=100, freq='D')
-values = np.cumsum(np.random.randn(100)) + 100
-ts_df = pd.DataFrame({'date': dates, 'value': values})
-
-plt.figure(figsize=(12, 6))
-plt.plot(ts_df['date'], ts_df['value'], linewidth=2)
-plt.title('Simulated Time Series Data')
-plt.xlabel('Date')
-plt.ylabel('Value')
-plt.xticks(rotation=45)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-```
-
-[08:07:45] Cell 9 executed: Statistical analysis
-```python
-# Perform statistical tests
-from scipy import stats
-
-feature_0_class_0 = df[df['target'] == 0]['feature_0']
-feature_0_class_1 = df[df['target'] == 1]['feature_0']
-
-t_stat, p_value = stats.ttest_ind(feature_0_class_0, feature_0_class_1)
-print(f"T-test results for feature_0:")
-print(f"T-statistic: {t_stat:.4f}")
-print(f"P-value: {p_value:.4f}")
-
-if p_value < 0.05:
-    print("Significant difference between classes")
-else:
-    print("No significant difference between classes")
-```
-
-[08:08:12] New notebook created: ml_experiments.ipynb
-[08:08:45] Cell 1 executed: Hyperparameter tuning
-```python
-from sklearn.model_selection import GridSearchCV
-
-# Hyperparameter grid
-param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [5, 10, 15],
-    'min_samples_split': [2, 5, 10]
-}
-
-grid_search = GridSearchCV(RandomForestClassifier(random_state=42), 
-                          param_grid, cv=5, scoring='accuracy')
-grid_search.fit(X_train, y_train)
-
-print(f"Best parameters: {grid_search.best_params_}")
-print(f"Best cross-validation score: {grid_search.best_score_:.4f}")
-```
-
-[08:15:23] Cell 2 executed: Model comparison
-```python
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-
-models = {
-    'Random Forest': RandomForestClassifier(random_state=42),
-    'Logistic Regression': LogisticRegression(random_state=42),
-    'SVM': SVC(random_state=42),
-    'Decision Tree': DecisionTreeClassifier(random_state=42)
-}
-
-results = {}
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    results[name] = accuracy
-    print(f"{name}: {accuracy:.4f}")
-```
-
-[08:22:15] Cell 3 executed: Results visualization
-```python
-# Plot model comparison
-plt.figure(figsize=(10, 6))
-models_df = pd.DataFrame(list(results.items()), columns=['Model', 'Accuracy'])
-sns.barplot(data=models_df, x='Accuracy', y='Model')
-plt.title('Model Comparison')
-plt.xlabel('Accuracy')
-plt.tight_layout()
-plt.show()
-```
-
-[08:25:34] Notebook saved: data_analysis.ipynb
-[08:25:35] Notebook saved: ml_experiments.ipynb
-
-=== Session Summary ===
-
-Active kernels: 2
-- data-exploration (Python 3)
-- ml-experiments (Python 3)
-
-Notebooks created: 2
-- data_analysis.ipynb (9 cells executed)
-- ml_experiments.ipynb (3 cells executed)
-
-Total cells executed: 12
-Total execution time: 25 minutes 34 seconds
-
-Libraries used:
-- numpy: Data manipulation and mathematical operations
-- pandas: Data analysis and manipulation
-- matplotlib: Data visualization
-- seaborn: Statistical data visualization
-- scikit-learn: Machine learning algorithms and tools
-- scipy: Scientific computing and statistics
-
-Analysis completed:
-✓ Data exploration and basic statistics
-✓ Feature correlation analysis
-✓ Machine learning model training
-✓ Model evaluation and comparison
-✓ Statistical hypothesis testing
-✓ Time series visualization
-✓ Hyperparameter tuning
-
-Server still running - ready for more analysis...
-Access notebook at: http://0.0.0.0:8888/?token=a7f3c9e8d4b2a1f6e5c3d7b9a8f4e2c1d6b5a9e7f3c8d4b2a1f6
-
-Note: This is a development session in demo mode. 
+Note: This development session was cancelled in demo mode.
