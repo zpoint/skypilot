@@ -1,0 +1,125 @@
+(setup pid=3421) Setting up training environment
+(setup pid=3421) pip install torch==2.1.0 transformers==4.35.2 datasets==2.14.6 accelerate==0.24.1
+(setup pid=4782, ip=10.128.0.97) Setting up training environment
+(setup pid=5134, ip=10.128.0.115) Setting up training environment
+(setup pid=4956, ip=10.128.0.128) Setting up training environment
+(setup pid=3421) Successfully installed torch-2.1.0 transformers-4.35.2 datasets-2.14.6 accelerate-0.24.1
+(setup pid=4782, ip=10.128.0.97) Successfully installed torch-2.1.0 transformers-4.35.2 datasets-2.14.6 accelerate-0.24.1
+(setup pid=5134, ip=10.128.0.115) Successfully installed torch-2.1.0 transformers-4.35.2 datasets-2.14.6 accelerate-0.24.1
+(setup pid=4956, ip=10.128.0.128) Successfully installed torch-2.1.0 transformers-4.35.2 datasets-2.14.6 accelerate-0.24.1
+(setup pid=3421) pip install flash-attn==2.3.3 deepspeed==0.12.2
+(setup pid=4782, ip=10.128.0.97) pip install flash-attn==2.3.3 deepspeed==0.12.2
+(setup pid=5134, ip=10.128.0.115) pip install flash-attn==2.3.3 deepspeed==0.12.2
+(setup pid=4956, ip=10.128.0.128) pip install flash-attn==2.3.3 deepspeed==0.12.2
+(setup pid=3421) Successfully installed flash-attn-2.3.3 deepspeed-0.12.2
+(setup pid=4782, ip=10.128.0.97) Successfully installed flash-attn-2.3.3 deepspeed-0.12.2
+(setup pid=5134, ip=10.128.0.115) Successfully installed flash-attn-2.3.3 deepspeed-0.12.2
+(setup pid=4956, ip=10.128.0.128) Successfully installed flash-attn-2.3.3 deepspeed-0.12.2
+
+(head, rank=0, pid=3421) Loading model configuration: configs/7b_model.yaml
+(head, rank=0, pid=3421) Model: LlamaForCausalLM with 7.2B parameters
+(head, rank=0, pid=3421) Tokenizer: LlamaTokenizer (vocab_size=32000)
+(head, rank=0, pid=3421) Dataset: Training on 500M tokens
+(head, rank=0, pid=3421) Distributed setup: 4 nodes, 32 GPUs total
+
+(head, rank=0, pid=3421) Initializing distributed training...
+(head, rank=0, pid=3421) MASTER_ADDR=10.128.0.42
+(head, rank=0, pid=3421) MASTER_PORT=29500
+(worker1, rank=1, pid=4782, ip=10.128.0.97) Connecting to master node: 10.128.0.42:29500
+(worker2, rank=2, pid=5134, ip=10.128.0.115) Connecting to master node: 10.128.0.42:29500
+(worker3, rank=3, pid=4956, ip=10.128.0.128) Connecting to master node: 10.128.0.42:29500
+
+(head, rank=0, pid=3421) [Node 0] GPU 0-7: A100 80GB
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [Node 1] GPU 8-15: A100 80GB
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [Node 2] GPU 16-23: A100 80GB
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [Node 3] GPU 24-31: A100 80GB
+
+(head, rank=0, pid=3421) Loading dataset...
+(head, rank=0, pid=3421) Dataset loaded: 500,000,000 tokens
+(head, rank=0, pid=3421) Batch size per GPU: 2
+(head, rank=0, pid=3421) Global batch size: 64
+(head, rank=0, pid=3421) Gradient accumulation steps: 4
+
+(head, rank=0, pid=3421) Starting training...
+(head, rank=0, pid=3421) [2024-01-13 15:34:23,145][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [2024-01-13 15:34:23,234][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 8
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [2024-01-13 15:34:23,267][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 16
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [2024-01-13 15:34:23,289][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 24
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 0/15625 | Loss: 6.8423 | LR: 1.0e-05 | GPU Mem: 76.2GB/80GB
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 0/15625 | Loss: 6.7891 | LR: 1.0e-05 | GPU Mem: 76.1GB/80GB
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 0/15625 | Loss: 6.8156 | LR: 1.0e-05 | GPU Mem: 76.3GB/80GB
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 0/15625 | Loss: 6.7723 | LR: 1.0e-05 | GPU Mem: 76.0GB/80GB
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 10/15625 | Loss: 5.2341 | LR: 1.8e-05 | Tokens/sec: 11240
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 10/15625 | Loss: 5.1789 | LR: 1.8e-05 | Tokens/sec: 11189
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 10/15625 | Loss: 5.2067 | LR: 1.8e-05 | Tokens/sec: 11267
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 10/15625 | Loss: 5.1923 | LR: 1.8e-05 | Tokens/sec: 11298
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 100/15625 | Loss: 4.2156 | LR: 3.2e-05 | Tokens/sec: 12847
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 100/15625 | Loss: 4.1923 | LR: 3.2e-05 | Tokens/sec: 12789
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 100/15625 | Loss: 4.2034 | LR: 3.2e-05 | Tokens/sec: 12891
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 100/15625 | Loss: 4.1867 | LR: 3.2e-05 | Tokens/sec: 12934
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 200/15625 | Loss: 3.8945 | LR: 5.4e-05 | Tokens/sec: 13021
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 200/15625 | Loss: 3.8712 | LR: 5.4e-05 | Tokens/sec: 12967
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 200/15625 | Loss: 3.8823 | LR: 5.4e-05 | Tokens/sec: 13078
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 200/15625 | Loss: 3.8656 | LR: 5.4e-05 | Tokens/sec: 13112
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 500/15625 | Loss: 3.1247 | LR: 8.0e-05 | Tokens/sec: 12993
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 500/15625 | Loss: 3.1134 | LR: 8.0e-05 | Tokens/sec: 12945
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 500/15625 | Loss: 3.1189 | LR: 8.0e-05 | Tokens/sec: 13034
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 500/15625 | Loss: 3.1089 | LR: 8.0e-05 | Tokens/sec: 13067
+
+(head, rank=0, pid=3421) Checkpoint saved: checkpoints/step-500.pt
+(head, rank=0, pid=3421) Validation loss: 3.0847
+(head, rank=0, pid=3421) Perplexity: 21.89
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 1000/15625 | Loss: 2.7834 | LR: 1.0e-04 | Tokens/sec: 13156
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 1000/15625 | Loss: 2.7723 | LR: 1.0e-04 | Tokens/sec: 13098
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 1000/15625 | Loss: 2.7778 | LR: 1.0e-04 | Tokens/sec: 13189
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 1000/15625 | Loss: 2.7689 | LR: 1.0e-04 | Tokens/sec: 13234
+
+(head, rank=0, pid=3421) Checkpoint saved: checkpoints/step-1000.pt
+(head, rank=0, pid=3421) Validation loss: 2.6234
+(head, rank=0, pid=3421) Perplexity: 13.78
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 2000/15625 | Loss: 2.4521 | LR: 1.0e-04 | Tokens/sec: 13089
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 2000/15625 | Loss: 2.4456 | LR: 1.0e-04 | Tokens/sec: 13034
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 2000/15625 | Loss: 2.4489 | LR: 1.0e-04 | Tokens/sec: 13123
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 2000/15625 | Loss: 2.4423 | LR: 1.0e-04 | Tokens/sec: 13167
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 3000/15625 | Loss: 2.2187 | LR: 1.0e-04 | Tokens/sec: 13234
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 3000/15625 | Loss: 2.2123 | LR: 1.0e-04 | Tokens/sec: 13189
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 3000/15625 | Loss: 2.2156 | LR: 1.0e-04 | Tokens/sec: 13267
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 3000/15625 | Loss: 2.2089 | LR: 1.0e-04 | Tokens/sec: 13298
+
+(head, rank=0, pid=3421) Checkpoint saved: checkpoints/step-3000.pt
+(head, rank=0, pid=3421) Validation loss: 2.1567
+(head, rank=0, pid=3421) Perplexity: 8.64
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 4000/15625 | Loss: 2.0345 | LR: 1.0e-04 | Tokens/sec: 13178
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 4000/15625 | Loss: 2.0289 | LR: 1.0e-04 | Tokens/sec: 13134
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 4000/15625 | Loss: 2.0318 | LR: 1.0e-04 | Tokens/sec: 13201
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 4000/15625 | Loss: 2.0256 | LR: 1.0e-04 | Tokens/sec: 13245
+
+(head, rank=0, pid=3421) [GPU0] Epoch 1/5 | Step 5000/15625 | Loss: 1.8912 | LR: 1.0e-04 | Tokens/sec: 13102
+(worker1, rank=1, pid=4782, ip=10.128.0.97) [GPU8] Epoch 1/5 | Step 5000/15625 | Loss: 1.8867 | LR: 1.0e-04 | Tokens/sec: 13067
+(worker2, rank=2, pid=5134, ip=10.128.0.115) [GPU16] Epoch 1/5 | Step 5000/15625 | Loss: 1.8889 | LR: 1.0e-04 | Tokens/sec: 13134
+(worker3, rank=3, pid=4956, ip=10.128.0.128) [GPU24] Epoch 1/5 | Step 5000/15625 | Loss: 1.8834 | LR: 1.0e-04 | Tokens/sec: 13178
+
+(head, rank=0, pid=3421) Checkpoint saved: checkpoints/step-5000.pt
+(head, rank=0, pid=3421) Validation loss: 1.8234
+(head, rank=0, pid=3421) Perplexity: 6.19
+
+# Training is currently at step 5000/15625 (32.0% of epoch 1)
+# Current metrics across 4 nodes:
+# - Training loss: 1.8912 (head), 1.8867 (worker1), 1.8889 (worker2), 1.8834 (worker3)
+# - Validation loss: 1.8234
+# - Perplexity: 6.19
+# - Throughput: ~13,100 tokens/sec per node (52,400 total)
+# - GPU utilization: 98.7% across all 32 A100s
+# - Memory usage: 78.2GB/80GB per GPU
+# - Estimated completion: 18 hours remaining
+
+Note: This training job is still running in demo mode.

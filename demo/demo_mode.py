@@ -857,23 +857,7 @@ def mock_cluster_tail_logs(cluster_name: str,
         # If following and job is not terminal, simulate some additional ongoing logs
         job_status = target_job['status']
         job_name = target_job['job_name']
-        
-        if follow and not job_status.is_terminal():
-            import time
-            time.sleep(1)
-            if 'training' in job_name.lower():
-                print("Epoch 6/10: loss=1.089, accuracy=0.678", flush=True)
-                time.sleep(1)
-                print("Validation accuracy: 0.645", flush=True)
-            elif 'inference' in job_name.lower():
-                print("Processing batch 221/496 | Processed: 7072/15847 (44.6%) | Speed: 28.9 requests/min | ETA: 3h 37m", flush=True)
-                time.sleep(1)
-                print("Processing batch 222/496 | Processed: 7104/15847 (44.8%) | Speed: 29.1 requests/min | ETA: 3h 35m", flush=True)
-            elif 'jupyter' in job_name.lower():
-                print("New connection from 192.168.1.100", flush=True)
-            else:
-                print("Task is still running...", flush=True)
-        
+
         # Return exit code based on job status
         if job_status == job_lib.JobStatus.SUCCEEDED:
             return 0
@@ -1002,14 +986,111 @@ def mock_jobs_queue_direct(refresh: bool,
     logger.info(f"Demo mode: Returning {len(jobs)} demo jobs")
     return jobs
 
+def mock_managed_job_tail_logs(name: Optional[str],
+                              job_id: Optional[int],
+                              follow: bool,
+                              controller: bool,
+                              refresh: bool,
+                              tail: Optional[int] = None) -> int:
+    """Mock implementation of managed job tail_logs - reads from actual log files."""
+    logger.debug(f"Demo mode: mock_managed_job_tail_logs() called with name='{name}', job_id={job_id}, follow={follow}, controller={controller}, refresh={refresh}, tail={tail}")
+    
+    # Load fresh data from JSON for hot reloading
+    jobs_data = load_mock_data_file('jobs')
+    jobs = _convert_jobs_from_json(jobs_data)
+    
+    # Find the specific job or get the latest one
+    target_job = None
+    if job_id is not None:
+        target_job = next((job for job in jobs if job['job_id'] == job_id), None)
+    elif name is not None:
+        # Find by name - get the latest job with that name
+        name_jobs = [job for job in jobs if job['job_name'] == name]
+        if name_jobs:
+            target_job = name_jobs[0]  # Already sorted by job_id desc
+    else:
+        # Get the latest job
+        if jobs:
+            target_job = jobs[0]  # Already sorted by job_id desc
+    
+    if target_job is None:
+        logger.warning(f"Demo mode: No managed job found with name='{name}', job_id={job_id}")
+        print(f"No managed job found" + (f" with name '{name}'" if name else f" with job_id {job_id}" if job_id else ""), flush=True)
+        return 1
+    
+    # Determine log file path based on controller flag
+    if controller:
+        log_filename = f'controller-job-{target_job["job_id"]}.log'
+        log_path = os.path.join(DEMO_DIR, 'logs', 'managed_jobs', log_filename)
+    else:
+        # Use the log_path from job data if available, otherwise construct it
+        if 'log_path' in target_job and target_job['log_path']:
+            log_path = os.path.join(DEMO_DIR, target_job['log_path'])
+        else:
+            log_filename = f'job-{target_job["job_id"]}.log'
+            log_path = os.path.join(DEMO_DIR, 'logs', 'managed_jobs', log_filename)
+    
+    # Check if log file exists
+    if not os.path.exists(log_path):
+        logger.warning(f"Demo mode: Managed job log file not found: {log_path}")
+        print(f"Log file not found: {os.path.basename(log_path)}", flush=True)
+        return 1
+    
+    try:
+        # Read the log file
+        with open(log_path, 'r') as f:
+            log_lines = f.readlines()
+        
+        # Remove newline characters but preserve empty lines
+        log_lines = [line.rstrip('\n\r') for line in log_lines]
+        
+        # Apply tail filtering if specified
+        if tail is not None and tail > 0:
+            log_lines = log_lines[-tail:]
+        
+        # Print the log content
+        for log_line in log_lines:
+            print(log_line, flush=True)
+        
+        # If following and job is not terminal, simulate some additional ongoing logs
+        job_status = target_job['status']
+        job_name = target_job['job_name']
+
+        # Return exit code based on job status
+        if job_status == ManagedJobStatus.SUCCEEDED:
+            return 0
+        elif job_status in [ManagedJobStatus.FAILED, ManagedJobStatus.FAILED_SETUP, ManagedJobStatus.FAILED_CONTROLLER]:
+            return 100  # Failed exit code
+        elif job_status == ManagedJobStatus.CANCELLED:
+            return 103  # Cancelled exit code
+        else:
+            return 101  # Not finished exit code
+            
+    except Exception as e:
+        logger.error(f"Demo mode: Error reading managed job log file {log_path}: {e}")
+        print(f"Error reading log file: {e}", flush=True)
+        return 1
+
 def patch_jobs_functions():
     """Patch jobs-related functions."""
     logger.info("Demo mode: Patching jobs functions")
     try:
         from sky.jobs.server import core as jobs_core
+        from sky.backends import cloud_vm_ray_backend
         
         # Mock the main queue function directly (avoid SSH connection issues)
         jobs_core.queue = mock_jobs_queue_direct
+        
+        # Mock the managed job tail_logs function
+        jobs_core.tail_logs = mock_managed_job_tail_logs
+        
+        # Also patch the backend method if it exists
+        if hasattr(cloud_vm_ray_backend.CloudVmRayBackend, 'tail_managed_job_logs'):
+            def mock_backend_tail_managed_job_logs(self, handle, job_id=None, job_name=None, controller=False, follow=True, tail=None):
+                """Mock backend tail_managed_job_logs method."""
+                return mock_managed_job_tail_logs(job_name, job_id, follow, controller, False, tail)
+            
+            cloud_vm_ray_backend.CloudVmRayBackend.tail_managed_job_logs = mock_backend_tail_managed_job_logs
         
         logger.info("Demo mode: Successfully patched jobs functions")
     except ImportError as e:
@@ -1107,7 +1188,7 @@ def patch_permission_functions():
             # Mock workspace permission check to always return True in demo mode
             def mock_check_workspace_permission(user_id: str, workspace_name: str) -> bool:
                 """Mock workspace permission check - always return True in demo mode."""
-                logger.info(f"Demo mode: Allowing workspace '{workspace_name}' access for user '{user_id}'")
+                logger.debug(f"Demo mode: Allowing workspace '{workspace_name}' access for user '{user_id}'")
                 return True
             
             permission.permission_service._original_check_workspace_permission = permission.permission_service.check_workspace_permission

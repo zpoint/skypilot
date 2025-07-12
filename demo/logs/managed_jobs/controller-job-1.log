@@ -1,0 +1,60 @@
+I01-13 15:32:18 controller.py:66] DAG:
+I01-13 15:32:18 controller.py:66] [Task(run='python train_llama.py --config configs/7b_model.yaml')
+I01-13 15:32:18 controller.py:66]   resources: GCP(cpus=8, mem=60, accelerators=A100:8)]
+I01-13 15:32:18 state.py:617] Launching the spot cluster...
+I01-13 15:32:18 controller.py:217] Submitted managed job 1 (task: 0, name: 'llama-training'); SKYPILOT_TASK_ID: sky-managed-2024-01-13-15-32-18-421536_llama-training_1-0
+I01-13 15:32:18 controller.py:221] Started monitoring.
+I01-13 15:32:19 optimizer.py:757] Target: minimizing cost
+I01-13 15:32:19 optimizer.py:770] Estimated cost: $28.8 / hour
+I01-13 15:32:19 optimizer.py:770] 
+I01-13 15:32:19 optimizer.py:918] Considered resources (4 nodes):
+I01-13 15:32:19 optimizer.py:986] ----------------------------------------------------------------------------
+I01-13 15:32:19 optimizer.py:986]  INFRA                    INSTANCE       vCPUs   Mem(GB)   GPUS      COST ($)   CHOSEN   
+I01-13 15:32:19 optimizer.py:986] ----------------------------------------------------------------------------
+I01-13 15:32:19 optimizer.py:986]  GCP (us-central1)        a2-highgpu-8g  96      680       A100:8    28.80         ✔     
+I01-13 15:32:19 optimizer.py:986] ----------------------------------------------------------------------------
+I01-13 15:32:20 cloud_vm_ray_backend.py:1558] ⚙︎ Launching on GCP us-central1 (us-central1-a,us-central1-b,us-central1-c).
+I01-13 15:33:15 provisioner.py:684] ✓ Cluster launched: llama-training-1.  View logs: sky api logs -l sky-2024-01-13-15-32-20-763422/provision.log
+I01-13 15:33:15 execution.py:430] ⚙︎ Syncing files.
+I01-13 15:33:18 cloud_vm_ray_backend.py:3603] ⚙︎ Job submitted, ID: 1
+I01-13 15:33:20 recovery_strategy.py:306] Managed job cluster launched.
+I01-13 15:33:24 utils.py:255] === Checking the job status... ===
+I01-13 15:33:25 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:33:25 utils.py:264] ==================================
+I01-13 15:33:26 state.py:707] Job started.
+I01-13 15:53:46 utils.py:255] === Checking the job status... ===
+I01-13 15:53:47 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:53:47 utils.py:264] ==================================
+I01-13 15:54:07 utils.py:255] === Checking the job status... ===
+I01-13 15:54:08 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:08 utils.py:264] ==================================
+I01-13 15:54:29 utils.py:255] === Checking the job status... ===
+I01-13 15:54:30 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:30 utils.py:264] ==================================
+I01-13 15:53:46 utils.py:255] === Checking the job status... ===
+I01-13 15:53:47 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:53:47 utils.py:264] ==================================
+I01-13 15:54:07 utils.py:255] === Checking the job status... ===
+I01-13 15:54:08 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:08 utils.py:264] ==================================
+I01-13 15:54:29 utils.py:255] === Checking the job status... ===
+I01-13 15:54:30 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:30 utils.py:264] ==================================
+I01-13 15:54:51 utils.py:255] === Checking the job status... ===
+I01-13 15:54:52 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:52 utils.py:264] ==================================
+I01-13 15:54:53 utils.py:255] === Checking the job status... ===
+I01-13 15:54:54 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:54 utils.py:264] ==================================
+I01-13 15:54:55 utils.py:255] === Checking the job status... ===
+I01-13 15:54:56 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:54:56 utils.py:264] ==================================
+I01-13 15:55:13 utils.py:255] === Checking the job status... ===
+I01-13 15:55:14 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:55:14 utils.py:264] ==================================
+I01-13 15:55:35 utils.py:255] === Checking the job status... ===
+I01-13 15:55:36 utils.py:261] Job status: JobStatus.RUNNING
+I01-13 15:55:36 utils.py:264] ==================================
+
+
+Note: This training job is still being monitored in demo mode.

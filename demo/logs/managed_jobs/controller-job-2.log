@@ -1,0 +1,76 @@
+I01-11 10:15:32 controller.py:66] DAG:
+I01-11 10:15:32 controller.py:66] [Task(run='python batch_inference.py --model meta-llama/Llama-2-13b-chat-hf --input-file data/prompts.jsonl --output-file results/outputs.jsonl')
+I01-11 10:15:32 controller.py:66]   resources: AWS(cpus=192, mem=768, accelerators=L4:8)]
+I01-11 10:15:32 state.py:617] Launching the spot cluster...
+I01-11 10:15:32 controller.py:217] Submitted managed job 2 (task: 0, name: 'batch-inference'); SKYPILOT_TASK_ID: sky-managed-2024-01-11-10-15-32-847291_batch-inference_2-0
+I01-11 10:15:32 controller.py:221] Started monitoring.
+I01-11 10:15:33 optimizer.py:757] Target: minimizing cost
+I01-11 10:15:33 optimizer.py:770] Estimated cost: $18.4 / hour
+I01-11 10:15:33 optimizer.py:770] 
+I01-11 10:15:33 optimizer.py:918] Considered resources (1 node):
+I01-11 10:15:33 optimizer.py:986] ----------------------------------------------------------------------------
+I01-11 10:15:33 optimizer.py:986]  INFRA               INSTANCE       vCPUs   Mem(GB)   GPUS      COST ($)   CHOSEN   
+I01-11 10:15:33 optimizer.py:986] ----------------------------------------------------------------------------
+I01-11 10:15:33 optimizer.py:986]  AWS (us-west-2)     g6.48xlarge    192     768       L4:8      18.40         ✔     
+I01-11 10:15:33 optimizer.py:986] ----------------------------------------------------------------------------
+I01-11 10:15:34 cloud_vm_ray_backend.py:1558] ⚙︎ Launching on AWS us-west-2 (us-west-2a,us-west-2b,us-west-2c).
+I01-11 10:16:18 provisioner.py:684] ✓ Cluster launched: batch-inference-2.  View logs: sky api logs -l sky-2024-01-11-10-15-34-923847/provision.log
+I01-11 10:16:18 execution.py:430] ⚙︎ Syncing files.
+I01-11 10:16:21 cloud_vm_ray_backend.py:3603] ⚙︎ Job submitted, ID: 1
+I01-11 10:16:23 recovery_strategy.py:306] Managed job cluster launched.
+I01-11 10:16:27 utils.py:255] === Checking the job status... ===
+I01-11 10:16:28 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 10:16:28 utils.py:264] ==================================
+I01-11 10:16:29 state.py:707] Job started.
+I01-11 10:36:49 utils.py:255] === Checking the job status... ===
+I01-11 10:36:50 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 10:36:50 utils.py:264] ==================================
+I01-11 11:36:51 utils.py:255] === Checking the job status... ===
+I01-11 11:36:52 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 11:36:52 utils.py:264] ==================================
+I01-11 12:36:53 utils.py:255] === Checking the job status... ===
+I01-11 12:36:54 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:36:54 utils.py:264] ==================================
+I01-11 12:37:25 utils.py:255] === Checking the job status... ===
+I01-11 12:37:26 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:37:26 utils.py:264] ==================================
+I01-11 12:37:55 utils.py:255] === Checking the job status... ===
+I01-11 12:37:56 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:37:56 utils.py:264] ==================================
+I01-11 12:38:25 utils.py:255] === Checking the job status... ===
+I01-11 12:38:26 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:38:26 utils.py:264] ==================================
+I01-11 12:38:55 utils.py:255] === Checking the job status... ===
+I01-11 12:38:56 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:38:56 utils.py:264] ==================================
+I01-11 12:39:25 utils.py:255] === Checking the job status... ===
+I01-11 12:39:26 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:39:26 utils.py:264] ==================================
+I01-11 12:39:55 utils.py:255] === Checking the job status... ===
+I01-11 12:39:56 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:39:56 utils.py:264] ==================================
+I01-11 12:40:25 utils.py:255] === Checking the job status... ===
+I01-11 12:40:26 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:40:26 utils.py:264] ==================================
+I01-11 12:40:55 utils.py:255] === Checking the job status... ===
+I01-11 12:40:56 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:40:56 utils.py:264] ==================================
+I01-11 12:41:25 utils.py:255] === Checking the job status... ===
+I01-11 12:41:26 utils.py:261] Job status: JobStatus.RUNNING
+I01-11 12:41:26 utils.py:264] ==================================
+I01-11 12:41:55 utils.py:255] === Checking the job status... ===
+I01-11 12:41:56 utils.py:261] Job status: JobStatus.SUCCEEDED
+I01-11 12:41:56 utils.py:264] ==================================
+I01-11 12:41:57 state.py:830] Job succeeded.
+I01-11 12:41:57 controller.py:298] Managed job 2 (task: 0) SUCCEEDED. Cleaning up the cluster batch-inference-2.
+I01-11 12:41:57controller.py:302] Streaming job output:
+(batch-inference, pid=2841) Batch inference completed successfully!
+(batch-inference, pid=2841) Saving final results to: results/outputs.jsonl
+(batch-inference, pid=2841) Quality metrics:
+(batch-inference, pid=2841) - Average response length: 287 tokens
+(batch-inference, pid=2841) - Total tokens generated: 2,451,089
+(batch-inference, pid=2841) - Average latency: 2.51 seconds/prompt
+(batch-inference, pid=2841) - Throughput: 23.9 prompts/minute
+(batch-inference, pid=2841) - Error rate: 0.02% (2 failed prompts)
+I01-11 12:56:58controller.py:124] 
+I01-11 12:56:58controller.py:124] == End of logs (ID: 2) ==
