@@ -24,7 +24,11 @@ demo/
 │   ├── inference/        # Logs for inference cluster
 │   └── dev-cluster-alice/        # Logs for dev-cluster-alice cluster
 ├── demo_mode.py                  # Main demo mode implementation
+├── values-demo.yaml              # Demo-specific Helm chart values
 └── README.md                     # This file
+
+Chart Enhancement:
+├── ../charts/skypilot/templates/api-deployment.yaml  # Enhanced to support extraEnv
 ```
 
 ## Features
@@ -37,7 +41,42 @@ demo/
 
 ## Starting the Demo
 
-### Option 1: Using the API Server
+### Option 1: Using Kubernetes (Recommended for Production-like Environment)
+
+Here are the most commonly used commands for demo deployment:
+
+```bash
+# Deploy demo (no authentication required)
+gcloud auth configure-docker us-central1-docker.pkg.dev
+DOCKER_IMAGE=us-central1-docker.pkg.dev/skypilot-demo-465806/skypilot-demo:v1
+NAMESPACE=skypilot-demo
+RELEASE=skypilot-demo
+
+# Build and push the Docker image
+docker buildx build --push --platform linux/amd64 -t $DOCKER_IMAGE -f Dockerfile .
+
+# Deploy to Kubernetes (authentication disabled for demo)
+helm upgrade --install $RELEASE ./charts/skypilot \
+   --namespace $NAMESPACE \
+   --values demo/values-demo.yaml \
+   --set apiService.image=$DOCKER_IMAGE \
+   --set apiService.skipResourceCheck=true \
+   --create-namespace \
+   --wait
+
+# Access the dashboard (no login required)
+# Option 1: Via external LoadBalancer IP
+echo "Getting external IP..."
+EXTERNAL_IP=$(kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo "Access dashboard at: http://$EXTERNAL_IP/"
+
+# Option 2: Via port forwarding
+# kubectl port-forward svc/skypilot-demo-api-service -n skypilot-demo 8000:80
+# Then visit: http://localhost:8000
+```
+
+
+### Option 2: Using the Local API Server
 
 1. **Start the API Server with Demo Mode**:
    ```bash
@@ -48,17 +87,6 @@ demo/
 2. **Access the Dashboard**:
    - Open your browser and go to `http://localhost:8000`
    - You'll see the SkyPilot dashboard with demo data
-
-### Option 2: Using the Development Server
-
-1. **Start the Development Server**:
-   ```bash
-   cd /path/to/skypilot
-   SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true python -m sky.server.server --dev
-   ```
-
-2. **Access the Dashboard**:
-   - The development server typically runs on `http://localhost:8000`
 
 ## Demo Data
 
@@ -114,14 +142,58 @@ vim demo/logs/dev-alice/job-1.log
 vim demo/logs/training-multinode/job-1.log
 ```
 
+## Kubernetes Deployment Details
+
+The demo deployment uses a clean, direct approach:
+
+1. **Chart Enhancement**: Added support for `extraEnv` in the API server deployment template to accept additional environment variables
+2. **Minimal values** (`values-demo.yaml`): Contains only essential demo configuration and sets `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` via `extraEnv`
+3. **Direct Helm commands**: Simple `helm upgrade --install` command with appropriate flags
+4. **Standard cleanup**: Standard `helm uninstall` command
+
+This approach works because:
+- The demo files are already included in the Docker image when building from source
+- The chart enhancement allows setting the demo environment variable directly through Helm values
+- Direct Helm commands bypass resource checks and focus on demo essentials
+- No scripts, runtime patching, or complex workarounds needed
+
 ## Important Notes
 
 1. **Read-Only Mode**: Demo mode blocks all write operations to prevent modifications
-2. **Environment Variable**: You must set `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` to enable demo mode
-3. **Hot Reloading**: Changes to JSON5 files are reflected immediately without server restart
-4. **Realistic Data**: All data is designed to be realistic for demonstration purposes
+2. **No Authentication**: Demo deployment disables all authentication mechanisms (basic auth, OAuth2, service accounts) for easy access
+3. **Resource Requirements**: Demo deployment uses 3 CPUs and 12 GB memory (bypasses chart's 4 CPU minimum with `skipResourceCheck=true`)
+4. **Environment Variable**: Demo mode is enabled via `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` in `values-demo.yaml`
+5. **Hot Reloading**: Changes to JSON5 files are reflected immediately without server restart
+6. **Realistic Data**: All data is designed to be realistic for demonstration purposes
+7. **Kubernetes Requirements**: For Kubernetes deployment, you need `kubectl` and `helm` installed and configured
+8. **Working Directory**: Run helm commands from the `/demo` directory where `values-demo.yaml` is located
 
 ## Troubleshooting
+
+### Kubernetes Deployment Issues
+
+If the Kubernetes deployment fails:
+
+1. **Check Prerequisites**: Ensure `kubectl` and `helm` are installed and configured
+2. **Verify Cluster Access**: Run `kubectl cluster-info` to verify cluster connectivity
+3. **Check Namespace**: Ensure the namespace doesn't already exist or use a different one
+4. **Verify Chart Path**: Ensure the chart exists at `../charts/skypilot` relative to the demo directory
+5. **Check Deployment Logs**: Use `kubectl logs -n skypilot-demo deployment/skypilot-demo-api-server` to check for errors
+6. **Verify Values File**: Ensure you're running the command from the `/demo` directory where `values-demo.yaml` is located
+
+### Environment Variable Not Set
+
+If demo mode isn't working in Kubernetes:
+
+1. **Verify Values File**: Check that `values-demo.yaml` contains the demo environment variable in the `extraEnv` section
+2. **Check Pod Environment**: Verify the environment variable in the running pod:
+   ```bash
+   kubectl exec -n skypilot-demo deployment/skypilot-demo-api-server -- env | grep SKYPILOT_INTERNAL_APPLY_DEMO_PATCH
+   ```
+3. **Check Deployment**: Verify the environment variable was set during deployment:
+   ```bash
+   kubectl get deployment skypilot-demo-api-server -n skypilot-demo -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="SKYPILOT_INTERNAL_APPLY_DEMO_PATCH")].value}'
+   ```
 
 ### Cluster Jobs Not Showing
 
@@ -139,12 +211,3 @@ If the server fails to start:
 2. **Check Port**: Make sure port 8000 is not already in use
 3. **Check Environment**: Verify you're in the correct directory and virtual environment
 
-## Development
-
-To modify the demo mode behavior:
-
-1. **Edit `demo_mode.py`**: Main implementation file
-2. **Add New Mock Data**: Add new JSON5 files and update the loading logic
-3. **Extend Functionality**: Add new mock functions as needed
-
-The demo mode automatically patches SkyPilot functions when `demo_mode.py` is imported, making it easy to extend and customize.

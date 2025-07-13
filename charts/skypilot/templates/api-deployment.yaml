@@ -90,6 +90,9 @@ spec:
         {{- end }}
         - name: SKYPILOT_GRACE_PERIOD_SECONDS
           value: {{ .Values.apiService.terminationGracePeriodSeconds | quote}}
+        {{- if .Values.apiService.extraEnv }}
+        {{- toYaml .Values.apiService.extraEnv | nindent 8 }}
+        {{- end }}
         # Use tini as the init process
         command: ["tini", "--"]
         # Start API server in foreground (if supported) to:
