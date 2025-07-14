@@ -22,8 +22,8 @@ JSON5 file and refresh your browser to see changes immediately!
 """
 
 import copy
-import json
 import json5
+import uuid
 import multiprocessing
 import os
 import time
@@ -650,6 +650,9 @@ def mock_readonly_operation(*args, **kwargs):
         detail="Demo mode: Write operations are not allowed"
     )
 
+# Volume delete and apply operations are now handled by the middleware
+# that intercepts responses and provides proper request/get flow
+
 def mock_add_or_update_user(user: models.User, allow_duplicate_name: bool = True) -> bool:
     """Mock add_or_update_user - adds user to demo users if not exists."""
     # Load fresh data from JSON for hot reloading
@@ -1152,6 +1155,9 @@ def patch_volumes_functions():
         # Mock the main volume_list function
         volumes_core.volume_list = mock_volume_list
         
+        # Note: volume_delete and volume_apply are now handled by middleware
+        # that intercepts responses and provides proper request/get flow
+        
         logger.info("Demo mode: Successfully patched volumes functions")
     except ImportError as e:
         logger.warning(f"Demo mode: Could not import volumes core module: {e}")
@@ -1304,15 +1310,24 @@ def patch_executor_initializer():
 
 def patch_server_endpoints(app):
     """Patch server write endpoints to be read-only. Call this after app is created."""
+    logger.info("Demo mode: Patching server endpoints - applying demo middleware")
     # List of write endpoints to make read-only
-    write_endpoints = [
+    # Endpoints that use request/get pattern (return 200 with X-Request-ID, then GET /api/get)
+    request_get_endpoints = [
         '/launch', '/exec', '/stop', '/down', '/start', '/autostop', '/cancel',
         '/storage/delete', '/local_up', '/local_down', '/upload',
         '/volumes/delete', '/volumes/apply',
         '/workspaces/create', '/workspaces/update', '/workspaces/delete', '/workspaces/config',
+    ]
+    
+    # Endpoints that expect immediate response (return success/error immediately)
+    immediate_response_endpoints = [
         '/users/update', '/users/delete', '/users/create',
         '/users/service-account-tokens/delete', '/users/service-account-tokens/update-role', '/users/service-account-tokens/rotate'
     ]
+    
+    # Fixed request ID for demo mode blocked operations
+    DEMO_BLOCKED_REQUEST_ID = 'demo-blocked-operation'
     
     @app.middleware("http")
     async def demo_readonly_middleware(request: fastapi.Request, call_next):
@@ -1338,19 +1353,63 @@ def patch_server_endpoints(app):
                 except Exception as e:
                     logger.warning(f'Demo mode: Error injecting user info into request: {e}')
         
-        # Block write operations
-        if (request.method in ['POST', 'PUT', 'PATCH', 'DELETE'] and 
-            any(request.url.path.startswith(f'/api/v1{endpoint}') for endpoint in write_endpoints)):
-            return fastapi.responses.JSONResponse(
-                status_code=403,
-                content={'detail': 'Demo mode: Write operations are not allowed'}
-            )
+        # Handle GET /api/get requests for demo blocked operations
+        if request.method == 'GET' and request.url.path == '/api/get':
+            request_id = request.query_params.get('request_id')
+            if request_id and request_id.startswith(DEMO_BLOCKED_REQUEST_ID):
+                logger.info(f"Demo middleware: Returning demo error for blocked operation: {request_id}")
+                
+                # Return generic demo error message
+                error_content = {
+                    'detail': {
+                        'error': '{"message": "Write operations are not allowed in Demo Mode", "type": "DemoModeError"}'
+                    }
+                }
+                return fastapi.responses.JSONResponse(
+                    status_code=500,
+                    content=error_content
+                )
         
-        # Allow read operations
+        # Handle immediate response endpoints - return error immediately
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            for endpoint in immediate_response_endpoints:
+                if request.url.path.startswith(endpoint):
+                    logger.info(f"Demo middleware: Blocking immediate response endpoint {request.method} {request.url.path}")
+                    return fastapi.responses.JSONResponse(
+                        status_code=500,
+                        content={
+                            'detail': 'Write operations are not allowed in Demo Mode'
+                        }
+                    )
+        
+        # Handle request/get pattern endpoints - return fake success response
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            for endpoint in request_get_endpoints:
+                if request.url.path.startswith(endpoint):
+                    logger.info(f"Demo middleware: Blocking request/get endpoint {request.method} {request.url.path}")
+                    
+                    # Generate the demo request ID
+                    random_request_id = str(uuid.uuid4())[:8]
+                    demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
+                    
+                    # Return fake 200 response with demo request ID
+                    response = fastapi.responses.JSONResponse(
+                        status_code=200,
+                        content={}  # Empty response body like normal success
+                    )
+                    
+                    # Set headers - demo middleware runs before RequestIDMiddleware
+                    response.headers['X-Request-ID'] = demo_request_id
+                    response.headers['X-Skypilot-Request-ID'] = demo_request_id
+                    response.headers['X-Demo-Middleware'] = 'true'
+                    
+                    return response
+        
+        # Process request normally (for non-blocked endpoints)
         response = await call_next(request)
         return response
     
-    logger.info("Demo mode: Server write endpoints patched successfully")
+    logger.info("Demo mode: Demo readonly middleware registered successfully")
 
 # Enable demo mode functions (but not server endpoints) when imported
 enable_demo_mode()

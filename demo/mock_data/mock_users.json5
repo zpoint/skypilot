@@ -1,28 +1,28 @@
 {
-  "current_user": "alice123",
+  "current_user": "alice@skypilot.co",
   "users": [
     {
-      "id": "alice123",
+      "id": "alice@skypilot.co",
       "name": "alice@skypilot.co",
       "password": null,
       "created_at_offset": -172800
     },
     {
-      "id": "bob456", 
+      "id": "bob@skypilot.co", 
       "name": "bob@skypilot.co",
       "password": null,
       "created_at_offset": -172800
     },
     {
-      "id": "mike789",
+      "id": "mike@skypilot.co",
       "name": "mike@skypilot.co", 
       "password": null,
       "created_at_offset": -86400
     }
   ],
   "user_roles": {
-    "alice123": ["admin"],
-    "bob456": ["user"],
-    "mike789": ["user"]
+    "alice@skypilot.co": ["admin"],
+    "bob@skypilot.co": ["user"],
+    "mike@skypilot.co": ["user"]
   }
 } 
