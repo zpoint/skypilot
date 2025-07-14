@@ -4,7 +4,7 @@
       "name": "dev-alice",
       "launched_at_offset": -172800,
       "cloud": "kubernetes",
-      "region": "lambda-k8s", 
+      "region": "coreweave-cluster", 
       "nodes": 1,
       "last_use": "sky launch -c dev-alice --cpus 4+ --memory 16GB+",
       "status": "UP",
@@ -13,7 +13,7 @@
       "owner": ["alice123"],
       "metadata": {
         "cloud": "kubernetes",
-        "region": "lambda-k8s"
+        "region": "coreweave-cluster"
       },
       "cluster_hash": "cluster-hash-dev-alice",
       "storage_mounts_metadata": null,
@@ -59,7 +59,7 @@
       "last_creation_command": "sky launch -c training-multinode --secrets HF_TOKEN train.yaml",
       "resources": {
         "instance_type": "a2-highgpu-8g",
-        "accelerators": {"A100": 8},
+        "accelerators": {"H100": 8},
         "cpus": 96,
         "memory": 680
       }

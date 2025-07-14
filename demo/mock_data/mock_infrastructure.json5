@@ -1,81 +1,108 @@
 {
   "enabled_clouds": ["gcp", "aws"],
   "gpu_availability": {
-    "lambda-k8s": [
+    "coreweave-cluster": [
       {
         "gpu_name": "A100",
-        "requestable_qtys": [1, 2, 4],
-        "total_capacity": 8,
-        "available": 6
+        "requestable_qtys": [1, 2, 4, 8],
+        "total_capacity": 16,
+        "available": 12
       },
       {
         "gpu_name": "H100",
-        "requestable_qtys": [1, 2],
-        "total_capacity": 4,
-        "available": 2
+        "requestable_qtys": [1, 2, 4],
+        "total_capacity": 8,
+        "available": 6
       }
     ],
-    "nebius-k8s": [
+    "nebius-cluster": [
       {
         "gpu_name": "H200",
         "requestable_qtys": [1, 2, 4, 8],
         "total_capacity": 32,
-        "available": 8
+        "available": 24
+      },
+      {
+        "gpu_name": "H100",
+        "requestable_qtys": [1, 2],
+        "total_capacity": 8,
+        "available": 4
       }
     ]
   },
   "node_info": {
-    "lambda-k8s": {
-      "lambda-worker-1": {
-        "name": "lambda-worker-1",
+    "coreweave-cluster": {
+      "coreweave-worker-1": {
+        "name": "coreweave-worker-1",
         "accelerator_type": "A100",
-        "total": {"accelerator_count": 4},
-        "free": {"accelerators_available": 3},
-        "ip_address": "10.0.1.10"
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.1.1.10"
       },
-      "lambda-worker-2": {
-        "name": "lambda-worker-2",
+      "coreweave-worker-2": {
+        "name": "coreweave-worker-2",
         "accelerator_type": "A100",
-        "total": {"accelerator_count": 4},
-        "free": {"accelerators_available": 3},
-        "ip_address": "10.0.1.11"
+        "total": {"accelerator_count": 8},
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.1.1.11"
       },
-      "lambda-gpu-node-1": {
-        "name": "lambda-gpu-node-1",
+      "coreweave-h100-node-1": {
+        "name": "coreweave-h100-node-1",
         "accelerator_type": "H100",
         "total": {"accelerator_count": 4},
-        "free": {"accelerators_available": 2},
-        "ip_address": "10.0.1.12"
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.1.1.12"
+      },
+      "coreweave-h100-node-2": {
+        "name": "coreweave-h100-node-2",
+        "accelerator_type": "H100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 3},
+        "ip_address": "10.1.1.13"
       }
     },
-    "nebius-k8s": {
+    "nebius-cluster": {
       "nebius-h200-node-1": {
         "name": "nebius-h200-node-1",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 0},
-        "ip_address": "10.0.2.10"
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.2.1.10"
       },
       "nebius-h200-node-2": {
         "name": "nebius-h200-node-2",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 0},
-        "ip_address": "10.0.2.11"
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.2.1.11"
       },
       "nebius-h200-node-3": {
         "name": "nebius-h200-node-3",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 0},
-        "ip_address": "10.0.2.12"
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.2.1.12"
       },
       "nebius-h200-node-4": {
         "name": "nebius-h200-node-4",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 8},
-        "ip_address": "10.0.2.13"
+        "free": {"accelerators_available": 6},
+        "ip_address": "10.2.1.13"
+      },
+      "nebius-h100-node-1": {
+        "name": "nebius-h100-node-1",
+        "accelerator_type": "H100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 2},
+        "ip_address": "10.2.1.14"
+      },
+      "nebius-h100-node-2": {
+        "name": "nebius-h100-node-2",
+        "accelerator_type": "H100",
+        "total": {"accelerator_count": 4},
+        "free": {"accelerators_available": 2},
+        "ip_address": "10.2.1.15"
       }
     }
   }
