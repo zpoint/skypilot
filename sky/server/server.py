@@ -616,10 +616,6 @@ class APIVersionMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
 app = fastapi.FastAPI(prefix='/api/v1', debug=True, lifespan=lifespan)
 
-# Apply demo mode server patches if enabled
-if _DEMO_MODE_ENABLED and _DEMO_MODE_MODULE is not None:
-    _DEMO_MODE_MODULE.patch_server_endpoints(app)
-
 # Middleware wraps in the order defined here. E.g., given
 #   app.add_middleware(Middleware1)
 #   app.add_middleware(Middleware2)
@@ -666,6 +662,12 @@ app.add_middleware(BearerTokenMiddleware)
 # middleware above.
 app.add_middleware(InitializeRequestAuthUserMiddleware)
 app.add_middleware(RequestIDMiddleware)
+
+# Apply demo mode server patches if enabled
+# IMPORTANT: Demo middleware must be added AFTER RequestIDMiddleware to prevent
+# RequestIDMiddleware from overwriting the demo request IDs
+if _DEMO_MODE_ENABLED and _DEMO_MODE_MODULE is not None:
+    _DEMO_MODE_MODULE.patch_server_endpoints(app)
 app.include_router(jobs_rest.router, prefix='/jobs', tags=['jobs'])
 app.include_router(serve_rest.router, prefix='/serve', tags=['serve'])
 app.include_router(users_rest.router, prefix='/users', tags=['users'])

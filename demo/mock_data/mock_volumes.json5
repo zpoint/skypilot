@@ -14,7 +14,7 @@
         "access_mode": "ReadWriteMany"
       },
       "name_on_cloud": "ml-datasets-pvc-abc123",
-      "user_hash": "alice123",
+      "user_hash": "alice@skypilot.co",
       "user_name": "alice@skypilot.co",
       "workspace": "research-private",
       "last_attached_at_offset": -3600,
@@ -36,7 +36,7 @@
         "access_mode": "ReadWriteOnce"
       },
       "name_on_cloud": "model-checkpoints-pvc-def456",
-      "user_hash": "alice123",
+      "user_hash": "alice@skypilot.co",
       "user_name": "alice@skypilot.co",
       "workspace": "ml-team",
       "last_attached_at_offset": -84600,
@@ -58,7 +58,7 @@
         "access_mode": "ReadWriteMany"
       },
       "name_on_cloud": "shared-workspace-pvc-ghi789",
-      "user_hash": "bob456",
+      "user_hash": "bob@skypilot.co",
       "user_name": "bob@skypilot.co",
       "workspace": "default",
       "last_attached_at_offset": null,
