@@ -52,8 +52,10 @@ export async function deleteVolume(volumeName) {
     const response = await apiClient.post('/volumes/delete', {
       names: [volumeName],
     });
-    
-    const id = response.headers.get('X-Skypilot-Request-ID') || response.headers.get('X-Request-ID');
+
+    const id =
+      response.headers.get('X-Skypilot-Request-ID') ||
+      response.headers.get('X-Request-ID');
     const fetchedData = await apiClient.get(`/api/get?request_id=${id}`);
     if (fetchedData.status === 500) {
       try {

@@ -7,7 +7,12 @@ spec:
   # Note: replicas > 1 is not well tested, and requires a PVC that supports ReadWriteMany.
   replicas: {{ .Values.apiService.replicas }}
   strategy:
-    type: Recreate
+    type: {{ .Values.apiService.deploymentStrategy.type }}
+    {{- if eq .Values.apiService.deploymentStrategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.apiService.deploymentStrategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.apiService.deploymentStrategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}-api
