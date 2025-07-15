@@ -1408,6 +1408,52 @@ def patch_permission_functions():
         logger.warning(f"Demo mode: Error patching permission functions: {e}")
 
 
+def patch_auth_middleware():
+    """Patch auth middleware to not override auth_user if already set in demo mode."""
+    logger.info("Demo mode: Patching auth middleware")
+    try:
+        from sky.server import server as sky_server
+
+        async def demo_initialize_auth_dispatch(self, request, call_next):
+            """Modified dispatch that doesn't override auth_user if already set."""
+            auth_user = mock_get_current_user()
+            request.state.auth_user = auth_user
+            if request.method in ['POST', 'PUT', 'PATCH']:
+                # Get the body and inject user info
+                body = await request.body()
+                if body:
+                    try:
+                        import json
+                        original_json = json.loads(body.decode('utf-8'))
+                        # Inject user environment variables
+                        modified_json = mock_override_user_info_in_request_body(
+                            original_json, auth_user)
+                        # Replace the request body
+                        request._body = json.dumps(modified_json).encode(
+                            'utf-8')
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        logger.warning(
+                            'Demo mode: Error parsing request JSON for user '
+                            f'injection: {e}')
+                    except Exception as e:
+                        logger.warning(
+                            'Demo mode: Error injecting user info into '
+                            f'request: {e}')
+
+            return await call_next(request)
+
+        # Replace the dispatch method
+        sky_server.InitializeRequestAuthUserMiddleware.dispatch = demo_initialize_auth_dispatch
+
+        logger.info(
+            "Demo mode: Successfully patched InitializeRequestAuthUserMiddleware"
+        )
+    except ImportError as e:
+        logger.warning(f"Demo mode: Could not import server module: {e}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching auth middleware: {e}")
+
+
 def enable_demo_mode():
     """Enable demo mode by patching functions and endpoints."""
     logger.info("Enabling SkyPilot demo mode with fake data")
@@ -1433,6 +1479,9 @@ def enable_demo_mode():
     # Patch permission functions
     patch_permission_functions()
 
+    # Patch auth middleware to not override auth_user if already set
+    patch_auth_middleware()
+
     # CRITICAL: Patch executor to apply demo patches in worker processes
     patch_executor_initializer()
 
@@ -1449,6 +1498,8 @@ def enable_demo_mode_worker():
     patch_permission_functions()
     logger.info(f"Demo mode: Worker {pid} - Applying core patches")
     patch_core_functions()
+    logger.info(f"Demo mode: Worker {pid} - Applying auth middleware patches")
+    patch_auth_middleware()
 
     # CRITICAL: Need skypilot_config.get_nested patch for workspace validation in worker processes
     logger.info(f"Demo mode: Worker {pid} - Applying skypilot_config patches")
@@ -1570,42 +1621,14 @@ def patch_server_endpoints(app):
         logger.info(f'Demo middleware: Processing request {request.method} '
                     f'{request.url.path} in process {os.getpid()}')
 
-        # Set current user from demo data for all requests
-        auth_user = mock_get_current_user()
-        request.state.auth_user = auth_user
-
-        # Override user info in request body if needed
-        if request.method in ['POST', 'PUT', 'PATCH'] and auth_user:
-            # Get the body and inject user info
-            body = await request.body()
-            if body:
-                try:
-                    import json
-                    original_json = json.loads(body.decode('utf-8'))
-                    # Inject user environment variables
-                    modified_json = mock_override_user_info_in_request_body(
-                        original_json, auth_user)
-                    # Replace the request body
-                    request._body = json.dumps(modified_json).encode('utf-8')
-                except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                    logger.warning(
-                        f'Demo mode: Error parsing request JSON for user injection: {e}'
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f'Demo mode: Error injecting user info into request: {e}'
-                    )
-
         # Handle GET /api/get requests for demo blocked operations
-        is_get_request = request.method == 'GET'
-        is_get_request = (is_get_request and request.url.path
+        is_get_request = (request.method == 'GET' and request.url.path
                           in ['/api/get', '/internal/dashboard/api/get'])
         if is_get_request:
             request_id = request.query_params.get('request_id')
             logger.info(
                 'Demo middleware: GET /api/get request with request_id: '
-                f'{request_id}'
-            )
+                f'{request_id}')
             if request_id and request_id.startswith(DEMO_BLOCKED_REQUEST_ID):
                 logger.info(
                     f"Demo middleware: Returning demo error for blocked operation: {request_id}"
@@ -1626,7 +1649,9 @@ def patch_server_endpoints(app):
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in immediate_response_endpoints:
                 # Check both with and without /api/v1 prefix
-                if request.url.path in [endpoint, f'/internal/dashboard{endpoint}']:
+                if request.url.path in [
+                        endpoint, f'/internal/dashboard{endpoint}'
+                ]:
                     logger.info(
                         f"Demo middleware: Blocking immediate response endpoint {request.method} {request.url.path}"
                     )
@@ -1639,7 +1664,9 @@ def patch_server_endpoints(app):
         # Handle request/get pattern endpoints - return fake success response
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in request_get_endpoints:
-                if request.url.path in [endpoint, f'/internal/dashboard{endpoint}']:
+                if request.url.path in [
+                        endpoint, f'/internal/dashboard{endpoint}'
+                ]:
                     # Generate the demo request ID
                     random_request_id = str(uuid.uuid4())[:8]
                     demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
