@@ -18,9 +18,9 @@
       },
       {
         "gpu_name": "H100",
-        "requestable_qtys": [1, 2, 4, 8],
+        "requestable_qtys": [0],
         "total_capacity": 16,
-        "available": 16
+        "available": 0
       }
     ]
   },
@@ -82,14 +82,14 @@
         "name": "nebius-h100-node-1",
         "accelerator_type": "H100",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 8},
+        "free": {"accelerators_available": 0},
         "ip_address": "10.2.1.14"
       },
       "nebius-h100-node-2": {
         "name": "nebius-h100-node-2",
         "accelerator_type": "H100",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 8},
+        "free": {"accelerators_available": 0},
         "ip_address": "10.2.1.15"
       }
     }

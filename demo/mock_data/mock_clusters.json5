@@ -24,19 +24,19 @@
       "config_hash": "config-hash-1",
       "workspace": "research-private",
       "last_creation_yaml": null,
-      "last_creation_command": "sky launch -c dev-alice --cpus 4+ --memory 16GB+",
+      "last_creation_command": "sky launch -c dev-alice --cpus 8+ --memory 32GB+",
       "resources": {
-        "instance_type": "4CPU--16GB",
+        "instance_type": "8CPU--32GB",
         "accelerators": {"H200": 1},
-        "cpus": 4,
-        "memory": 16
+        "cpus": 8,
+        "memory": 32
       }
     },
     {
       "name": "training-multinode",
       "launched_at_offset": -86400,
-      "cloud": "gcp",
-      "region": "us-central1",
+      "cloud": "kubernetes",
+      "region": "nebius",
       "nodes": 2,
       "last_use": "sky exec training-multinode train.yaml",
       "status": "UP",
@@ -44,8 +44,8 @@
       "to_down": false,
       "owner": ["alice@skypilot.co"],
       "metadata": {
-        "cloud": "gcp",
-        "region": "us-central1"
+        "cloud": "kubernetes",
+        "region": "nebius"
       },
       "cluster_hash": "cluster-hash-training-multinode",
       "storage_mounts_metadata": null,
@@ -58,10 +58,11 @@
       "last_creation_yaml": "training",
       "last_creation_command": "sky launch -c training-multinode --secrets HF_TOKEN train.yaml",
       "resources": {
-        "instance_type": "a3-highgpu-8g",
+        "instance_type": "200CPU--800GB",
         "accelerators": {"H100": 8},
-        "cpus": 96,
-        "memory": 680
+        "cpus": 200,
+        "memory": 800,
+        "disk_size": 2000
       }
     },
     {

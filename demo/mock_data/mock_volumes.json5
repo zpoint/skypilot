@@ -6,11 +6,11 @@
       "type": "k8s-pvc",
       "launched_at_offset": -172800,
       "cloud": "Kubernetes",
-      "region": "lambda-k8s",
+      "region": "coreweave",
       "zone": null,
       "size": "500",
       "config": {
-        "storage_class_name": "lambda-standard",
+        "storage_class_name": "coreweave-standard",
         "access_mode": "ReadWriteMany"
       },
       "name_on_cloud": "ml-datasets-pvc-abc123",
@@ -28,7 +28,7 @@
       "type": "k8s-pvc",
       "launched_at_offset": -86400,
       "cloud": "Kubernetes",
-      "region": "nebius-k8s",
+      "region": "nebius",
       "zone": null,
       "size": "1000",
       "config": {
@@ -50,7 +50,7 @@
       "type": "k8s-pvc",
       "launched_at_offset": -90000,
       "cloud": "Kubernetes",
-      "region": "nebius-k8s",
+      "region": "nebius",
       "zone": null,
       "size": "100",
       "config": {
