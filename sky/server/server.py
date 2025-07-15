@@ -72,7 +72,8 @@ from sky.volumes.server import server as volumes_rest
 from sky.workspaces import server as workspaces_rest
 
 # Check if demo mode should be enabled
-_DEMO_MODE_ENABLED = os.environ.get('SKYPILOT_INTERNAL_APPLY_DEMO_PATCH', '').lower() == 'true'
+_DEMO_MODE_ENABLED = os.environ.get('SKYPILOT_INTERNAL_APPLY_DEMO_PATCH',
+                                    '').lower() == 'true'
 _DEMO_MODE_MODULE = None
 
 # pylint: disable=ungrouped-imports
@@ -114,8 +115,9 @@ logger = sky_logging.init_logger(__name__)
 # Only load if SKYPILOT_INTERNAL_APPLY_DEMO_PATCH environment variable is set
 if _DEMO_MODE_ENABLED:
     try:
-        import sys
         import pathlib
+        import sys
+
         # Add demo directory to Python path
         demo_dir = pathlib.Path(__file__).parent.parent.parent / 'demo'
         if str(demo_dir) not in sys.path:
