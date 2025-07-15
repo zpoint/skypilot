@@ -26,6 +26,12 @@ apiService:
   preDeployHook: |-
     pip install json5
     
+  # Deployment strategy configuration
+  deploymentStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
 
 # Enable ingress without authentication for demo
 ingress:
@@ -37,7 +43,7 @@ ingress:
   oauth2-proxy:
     enabled: false
 
-# Use smaller storage for demo
+# Disable persistent storage for demo mode - no state to persist
 storage:
-  enabled: true
-  size: 5Gi
+  enabled: false
+

@@ -1598,13 +1598,13 @@ def patch_server_endpoints(app):
 
         # Handle GET /api/get requests for demo blocked operations
         is_get_request = request.method == 'GET'
-        is_get_request = (is_get_request and
-                          (request.url.path == '/api/get' or
-                           request.url.path == '/internal/dashboard/api/get'))
+        is_get_request = (is_get_request and request.url.path
+                          in ['/api/get', '/internal/dashboard/api/get'])
         if is_get_request:
             request_id = request.query_params.get('request_id')
             logger.info(
-                f"Demo middleware: GET /api/get request with request_id: {request_id}"
+                'Demo middleware: GET /api/get request with request_id: '
+                f'{request_id}'
             )
             if request_id and request_id.startswith(DEMO_BLOCKED_REQUEST_ID):
                 logger.info(
@@ -1626,7 +1626,7 @@ def patch_server_endpoints(app):
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in immediate_response_endpoints:
                 # Check both with and without /api/v1 prefix
-                if request.url.path == endpoint:
+                if request.url.path in [endpoint, f'/internal/dashboard{endpoint}']:
                     logger.info(
                         f"Demo middleware: Blocking immediate response endpoint {request.method} {request.url.path}"
                     )
@@ -1639,7 +1639,7 @@ def patch_server_endpoints(app):
         # Handle request/get pattern endpoints - return fake success response
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in request_get_endpoints:
-                if request.url.path == endpoint:
+                if request.url.path in [endpoint, f'/internal/dashboard{endpoint}']:
                     # Generate the demo request ID
                     random_request_id = str(uuid.uuid4())[:8]
                     demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
