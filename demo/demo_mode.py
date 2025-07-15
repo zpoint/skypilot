@@ -27,7 +27,7 @@ import uuid
 import multiprocessing
 import os
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 import fastapi
 
@@ -358,33 +358,11 @@ def _create_demo_handle(
                                     Any]] = None) -> CloudVmRayResourceHandle:
     """Creates a realistic CloudVmRayResourceHandle for demo purposes."""
     # Use resources from cluster configuration if provided
-    if resources_config:
-        instance_type = resources_config.get('instance_type', 'n1-standard-4')
-        accelerators = resources_config.get('accelerators')
-        cpus = resources_config.get('cpus')
-        memory = resources_config.get('memory')
-    else:
-        # Fallback to old hard-coded logic if no resources provided
-        if 'kubernetes' in str(cloud).lower():
-            instance_type = '4CPU--16GB'
-            accelerators = None
-            cpus = 4
-            memory = 16
-        elif 'multinode' in cluster_name:
-            instance_type = 'n1-standard-8'
-            accelerators = {'A100': 8}
-            cpus = None
-            memory = None
-        elif 'inference' in cluster_name:
-            instance_type = 'g4dn.xlarge'
-            accelerators = {'A100': 1}
-            cpus = None
-            memory = None
-        else:
-            instance_type = 'n1-standard-4'
-            accelerators = None
-            cpus = None
-            memory = None
+    instance_type = resources_config.get('instance_type', 'n1-standard-4')
+    accelerators = resources_config.get('accelerators')
+    cpus = resources_config.get('cpus')
+    memory = resources_config.get('memory')
+    disk_size=resources_config.get('disk_size')
 
     # Create Resources object
     resources = resources_lib.Resources(cloud=cloud,
@@ -393,6 +371,7 @@ def _create_demo_handle(
                                         accelerators=accelerators,
                                         cpus=cpus,
                                         memory=memory,
+                                        disk_size=disk_size,
                                         use_spot=False)
 
     # Generate fake IPs
@@ -1454,6 +1433,40 @@ def patch_auth_middleware():
         logger.warning(f"Demo mode: Error patching auth middleware: {e}")
 
 
+def patch_sky_commit_hash():
+    """Patch sky module to use current git commit hash."""
+    logger.info("Demo mode: Patching sky commit hash")
+    try:
+        import sky
+        import subprocess
+        
+        def get_current_git_commit():
+            """Get the current git commit hash."""
+            try:
+                cwd = os.path.dirname(sky.__file__)
+                commit_hash = subprocess.check_output(
+                    ['git', 'rev-parse', 'HEAD'],
+                    cwd=cwd,
+                    universal_newlines=True,
+                    stderr=subprocess.DEVNULL).strip()
+                changes = subprocess.check_output(['git', 'status', '--porcelain'],
+                                                  cwd=cwd,
+                                                  universal_newlines=True,
+                                                  stderr=subprocess.DEVNULL).strip()
+                return commit_hash
+            except Exception as e:
+                logger.warning(f"Demo mode: Could not get git commit: {e}")
+                return sky.__commit__  # Fall back to original
+        
+        # Update the commit hash
+        current_commit = get_current_git_commit()
+        sky.__commit__ = current_commit
+        
+        logger.info(f"Demo mode: Updated sky commit hash to: {current_commit}")
+    except Exception as e:
+        logger.warning(f"Demo mode: Error patching sky commit hash: {e}")
+
+
 def enable_demo_mode():
     """Enable demo mode by patching functions and endpoints."""
     logger.info("Enabling SkyPilot demo mode with fake data")
@@ -1478,9 +1491,12 @@ def enable_demo_mode():
 
     # Patch permission functions
     patch_permission_functions()
-
+    
     # Patch auth middleware to not override auth_user if already set
     patch_auth_middleware()
+    
+    # Patch sky commit hash to current git commit
+    patch_sky_commit_hash()
 
     # CRITICAL: Patch executor to apply demo patches in worker processes
     patch_executor_initializer()
@@ -1606,6 +1622,7 @@ def patch_server_endpoints(app):
     # Endpoints that expect immediate response (return success/error immediately)
     immediate_response_endpoints = [
         '/users/update', '/users/delete', '/users/create',
+        '/users/service-account-tokens',
         '/users/service-account-tokens/delete',
         '/users/service-account-tokens/update-role',
         '/users/service-account-tokens/rotate'

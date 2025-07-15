@@ -4,7 +4,9 @@ secrets:
   HF_TOKEN: null
 
 resources:
-  accelerators: A100:8
+  cpus: 200+
+  memory: 800GB+
+  accelerators: H100:8
 
 num_nodes: 2
 
