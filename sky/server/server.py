@@ -115,9 +115,6 @@ logger = sky_logging.init_logger(__name__)
 # Only load if SKYPILOT_INTERNAL_APPLY_DEMO_PATCH environment variable is set
 if _DEMO_MODE_ENABLED:
     try:
-        import pathlib
-        import sys
-
         # Add demo directory to Python path
         demo_dir = pathlib.Path(__file__).parent.parent.parent / 'demo'
         if str(demo_dir) not in sys.path:
@@ -125,10 +122,9 @@ if _DEMO_MODE_ENABLED:
         import demo_mode  # pylint: disable=unused-import
         _DEMO_MODE_MODULE = demo_mode
         logger.info('Demo mode enabled via SKYPILOT_INTERNAL_APPLY_DEMO_PATCH')
-    except ImportError as e:
-        logger.warning(f'Failed to load demo mode: {e}')
+    except ImportError as demo_mode_import_error:
+        logger.warning(f'Failed to load demo mode: {demo_mode_import_error}')
         _DEMO_MODE_ENABLED = False
-        pass  # Demo mode not available
 
 # TODO(zhwu): Streaming requests, such log tailing after sky launch or sky logs,
 # need to be detached from the main requests queue. Otherwise, the streaming
@@ -670,7 +666,7 @@ app.add_middleware(RequestIDMiddleware)
 # RequestIDMiddleware from overwriting the demo request IDs
 if _DEMO_MODE_ENABLED and _DEMO_MODE_MODULE is not None:
     _DEMO_MODE_MODULE.patch_server_endpoints(app)
-    logger.info(f'Demo mode: Demo patches applied successfully')
+    logger.info('Demo mode: Demo patches applied successfully')
 
 app.include_router(jobs_rest.router, prefix='/jobs', tags=['jobs'])
 app.include_router(serve_rest.router, prefix='/serve', tags=['serve'])
