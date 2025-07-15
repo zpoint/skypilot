@@ -1522,16 +1522,14 @@ def patch_server_endpoints(app):
     """Patch server write endpoints to be read-only. Call this after app is created."""
     import os
     import multiprocessing
-    
+
     # Add debugging to understand worker process context
     current_process = multiprocessing.current_process()
     worker_pid = os.getpid()
-    
-    logger.info(
-        f"Demo mode: Patching server endpoints in process {worker_pid} "
-        f"(process name: {current_process.name})"
-    )
-    
+
+    logger.info(f"Demo mode: Patching server endpoints in process {worker_pid} "
+                f"(process name: {current_process.name})")
+
     # List of write endpoints to make read-only
     # Endpoints that use request/get pattern (return 200 with X-Request-ID, then GET /api/get)
     request_get_endpoints = [
@@ -1556,9 +1554,7 @@ def patch_server_endpoints(app):
 
     # Endpoints that expect immediate response (return success/error immediately)
     immediate_response_endpoints = [
-        '/users/update',
-        '/users/delete', 
-        '/users/create',
+        '/users/update', '/users/delete', '/users/create',
         '/users/service-account-tokens/delete',
         '/users/service-account-tokens/update-role',
         '/users/service-account-tokens/rotate'
@@ -1571,12 +1567,9 @@ def patch_server_endpoints(app):
     async def demo_readonly_middleware(request: fastapi.Request, call_next):
         """Middleware to block write operations in demo mode."""
         # Add debug logging to track middleware execution
-        logger.info(f"Demo middleware: Processing request {request.method} {request.url.path} in process {os.getpid()}")
-        
-        # Log all write operations for debugging
-        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-            logger.info(f"Demo middleware: Write operation detected - {request.method} {request.url.path}")
-            
+        logger.info(f'Demo middleware: Processing request {request.method} '
+                    f'{request.url.path} in process {os.getpid()}')
+
         # Set current user from demo data for all requests
         auth_user = mock_get_current_user()
         request.state.auth_user = auth_user
@@ -1604,9 +1597,15 @@ def patch_server_endpoints(app):
                     )
 
         # Handle GET /api/get requests for demo blocked operations
-        if request.method == 'GET' and (request.url.path == '/api/get' or request.url.path == '/internal/dashboard/api/get'):
+        is_get_request = request.method == 'GET'
+        is_get_request = (is_get_request and
+                          (request.url.path == '/api/get' or
+                           request.url.path == '/internal/dashboard/api/get'))
+        if is_get_request:
             request_id = request.query_params.get('request_id')
-            logger.info(f"Demo middleware: GET /api/get request with request_id: {request_id}")
+            logger.info(
+                f"Demo middleware: GET /api/get request with request_id: {request_id}"
+            )
             if request_id and request_id.startswith(DEMO_BLOCKED_REQUEST_ID):
                 logger.info(
                     f"Demo middleware: Returning demo error for blocked operation: {request_id}"
@@ -1615,7 +1614,9 @@ def patch_server_endpoints(app):
                 # Return generic demo error message
                 error_content = {
                     'detail': {
-                        'error': '{"message": "Write operations are not allowed in Demo Mode", "type": "DemoModeError"}'
+                        'error':
+                            '{"message": "Write operations are not '
+                            'allowed in Demo Mode", "type": "DemoModeError"}'
                     }
                 }
                 return fastapi.responses.JSONResponse(status_code=500,
@@ -1625,7 +1626,7 @@ def patch_server_endpoints(app):
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in immediate_response_endpoints:
                 # Check both with and without /api/v1 prefix
-                if request.url.path == endpoint or request.url.path == f'/api/v1{endpoint}':
+                if request.url.path == endpoint:
                     logger.info(
                         f"Demo middleware: Blocking immediate response endpoint {request.method} {request.url.path}"
                     )
@@ -1638,12 +1639,7 @@ def patch_server_endpoints(app):
         # Handle request/get pattern endpoints - return fake success response
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             for endpoint in request_get_endpoints:
-                # Check both with and without /api/v1 prefix
-                if request.url.path == endpoint or request.url.path == f'/api/v1{endpoint}':
-                    logger.info(
-                        f"Demo middleware: Blocking request/get endpoint {request.method} {request.url.path} in process {os.getpid()}"
-                    )
-
+                if request.url.path == endpoint:
                     # Generate the demo request ID
                     random_request_id = str(uuid.uuid4())[:8]
                     demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
@@ -1661,16 +1657,9 @@ def patch_server_endpoints(app):
 
                     return response
 
-        # Log if no demo blocking applied
-        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-            logger.info(f"Demo middleware: No blocking applied for {request.method} {request.url.path}")
-
         # Process request normally (for non-blocked endpoints)
         response = await call_next(request)
         return response
-    
-    logger.info(f"Demo mode: Demo readonly middleware registered successfully in process {worker_pid}")
-    logger.info(f"Demo mode: Middleware will block {len(request_get_endpoints)} request/get endpoints and {len(immediate_response_endpoints)} immediate response endpoints")
 
 
 # Enable demo mode functions (but not server endpoints) when imported
