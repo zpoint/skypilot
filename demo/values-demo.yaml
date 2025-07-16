@@ -36,6 +36,8 @@ apiService:
 # Enable ingress without authentication for demo
 ingress:
   enabled: true
+  # Explicitly disable legacy NodePort to avoid migration issues
+  nodePortEnabled: false
   # No auth required - remove auth configurations
   authSecret: null
   authCredentials: null
