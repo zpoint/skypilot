@@ -1,0 +1,54 @@
+# Demo-specific configuration
+demo:
+  enabled: true
+
+# Configuration for the underlying SkyPilot chart
+skypilot:
+  apiService:
+    # Enable development mode for demo
+    skypilotDev: true
+    
+    # Disable all authentication for demo
+    enableUserManagement: false
+    enableServiceAccounts: false
+    
+    # Skip resource check for demo
+    skipResourceCheck: true
+    
+    # Reduce resource requirements for demo
+    resources:
+      requests:
+        cpu: "3"
+        memory: "12Gi"
+      limits:
+        cpu: "3"
+        memory: "12Gi"
+    
+    # Enable demo mode with additional environment variables
+    extraEnv:
+    - name: SKYPILOT_INTERNAL_APPLY_DEMO_PATCH
+      value: "true"
+
+    preDeployHook: |-
+      pip install json5
+      
+    # Deployment strategy configuration
+    deploymentStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+
+  # Enable ingress without authentication for demo
+  ingress:
+    enabled: true
+    # No auth required - remove auth configurations
+    authSecret: null
+    authCredentials: null
+    # Disable OAuth2 proxy
+    oauth2-proxy:
+      enabled: false
+
+  # Disable persistent storage for demo mode - no state to persist
+  storage:
+    enabled: false 

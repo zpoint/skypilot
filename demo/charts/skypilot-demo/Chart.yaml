@@ -1,0 +1,27 @@
+apiVersion: v2
+name: skypilot-demo
+description: SkyPilot Demo Mode with ConfigMap-based mock data
+type: application
+version: 0.1.0
+appVersion: "0.12.0"
+
+dependencies:
+  - name: skypilot
+    version: "*"
+    repository: "file://../../../charts/skypilot"
+    alias: skypilot
+
+keywords:
+  - skypilot
+  - demo
+  - kubernetes
+  - ml
+  - gpu
+
+maintainers:
+  - name: SkyPilot Team
+    url: https://github.com/skypilot-org/skypilot
+
+home: https://skypilot.readthedocs.io/
+sources:
+  - https://github.com/skypilot-org/skypilot 
