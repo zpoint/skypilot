@@ -1,38 +1,6 @@
 {
   "clusters": [
     {
-      "name": "dev-alice",
-      "launched_at_offset": -172800,
-      "cloud": "kubernetes",
-      "region": "coreweave", 
-      "nodes": 1,
-      "last_use": "sky launch -c dev-alice --cpus 4+ --memory 16GB+",
-      "status": "UP",
-      "autostop": -1,
-      "to_down": false,
-      "owner": ["alice@skypilot.co"],
-      "metadata": {
-        "cloud": "kubernetes",
-        "region": "coreweave"
-      },
-      "cluster_hash": "cluster-hash-dev-alice",
-      "storage_mounts_metadata": null,
-      "cluster_ever_up": true,
-      "status_updated_at_offset": -3600,
-      "user_hash": "alice@skypilot.co",
-      "user_name": "alice@skypilot.co",
-      "config_hash": "config-hash-1",
-      "workspace": "research-private",
-      "last_creation_yaml": null,
-      "last_creation_command": "sky launch -c dev-alice --cpus 8+ --memory 32GB+",
-      "resources": {
-        "instance_type": "8CPU--32GB",
-        "accelerators": {"H200": 1},
-        "cpus": 8,
-        "memory": 32
-      }
-    },
-    {
       "name": "training-multinode",
       "launched_at_offset": -86400,
       "cloud": "kubernetes",
@@ -63,6 +31,38 @@
         "cpus": 200,
         "memory": 800,
         "disk_size": 2000
+      }
+    },
+    {
+      "name": "dev-alice",
+      "launched_at_offset": -172800,
+      "cloud": "kubernetes",
+      "region": "coreweave", 
+      "nodes": 1,
+      "last_use": "sky launch -c dev-alice --cpus 4+ --memory 16GB+",
+      "status": "UP",
+      "autostop": -1,
+      "to_down": false,
+      "owner": ["alice@skypilot.co"],
+      "metadata": {
+        "cloud": "kubernetes",
+        "region": "coreweave"
+      },
+      "cluster_hash": "cluster-hash-dev-alice",
+      "storage_mounts_metadata": null,
+      "cluster_ever_up": true,
+      "status_updated_at_offset": -3600,
+      "user_hash": "alice@skypilot.co",
+      "user_name": "alice@skypilot.co",
+      "config_hash": "config-hash-1",
+      "workspace": "research-private",
+      "last_creation_yaml": null,
+      "last_creation_command": "sky launch -c dev-alice --cpus 8+ --memory 32GB+",
+      "resources": {
+        "instance_type": "8CPU--32GB",
+        "accelerators": {"H200": 1},
+        "cpus": 8,
+        "memory": 32
       }
     },
     {
