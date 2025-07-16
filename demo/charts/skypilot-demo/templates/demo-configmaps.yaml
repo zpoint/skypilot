@@ -1,0 +1,100 @@
+{{- if .Values.demo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-users
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_users.json5: |
+{{ .Files.Get "mock_data/mock_users.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-clusters
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_clusters.json5: |
+{{ .Files.Get "mock_data/mock_clusters.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-jobs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_jobs.json5: |
+{{ .Files.Get "mock_data/mock_jobs.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-cluster-jobs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_cluster_jobs.json5: |
+{{ .Files.Get "mock_data/mock_cluster_jobs.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-volumes
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_volumes.json5: |
+{{ .Files.Get "mock_data/mock_volumes.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-workspaces
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_workspaces.json5: |
+{{ .Files.Get "mock_data/mock_workspaces.json5" | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-demo-infrastructure
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: skypilot-demo
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: demo-data
+data:
+  mock_infrastructure.json5: |
+{{ .Files.Get "mock_data/mock_infrastructure.json5" | indent 4 }}
+
+{{- end }} 

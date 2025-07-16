@@ -2,11 +2,43 @@
 
 This directory contains the demo mode implementation for SkyPilot, providing a read-only demonstration experience with realistic fake data.
 
+## 🆕 ConfigMap-Based Demo (Recommended for Kubernetes)
+
+For Kubernetes deployments, use the new ConfigMap-based demo chart that keeps all demo functionality self-contained without modifying the main SkyPilot chart:
+
+**📁 Location**: [`demo/charts/skypilot-demo/`](charts/skypilot-demo/)
+**📚 Documentation**: [ConfigMap Demo README](charts/skypilot-demo/README.md)
+**📊 Quick Start**:
+```bash
+cd demo/charts/skypilot-demo
+helm dependency update
+helm install skypilot-demo .
+```
+
+**✅ Benefits**:
+- 🔒 **Non-intrusive**: Main SkyPilot chart remains unchanged
+- 🔄 **Hot-reloadable**: Update mock data via `helm upgrade`
+- 📦 **Self-contained**: All demo code in `/demo` directory
+- 🔗 **Zero duplication**: Symbolic links to original JSON5 files
+- 📄 **Single source**: Edit files in `mock_data/` and changes reflect instantly
+- ⚙️ **Easy customization**: Direct file editing with comments support
+
+---
+
+## 📜 Original Demo Mode (Local Development)
+
+The original demo mode files are still available for local development and understanding the implementation:
+
 ## Directory Structure
 
 ```
 demo/
-├── mock_data/                     # Mock data files (JSON5 format)
+├── charts/skypilot-demo/          # 🆕 Self-contained demo Helm chart
+│   ├── mock_data -> ../../mock_data # Symbolic link to mock data
+│   ├── values.yaml                # Demo chart configuration
+│   ├── Chart.yaml                 # Chart metadata with SkyPilot dependency
+│   └── templates/                 # Demo-specific Kubernetes templates
+├── mock_data/                     # Mock data files (JSON5 format, single source)
 │   ├── mock_users.json5          # User accounts and roles
 │   ├── mock_clusters.json5       # Cluster configurations
 │   ├── mock_jobs.json5           # Managed jobs data
@@ -21,14 +53,10 @@ demo/
 ├── logs/                         # Realistic log files for cluster jobs
 │   ├── dev-alice/                # Logs for dev-alice cluster
 │   ├── training-multinode/       # Logs for training-multinode cluster
-│   ├── inference/        # Logs for inference cluster
+│   ├── inference/                # Logs for inference cluster
 │   └── dev-cluster-alice/        # Logs for dev-cluster-alice cluster
 ├── demo_mode.py                  # Main demo mode implementation
-├── values-demo.yaml              # Demo-specific Helm chart values
 └── README.md                     # This file
-
-Chart Enhancement:
-├── ../charts/skypilot/templates/api-deployment.yaml  # Enhanced to support extraEnv
 ```
 
 ## Features
@@ -48,21 +76,40 @@ Here are the most commonly used commands for demo deployment:
 ```bash
 # Deploy demo (no authentication required)
 gcloud auth configure-docker us-central1-docker.pkg.dev
-DOCKER_IMAGE=us-central1-docker.pkg.dev/skypilot-demo-465806/skypilot-demo:v1
+DOCKER_IMAGE=us-central1-docker.pkg.dev/skypilot-demo-465806/skypilot-demo/demo:v2
 NAMESPACE=skypilot-demo
 RELEASE=skypilot-demo
 
 # Build and push the Docker image
 docker buildx build --push --platform linux/amd64 -t $DOCKER_IMAGE -f Dockerfile .
 
-# Deploy to Kubernetes (authentication disabled for demo)
-helm upgrade --install $RELEASE ./charts/skypilot \
+# 🆕 NEW: Deploy using the demo chart (recommended)
+cd demo/charts/skypilot-demo
+helm dependency update
+
+# Note: Use 'skypilot.' prefix because the main SkyPilot chart is a dependency
+helm upgrade --install $RELEASE . \
    --namespace $NAMESPACE \
-   --values demo/values-demo.yaml \
-   --set apiService.image=$DOCKER_IMAGE \
-   --set apiService.skipResourceCheck=true \
+   --set skypilot.apiService.image=$DOCKER_IMAGE \
+   --set skypilot.apiService.skipResourceCheck=true \
    --create-namespace \
    --wait
+
+# For specific Kubernetes contexts (if needed):
+# helm upgrade --install $RELEASE . \
+#    --namespace $NAMESPACE \
+#    --set skypilot.apiService.image=$DOCKER_IMAGE \
+#    --set skypilot.apiService.skipResourceCheck=true \
+#    --kube-context your-context-name \
+#    --create-namespace \
+#    --wait
+
+# 📜 OLD: Deploy to main chart directly (deprecated - no longer works)
+# helm upgrade --install $RELEASE ./charts/skypilot \
+#    --namespace $NAMESPACE \
+#    --values demo/values-demo.yaml \  # ❌ This file has been removed
+#    --set apiService.image=$DOCKER_IMAGE \
+#    --create-namespace --wait
 
 # Access the dashboard (no login required)
 # Option 1: Via external LoadBalancer IP
@@ -147,7 +194,7 @@ vim demo/logs/training-multinode/job-1.log
 The demo deployment uses a clean, direct approach:
 
 1. **Chart Enhancement**: Added support for `extraEnv` in the API server deployment template to accept additional environment variables
-2. **Minimal values** (`values-demo.yaml`): Contains only essential demo configuration and sets `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` via `extraEnv`
+2. **Demo chart** (`charts/skypilot-demo/`): Self-contained chart with ConfigMap-based mock data and sets `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` via `extraEnv`
 3. **Direct Helm commands**: Simple `helm upgrade --install` command with appropriate flags
 4. **Standard cleanup**: Standard `helm uninstall` command
 
@@ -162,11 +209,11 @@ This approach works because:
 1. **Read-Only Mode**: Demo mode blocks all write operations to prevent modifications
 2. **No Authentication**: Demo deployment disables all authentication mechanisms (basic auth, OAuth2, service accounts) for easy access
 3. **Resource Requirements**: Demo deployment uses 3 CPUs and 12 GB memory (bypasses chart's 4 CPU minimum with `skipResourceCheck=true`)
-4. **Environment Variable**: Demo mode is enabled via `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` in `values-demo.yaml`
+4. **Environment Variable**: Demo mode is enabled via `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` in the demo chart's `values.yaml`
 5. **Hot Reloading**: Changes to JSON5 files are reflected immediately without server restart
 6. **Realistic Data**: All data is designed to be realistic for demonstration purposes
 7. **Kubernetes Requirements**: For Kubernetes deployment, you need `kubectl` and `helm` installed and configured
-8. **Working Directory**: Run helm commands from the `/demo` directory where `values-demo.yaml` is located
+8. **Working Directory**: Run helm commands from the `demo/charts/skypilot-demo/` directory where the demo chart is located
 
 ## Troubleshooting
 
@@ -179,13 +226,13 @@ If the Kubernetes deployment fails:
 3. **Check Namespace**: Ensure the namespace doesn't already exist or use a different one
 4. **Verify Chart Path**: Ensure the chart exists at `../charts/skypilot` relative to the demo directory
 5. **Check Deployment Logs**: Use `kubectl logs -n skypilot-demo deployment/skypilot-demo-api-server` to check for errors
-6. **Verify Values File**: Ensure you're running the command from the `/demo` directory where `values-demo.yaml` is located
+6. **Verify Chart Directory**: Ensure you're running the command from the `demo/charts/skypilot-demo/` directory where the demo chart is located
 
 ### Environment Variable Not Set
 
 If demo mode isn't working in Kubernetes:
 
-1. **Verify Values File**: Check that `values-demo.yaml` contains the demo environment variable in the `extraEnv` section
+1. **Verify Values File**: Check that `demo/charts/skypilot-demo/values.yaml` contains the demo environment variable in the `skypilot.apiService.extraEnv` section
 2. **Check Pod Environment**: Verify the environment variable in the running pod:
    ```bash
    kubectl exec -n skypilot-demo deployment/skypilot-demo-api-server -- env | grep SKYPILOT_INTERNAL_APPLY_DEMO_PATCH

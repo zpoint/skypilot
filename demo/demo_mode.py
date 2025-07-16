@@ -51,26 +51,53 @@ CURRENT_TIME = int(time.time())
 # Path to demo directory containing mock data files
 DEMO_DIR = os.path.dirname(__file__)
 
-# Mock data file paths
+# ConfigMap mount path (used in Kubernetes deployments)
+CONFIGMAP_MOUNT_PATH = os.environ.get('SKYPILOT_DEMO_CONFIGMAP_PATH', 
+                                       '/etc/skypilot/demo/mock_data')
+
+# Mock data file paths - try ConfigMap location first, fall back to embedded files
+def _get_mock_data_file_path(data_type: str) -> str:
+    """Get the path to a mock data file, preferring ConfigMap mount over embedded files."""
+    if data_type not in ['users', 'clusters', 'jobs', 'cluster_jobs', 'volumes', 'workspaces', 'infrastructure']:
+        raise ValueError(f"Unknown data type: {data_type}")
+    
+    filename = f'mock_{data_type}.json5'
+    
+    # Try ConfigMap mounted path first (for Kubernetes deployments)
+    configmap_path = os.path.join(CONFIGMAP_MOUNT_PATH, filename)
+    if os.path.exists(configmap_path):
+        logger.debug(f"Using ConfigMap mock data file: {configmap_path}")
+        return configmap_path
+    
+    # Fall back to embedded files (for local development)
+    embedded_path = os.path.join(DEMO_DIR, 'mock_data', filename)
+    if os.path.exists(embedded_path):
+        logger.debug(f"Using embedded mock data file: {embedded_path}")
+        return embedded_path
+    
+    # If neither exists, return the embedded path for error reporting
+    return embedded_path
+
 MOCK_DATA_FILES = {
-    'users': os.path.join(DEMO_DIR, 'mock_data', 'mock_users.json5'),
-    'clusters': os.path.join(DEMO_DIR, 'mock_data', 'mock_clusters.json5'),
-    'jobs': os.path.join(DEMO_DIR, 'mock_data', 'mock_jobs.json5'),
-    'cluster_jobs': os.path.join(DEMO_DIR, 'mock_data',
-                                 'mock_cluster_jobs.json5'),
-    'volumes': os.path.join(DEMO_DIR, 'mock_data', 'mock_volumes.json5'),
-    'workspaces': os.path.join(DEMO_DIR, 'mock_data', 'mock_workspaces.json5'),
-    'infrastructure': os.path.join(DEMO_DIR, 'mock_data',
-                                   'mock_infrastructure.json5'),
+    'users': lambda: _get_mock_data_file_path('users'),
+    'clusters': lambda: _get_mock_data_file_path('clusters'), 
+    'jobs': lambda: _get_mock_data_file_path('jobs'),
+    'cluster_jobs': lambda: _get_mock_data_file_path('cluster_jobs'),
+    'volumes': lambda: _get_mock_data_file_path('volumes'),
+    'workspaces': lambda: _get_mock_data_file_path('workspaces'),
+    'infrastructure': lambda: _get_mock_data_file_path('infrastructure'),
 }
 
 
 def load_mock_data_file(data_type: str):
     """Load mock data from a specific JSON5 file with comments support."""
-    file_path = MOCK_DATA_FILES.get(data_type)
-    if not file_path:
+    # Get the current file path (supports hot reloading from ConfigMaps)
+    file_path_getter = MOCK_DATA_FILES.get(data_type)
+    if not file_path_getter:
         raise ValueError(f"Unknown data type: {data_type}")
-
+    
+    file_path = file_path_getter()
+    
     try:
         with open(file_path, 'r') as f:
             return json5.load(f)
