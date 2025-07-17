@@ -10,7 +10,7 @@ on:
         options:
           - 'skypilot-demo'
           - 'skypilot-demo-staging'
-        default: 'skypilot-demo'
+        default: 'skypilot-demo-staging'
       skip_rebase:
         description: 'Skip rebase with upstream skypilot master'
         required: false
@@ -20,6 +20,8 @@ on:
 env:
   REGISTRY: us-central1-docker.pkg.dev
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CLUSTER_NAME: skypilot-demo
+  CLUSTER_ZONE: us-central1-a
 
 permissions:
   id-token: write
@@ -151,7 +153,7 @@ jobs:
 
       - name: Configure kubectl for cluster
         run: |
-          gcloud container clusters get-credentials ${{ inputs.cluster_name }} --zone=us-central1-a --project=${{ secrets.GCP_PROJECT_ID }}
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build Helm dependencies
         run: |
@@ -169,7 +171,7 @@ jobs:
             TAG="${{ steps.version.outputs.tag }}"
           fi
           
-          echo "Deploying to cluster: ${{ inputs.cluster_name }}"
+          echo "Deploying to cluster: ${{ env.CLUSTER_NAME }}"
           echo "Using Docker image: $DOCKER_IMAGE"
           echo "Namespace: ${{ inputs.cluster_name }}"
           echo "Release: ${{ inputs.cluster_name }}"
@@ -178,7 +180,7 @@ jobs:
           if [ "${{ inputs.cluster_name }}" == "skypilot-demo-staging" ]; then
             # First deployment - deploy with ingress-nginx controller
             echo "🚀 Deploying skypilot-demo-staging with ingress-nginx controller..."
-            helm upgrade --install ${{ inputs.cluster_name }} ./charts/skypilot \
+            helm upgrade --install skypilot-demo-staging ./charts/skypilot \
               --namespace ${{ inputs.cluster_name }} \
               --values demo/values-demo.yaml \
               --set apiService.image=$DOCKER_IMAGE \
@@ -189,7 +191,7 @@ jobs:
           else
             # Second deployment - reuse existing ingress controller
             echo "🚀 Deploying skypilot-demo reusing existing ingress controller..."
-            helm upgrade --install ${{ inputs.cluster_name }} ./charts/skypilot \
+            helm upgrade --install skypilot-demo ./charts/skypilot \
               --namespace ${{ inputs.cluster_name }} \
               --values demo/values-demo.yaml \
               --set apiService.image=$DOCKER_IMAGE \
@@ -269,7 +271,7 @@ jobs:
           echo "✅ Demo deployment completed successfully!"
           echo ""
           echo "📋 Deployment Details:"
-          echo "   - Cluster: ${{ inputs.cluster_name }}"
+          echo "   - Cluster: ${{ env.CLUSTER_NAME }}"
           echo "   - Branch: ${{ github.ref_name }}"
           echo "   - Image: $DOCKER_IMAGE"
           echo "   - Image Tag: $TAG"
@@ -283,7 +285,7 @@ jobs:
             echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
             echo "   - Access via http://EXTERNAL_IP/demo"
           else
-            echo "   - Run: kubectl get svc ${{ inputs.cluster_name }}-ingress-nginx-controller -n ${{ inputs.cluster_name }}"
+            echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
             echo "   - Access via http://EXTERNAL_IP/staging"
           fi
           echo ""
