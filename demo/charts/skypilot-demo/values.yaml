@@ -31,6 +31,60 @@ skypilot:
 
     preDeployHook: |-
       pip install json5
+
+    # Mount demo ConfigMaps as volumes for optimal performance (Tier 1: ~1ms access)
+    extraVolumes:
+    - name: demo-users
+      configMap:
+        name: "{{ .Release.Name }}-demo-users"
+    - name: demo-clusters
+      configMap:
+        name: "{{ .Release.Name }}-demo-clusters"
+    - name: demo-jobs
+      configMap:
+        name: "{{ .Release.Name }}-demo-jobs"
+    - name: demo-cluster-jobs
+      configMap:
+        name: "{{ .Release.Name }}-demo-cluster-jobs"
+    - name: demo-volumes
+      configMap:
+        name: "{{ .Release.Name }}-demo-volumes"
+    - name: demo-workspaces
+      configMap:
+        name: "{{ .Release.Name }}-demo-workspaces"
+    - name: demo-infrastructure
+      configMap:
+        name: "{{ .Release.Name }}-demo-infrastructure"
+
+    extraVolumeMounts:
+    - name: demo-users
+      mountPath: /etc/skypilot/demo/mock_data/mock_users.json5
+      subPath: mock_users.json5
+      readOnly: true
+    - name: demo-clusters
+      mountPath: /etc/skypilot/demo/mock_data/mock_clusters.json5
+      subPath: mock_clusters.json5
+      readOnly: true
+    - name: demo-jobs
+      mountPath: /etc/skypilot/demo/mock_data/mock_jobs.json5
+      subPath: mock_jobs.json5
+      readOnly: true
+    - name: demo-cluster-jobs
+      mountPath: /etc/skypilot/demo/mock_data/mock_cluster_jobs.json5
+      subPath: mock_cluster_jobs.json5
+      readOnly: true
+    - name: demo-volumes
+      mountPath: /etc/skypilot/demo/mock_data/mock_volumes.json5
+      subPath: mock_volumes.json5
+      readOnly: true
+    - name: demo-workspaces
+      mountPath: /etc/skypilot/demo/mock_data/mock_workspaces.json5
+      subPath: mock_workspaces.json5
+      readOnly: true
+    - name: demo-infrastructure
+      mountPath: /etc/skypilot/demo/mock_data/mock_infrastructure.json5
+      subPath: mock_infrastructure.json5
+      readOnly: true
       
     # Deployment strategy configuration
     deploymentStrategy:

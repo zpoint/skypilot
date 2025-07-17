@@ -133,6 +133,20 @@ apiService:
   #     value: "my_value"
   extraEnv: null
 
+  # Extra volumes to mount to the API server. Example:
+  # extraVolumes:
+  #   - name: my-volume
+  #     secret:
+  #       secretName: my-secret
+  extraVolumes: null
+
+  # Extra volume mounts for the API server. Example:
+  # extraVolumeMounts:
+  #   - name: my-volume
+  #     mountPath: /etc/my-secret
+  #     readOnly: true
+  extraVolumeMounts: null
+
 storage:
   # Enable/disable persistent storage
   enabled: true
