@@ -118,14 +118,14 @@ jobs:
           TAG=$(date +%Y%m%d)
           echo "Using date-based tag: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          
+
           # Set repository based on deployment target
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             REPO="skypilot-demo-staging"
           else
             REPO="skypilot-demo"
           fi
-          
+
           echo "docker_image=${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG" >> $GITHUB_OUTPUT
           echo "Repository: $REPO, Tag: $TAG"
 
@@ -134,7 +134,7 @@ jobs:
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
-          
+
           # Set the appropriate basePath for each deployment target
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             BASE_PATH="/staging/dashboard"
@@ -146,7 +146,7 @@ jobs:
             echo "Unknown deployment target: ${{ inputs.deployment_target }}"
             exit 1
           fi
-          
+
           # Use regular docker build and push to avoid buildx issues
           docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
           docker push $DOCKER_IMAGE
@@ -172,12 +172,12 @@ jobs:
           # Use the built image
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           TAG="${{ steps.version.outputs.tag }}"
-          
+
           echo "Deploying to cluster: ${{ env.CLUSTER_NAME }}"
           echo "Using Docker image: $DOCKER_IMAGE"
           echo "Namespace: ${{ inputs.deployment_target }}"
           echo "Release: ${{ inputs.deployment_target }}"
-          
+
           # Configure Helm values based on deployment target
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             # First deployment - deploy with ingress-nginx controller
@@ -187,7 +187,6 @@ jobs:
               --values demo/charts/skypilot-demo/values.yaml \
               --set skypilot.apiService.image=$DOCKER_IMAGE \
               --set skypilot.apiService.skipResourceCheck=true \
-              --set skypilot.apiService.imagePullPolicy=Always \
               --set skypilot.ingress.path=/staging \
               --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
               --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
@@ -197,7 +196,6 @@ jobs:
               --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-staging-demo-workspaces" \
               --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
               --create-namespace \
-              --force \
               --wait
           else
             # Second deployment - reuse existing ingress controller
@@ -207,7 +205,6 @@ jobs:
               --values demo/charts/skypilot-demo/values.yaml \
               --set skypilot.apiService.image=$DOCKER_IMAGE \
               --set skypilot.apiService.skipResourceCheck=true \
-              --set skypilot.apiService.imagePullPolicy=Always \
               --set skypilot.ingress-nginx.enabled=false \
               --set skypilot.ingress.path=/demo \
               --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-demo-users" \
@@ -218,19 +215,18 @@ jobs:
               --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-demo-workspaces" \
               --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-demo-infrastructure" \
               --create-namespace \
-              --force \
               --wait
           fi
 
       - name: Get external access information
         run: |
           echo "Getting external IP..."
-          
+
           # Set timeout and check interval
           TIMEOUT=300  # 5 minutes
           INTERVAL=10  # 10 seconds
           START_TIME=$(date +%s)
-          
+
           # Determine service name and access path based on cluster
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
             # For skypilot-demo, try to find the staging controller first, fallback to its own
@@ -247,15 +243,15 @@ jobs:
             NAMESPACE="${{ inputs.deployment_target }}"
             ACCESS_PATH="/staging"
           fi
-          
+
           echo "🔍 Waiting for external IP assignment for service: $SERVICE_NAME"
           echo "⏱️  Timeout: ${TIMEOUT}s, Check interval: ${INTERVAL}s"
-          
+
           # Event-based polling with timeout
           while true; do
             CURRENT_TIME=$(date +%s)
             ELAPSED=$((CURRENT_TIME - START_TIME))
-            
+
             # Check if timeout reached
             if [ $ELAPSED -ge $TIMEOUT ]; then
               echo "⏰ Timeout reached (${TIMEOUT}s). External IP not available yet."
@@ -265,10 +261,10 @@ jobs:
               echo "❌ Deployment failed: External IP not assigned within timeout period."
               exit 1
             fi
-            
+
             # Check for external IP
             EXTERNAL_IP=$(kubectl get svc $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
-            
+
             if [ -n "$EXTERNAL_IP" ] && [ "$EXTERNAL_IP" != "null" ]; then
               echo "✅ External IP found: $EXTERNAL_IP (after ${ELAPSED}s)"
               echo "🚀 Access dashboard at: http://$EXTERNAL_IP$ACCESS_PATH"
@@ -287,7 +283,7 @@ jobs:
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           TAG="${{ steps.version.outputs.tag }}"
           IMAGE_SOURCE="Built and pushed new image"
-          
+
           echo "✅ Demo deployment completed successfully!"
           echo ""
           echo "📋 Deployment Details:"
