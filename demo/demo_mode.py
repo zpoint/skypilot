@@ -1605,6 +1605,32 @@ def patch_executor_initializer():
         logger.warning(f"Demo mode: Error patching executor initializer: {e}")
 
 
+def _inject_koala_script(html_content: str, page_name: str) -> str:
+    """Inject Koala analytics script into HTML content.
+    
+    Args:
+        html_content: The HTML content to inject the script into.
+        page_name: Name of the page for logging purposes.
+        
+    Returns:
+        HTML content with Koala script injected.
+    """
+    koala_script = '''<script>
+!function(t){var k="ko",i=(window.globalKoalaKey=window.globalKoalaKey||k);if(window[i])return;var ko=(window[i]=[]);["identify","track","removeListeners","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_093007471cfd8f2983be1b76b4b7eb9acfeb/sdk.js"),(document.body || document.head).appendChild(n)}();
+</script>'''
+    
+    # Inject the script into the head section
+    if '<head>' in html_content:
+        html_content = html_content.replace('<head>', f'<head>\n{koala_script}')
+        logger.info(f'Demo mode: Koala analytics script injected into {page_name} <head> section')
+    else:
+        # Fallback: inject at the beginning of the HTML
+        html_content = koala_script + '\n' + html_content
+        logger.info(f'Demo mode: Koala analytics script injected at beginning of {page_name}')
+    
+    return html_content
+
+
 def patch_server_endpoints(app):
     """Patch server write endpoints to be read-only. Call this after app is created."""
     import os
@@ -1653,19 +1679,27 @@ def patch_server_endpoints(app):
 
     @app.middleware("http")
     async def demo_readonly_middleware(request: fastapi.Request, call_next):
-        """Middleware to block write operations in demo mode."""
-        # Add debug logging to track middleware execution
-        logger.info(f'Demo middleware: Processing request {request.method} '
-                    f'{request.url.path} in process {os.getpid()}')
+        """Middleware to block write operations and inject analytics in demo mode."""
+        # Fast path for API endpoints - minimal logging
+        is_api_endpoint = (
+            request.url.path.startswith('/api/') or
+            request.url.path.startswith('/internal/dashboard/') or
+            request.url.path in ['/enabled_clouds', '/all_contexts', '/ssh_node_pools']
+        )
+        
+        if is_api_endpoint:
+            # Only log for debugging if needed - remove this in production
+            logger.debug(f'Demo middleware: API request {request.method} {request.url.path}')
+        else:
+            # More detailed logging for non-API requests
+            logger.info(f'Demo middleware: Processing request {request.method} '
+                        f'{request.url.path} in process {os.getpid()}')
 
         # Handle GET /api/get requests for demo blocked operations
         is_get_request = (request.method == 'GET' and request.url.path
                           in ['/api/get', '/internal/dashboard/api/get'])
         if is_get_request:
             request_id = request.query_params.get('request_id')
-            logger.info(
-                'Demo middleware: GET /api/get request with request_id: '
-                f'{request_id}')
             if request_id and request_id.startswith(DEMO_BLOCKED_REQUEST_ID):
                 logger.info(
                     f"Demo middleware: Returning demo error for blocked operation: {request_id}"
@@ -1704,6 +1738,8 @@ def patch_server_endpoints(app):
                 if request.url.path in [
                         endpoint, f'/internal/dashboard{endpoint}'
                 ]:
+                    logger.info(f"Demo middleware: Blocking write operation {request.method} {request.url.path}")
+                    
                     # Generate the demo request ID
                     random_request_id = str(uuid.uuid4())[:8]
                     demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
@@ -1723,6 +1759,58 @@ def patch_server_endpoints(app):
 
         # Process request normally (for non-blocked endpoints)
         response = await call_next(request)
+        
+        # Only inject analytics for actual HTML dashboard pages, not API endpoints
+        is_dashboard_page = (
+            request.url.path.startswith('/dashboard/') or 
+            request.url.path == '/token' or
+            request.url.path == '/'
+        )
+        
+        if (is_dashboard_page and 
+            response.status_code == 200 and 
+            hasattr(response, 'body_iterator') and
+            response.headers.get('content-type', '').startswith('text/html')):
+            logger.info(f'Demo mode: Injecting analytics for HTML page: {request.url.path}')
+            
+            try:
+                # Get response body
+                body = b''
+                async for chunk in response.body_iterator:
+                    body += chunk
+                
+                html_content = body.decode('utf-8')
+                
+                # Determine page type for logging
+                page_name = 'unknown'
+                if request.url.path.startswith('/dashboard/'):
+                    page_name = 'dashboard'
+                elif request.url.path == '/token':
+                    page_name = 'token page'
+                elif '/api/stream' in request.url.path:
+                    page_name = 'stream page'
+                
+                # Inject Koala script
+                modified_content = _inject_koala_script(html_content, page_name)
+                
+                # Copy headers but remove Content-Length since we modified the content
+                response_headers = dict(response.headers)
+                if 'content-length' in response_headers:
+                    del response_headers['content-length']
+                
+                # Create new response with modified content
+                from fastapi.responses import HTMLResponse
+                response = HTMLResponse(
+                    content=modified_content,
+                    status_code=response.status_code,
+                    headers=response_headers
+                )
+                
+            except Exception as e:
+                logger.warning(f'Demo mode: Error injecting Koala script: {e}')
+                # Return original response if injection fails
+                pass
+        
         return response
 
 
