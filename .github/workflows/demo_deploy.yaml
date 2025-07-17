@@ -130,7 +130,8 @@ jobs:
           echo "Repository: $REPO, Tag: $TAG"
 
       - name: Build and push Docker image
-        if: steps.strategy.outputs.deployment_type == 'build_image'
+        # if: steps.strategy.outputs.deployment_type == 'build_image'
+        if: false  # Skip docker build for debugging
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
@@ -168,11 +169,13 @@ jobs:
           kubectl wait --for=delete namespace/${{ inputs.deployment_target }} --timeout=300s || true
 
       - name: Deploy to Kubernetes using Helm
+        if: false  # Skip deployment - already deployed
         run: |
           # Use the built image
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           TAG="${{ steps.version.outputs.tag }}"
 
+          echo "🚀 === DEPLOYMENT DEBUG INFO ==="
           echo "Deploying to cluster: ${{ env.CLUSTER_NAME }}"
           echo "Using Docker image: $DOCKER_IMAGE"
           echo "Namespace: ${{ inputs.deployment_target }}"
@@ -221,6 +224,7 @@ jobs:
 
       - name: Get external access information
         run: |
+          echo "🔍 === GET EXTERNAL IP DEBUG ==="
           echo "Getting external IP..."
 
           # Set timeout and check interval
@@ -238,9 +242,21 @@ jobs:
             ACCESS_PATH="/staging"
           fi
 
-          echo "🔍 Waiting for external IP assignment for service: $SERVICE_NAME"
-          echo "⏱️  Timeout: ${TIMEOUT}s, Check interval: ${INTERVAL}s"
-          echo "🔍 Debug: Checking if service exists..."
+          echo "🔍 Target deployment: ${{ inputs.deployment_target }}"
+          echo "🔍 Looking for service: $SERVICE_NAME"
+          echo "🔍 In namespace: $NAMESPACE"
+          echo "🔍 Access path: $ACCESS_PATH"
+          echo "🔍 Current kubectl context: $(kubectl config current-context)"
+          echo "🔍 Timeout: ${TIMEOUT}s, Check interval: ${INTERVAL}s"
+          echo ""
+          echo "🔍 === CLUSTER STATE DEBUG ==="
+          echo "🔍 All namespaces:"
+          kubectl get ns
+          echo ""
+          echo "🔍 All services across all namespaces:"
+          kubectl get svc --all-namespaces
+          echo ""
+          echo "🔍 Checking if service exists..."
 
           # Debug: Check if service exists
           if kubectl get svc $SERVICE_NAME -n $NAMESPACE >/dev/null 2>&1; then
@@ -281,6 +297,10 @@ jobs:
             else
               echo "⏳ Waiting for external IP... (${ELAPSED}s/${TIMEOUT}s)"
               echo "🔍 Debug: Current external IP value: '$EXTERNAL_IP'"
+              echo "🔍 Debug: Service exists check:"
+              kubectl get svc $SERVICE_NAME -n $NAMESPACE || echo "Service not found"
+              echo "🔍 Debug: All ingress-nginx services:"
+              kubectl get svc --all-namespaces | grep ingress-nginx || echo "No ingress-nginx services found"
               echo "🔍 Debug: Full service status:"
               kubectl get svc $SERVICE_NAME -n $NAMESPACE -o yaml | grep -A 10 "status:" || echo "Failed to get service status"
               sleep $INTERVAL
