@@ -1,0 +1,167 @@
+name: demo-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'Target cluster for deployment'
+        required: true
+        type: choice
+        options:
+          - 'skypilot-demo'
+          - 'skypilot-demo-staging'
+        default: 'skypilot-demo'
+      skip_rebase:
+        description: 'Skip rebase with upstream skypilot master'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: us-central1-docker.pkg.dev
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected branch from current repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git and merge with upstream master
+        if: ${{ !inputs.skip_rebase }}
+        run: |
+          # Configure git
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          # Add upstream remote
+          git remote add upstream https://github.com/skypilot-org/skypilot.git
+          # Fetch upstream master
+          git fetch upstream master
+          # Rebase demo branch on top of upstream master
+          echo "Rebasing demo branch on upstream/master..."
+          if ! git rebase upstream/master; then
+            echo "❌ Rebase failed! There may be conflicts that need manual resolution."
+            echo "Please resolve conflicts manually and update the demo branch."
+            exit 1
+          fi
+          # Show current status
+          echo "✅ Rebase completed successfully!"
+          echo "Current branch and commit:"
+          git branch -v
+          git log --oneline -5
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_NAME }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Install gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: 'latest'
+
+      - name: Install GKE gcloud auth plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Configure Docker for Google Cloud
+        run: |
+          gcloud auth configure-docker ${{ env.REGISTRY }}
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Verify authentication
+        run: |
+          echo "Verifying authentication by listing images in Artifact Registry..."
+          gcloud artifacts docker images list ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ inputs.cluster_name }} --project=${{ secrets.GCP_PROJECT_ID }}
+          echo "✅ Authentication successful."
+      - name: Determine image tag using today's date
+        id: version
+        run: |
+          # Use today's date as the tag format (YYYYMMDD)
+          TAG=$(date +%Y%m%d)
+          echo "Using date-based tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "docker_image=${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ inputs.cluster_name }}/demo:$TAG" >> $GITHUB_OUTPUT
+      - name: Build and push Docker image
+        run: |
+          DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
+          echo "Building and pushing Docker image: $DOCKER_IMAGE"
+          # Use regular docker build and push to avoid buildx issues
+          docker build -t $DOCKER_IMAGE -f Dockerfile .
+          docker push $DOCKER_IMAGE
+      - name: Configure kubectl for cluster
+        run: |
+          gcloud container clusters get-credentials ${{ inputs.cluster_name }} --zone=us-central1-a --project=${{ secrets.GCP_PROJECT_ID }}
+      - name: Build Helm dependencies
+        run: |
+          cd charts/skypilot
+          helm dependency build
+      - name: Deploy to Kubernetes using Helm
+        run: |
+          DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
+          echo "Deploying to cluster: ${{ inputs.cluster_name }}"
+          echo "Using Docker image: $DOCKER_IMAGE"
+          echo "Namespace: ${{ inputs.cluster_name }}"
+          echo "Release: ${{ inputs.cluster_name }}"
+          # Deploy using Helm
+          helm upgrade --install ${{ inputs.cluster_name }} ./charts/skypilot \
+            --namespace ${{ inputs.cluster_name }} \
+            --values demo/values-demo.yaml \
+            --set apiService.image=$DOCKER_IMAGE \
+            --set apiService.skipResourceCheck=true \
+            --create-namespace \
+            --wait
+      - name: Get external access information
+        run: |
+          echo "Getting external IP..."
+          # Wait a moment for the service to be ready
+          sleep 30
+          # Get external IP
+          EXTERNAL_IP=$(kubectl get svc ${{ inputs.cluster_name }}-ingress-nginx-controller -n ${{ inputs.cluster_name }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+          if [ -n "$EXTERNAL_IP" ]; then
+            echo "✅ External IP found: $EXTERNAL_IP"
+            echo "🚀 Access dashboard at: http://$EXTERNAL_IP/"
+          else
+            echo "⚠️  External IP not yet available. You can check later with:"
+            echo "kubectl get svc ${{ inputs.cluster_name }}-ingress-nginx-controller -n ${{ inputs.cluster_name }}"
+          fi
+      - name: Deployment summary
+        run: |
+          echo "✅ Demo deployment completed successfully!"
+          echo ""
+          echo "📋 Deployment Details:"
+          echo "   - Cluster: ${{ inputs.cluster_name }}"
+          echo "   - Branch: ${{ github.ref_name }}"
+          echo "   - Image: ${{ steps.version.outputs.docker_image }}"
+          echo "   - Image Tag: ${{ steps.version.outputs.tag }}"
+          echo "   - Namespace: ${{ inputs.cluster_name }}"
+          echo "   - Release: ${{ inputs.cluster_name }}"
+          echo ""
+          echo "🔗 To access the demo:"
+          echo "   - Wait for external IP to be assigned"
+          echo "   - Run: kubectl get svc ${{ inputs.cluster_name }}-ingress-nginx-controller -n ${{ inputs.cluster_name }}"
+          echo "   - Access via http://EXTERNAL_IP/"
