@@ -169,7 +169,6 @@ jobs:
           kubectl wait --for=delete namespace/${{ inputs.deployment_target }} --timeout=300s || true
 
       - name: Deploy to Kubernetes using Helm
-        if: false  # Skip deployment - already deployed
         run: |
           # Use the built image
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
