@@ -158,38 +158,7 @@ jobs:
       - name: Build Helm dependencies
         run: |
           cd demo/charts/skypilot-demo
-          helm dependency build
-
-      - name: Clean up orphaned cluster resources
-        run: |
-          echo "🧹 Cleaning up orphaned cluster-scoped resources..."
-          
-          # Determine the release name that would be used
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
-            RELEASE_NAME="skypilot-demo-staging"
-          else
-            RELEASE_NAME="skypilot-demo"
-          fi
-          
-          echo "Cleaning up resources for release: $RELEASE_NAME"
-          
-          # Clean up cluster-scoped resources
-          kubectl delete clusterrole ${RELEASE_NAME}-ingress-nginx --ignore-not-found=true
-          kubectl delete clusterrolebinding ${RELEASE_NAME}-ingress-nginx --ignore-not-found=true
-          kubectl delete validatingwebhookconfigurations ${RELEASE_NAME}-ingress-nginx-admission --ignore-not-found=true
-          
-          # Clean up IngressClass (shared resource, so be more careful)
-          EXISTING_INGRESSCLASS=$(kubectl get ingressclass nginx -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}' 2>/dev/null || echo "")
-          if [ "$EXISTING_INGRESSCLASS" == "$RELEASE_NAME" ]; then
-            echo "Deleting IngressClass owned by $RELEASE_NAME"
-            kubectl delete ingressclass nginx --ignore-not-found=true
-          elif [ -n "$EXISTING_INGRESSCLASS" ]; then
-            echo "IngressClass exists but owned by $EXISTING_INGRESSCLASS, skipping deletion"
-          else
-            echo "No IngressClass found or no ownership info"
-          fi
-          
-          echo "✅ Cleanup completed"
+          helm dependency buil
 
       - name: Deploy to Kubernetes using Helm
         run: |
