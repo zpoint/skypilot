@@ -158,7 +158,7 @@ jobs:
       - name: Build Helm dependencies
         run: |
           cd demo/charts/skypilot-demo
-          helm dependency buil
+          helm dependency build
 
       - name: Deploy to Kubernetes using Helm
         run: |
