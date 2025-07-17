@@ -94,34 +94,17 @@ helm upgrade --install $RELEASE . \
    --set skypilot.apiService.skipResourceCheck=true \
    --create-namespace \
    --wait
-
-# For specific Kubernetes contexts (if needed):
-# helm upgrade --install $RELEASE . \
-#    --namespace $NAMESPACE \
-#    --set skypilot.apiService.image=$DOCKER_IMAGE \
-#    --set skypilot.apiService.skipResourceCheck=true \
-#    --kube-context your-context-name \
-#    --create-namespace \
-#    --wait
-
-# 📜 OLD: Deploy to main chart directly (deprecated - no longer works)
-# helm upgrade --install $RELEASE ./charts/skypilot \
-#    --namespace $NAMESPACE \
-#    --values demo/values-demo.yaml \  # ❌ This file has been removed
-#    --set apiService.image=$DOCKER_IMAGE \
-#    --create-namespace --wait
-
-# Access the dashboard (no login required)
-# Option 1: Via external LoadBalancer IP
-echo "Getting external IP..."
-EXTERNAL_IP=$(kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-echo "Access dashboard at: http://$EXTERNAL_IP/"
-
-# Option 2: Via port forwarding
-# kubectl port-forward svc/skypilot-demo-api-service -n skypilot-demo 8000:80
-# Then visit: http://localhost:8000
 ```
 
+To only update the mock data, you can make the changes to the JSON5 files in `demo/mock_data/` and then run:
+
+```bash
+helm upgrade $RELEASE . \
+   --namespace $NAMESPACE \
+   --set skypilot.apiService.skipResourceCheck=true \
+   --reuse-values \
+   --wait
+```
 
 ### Option 2: Using the Local API Server
 

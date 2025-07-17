@@ -14,7 +14,7 @@
         "gpu_name": "H200",
         "requestable_qtys": [1, 2, 4],
         "total_capacity": 16,
-        "available": 9
+        "available": 16
       },
       {
         "gpu_name": "H100",
@@ -68,14 +68,14 @@
         "name": "nebius-h200-node-1",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 6},
+        "free": {"accelerators_available": 8},
         "ip_address": "10.2.1.10"
       },
       "nebius-h200-node-2": {
         "name": "nebius-h200-node-2",
         "accelerator_type": "H200",
         "total": {"accelerator_count": 8},
-        "free": {"accelerators_available": 3},
+        "free": {"accelerators_available": 8},
         "ip_address": "10.2.1.11"
       },
       "nebius-h100-node-1": {

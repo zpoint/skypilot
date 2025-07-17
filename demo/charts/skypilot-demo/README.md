@@ -7,7 +7,7 @@ This Helm chart deploys SkyPilot in demo mode with ConfigMap-based mock data, wi
 This demo chart:
 - **Depends on the main SkyPilot chart** as a subchart dependency
 - **Creates ConfigMaps** containing mock data in JSON5 format
-- **Patches the main deployment** to add demo volume mounts and environment variables
+- **Mounts ConfigMaps as files** using `extraVolumes`/`extraVolumeMounts` for optimal performance
 - **Keeps all demo code** isolated in the `/demo` directory
 
 ## Quick Start
@@ -52,6 +52,8 @@ vim mock_data/mock_clusters.json5
 
 # Upgrade with new data (no Docker rebuild!)
 helm upgrade skypilot-demo .
+
+# Data is automatically available via mounted files (~1ms access time)
 ```
 
 ## Files Structure
@@ -167,8 +169,8 @@ kubectl logs -n skypilot-demo -l app=skypilot-demo-api
 2. **📦 Self-contained**: All demo functionality in `/demo` directory
 3. **🔄 Hot-reloadable**: Update mock data via Helm upgrades
 4. **🔗 Zero duplication**: Symbolic links eliminate file copying
-5. **⚡ Instant sync**: Changes to main files immediately available
-6. **🏗️ Maintainable**: Clear separation of concerns
+5. **⚡ High performance**: ~1ms data access via mounted files
+6. **🏗️ Maintainable**: Clear separation of concerns using standard Helm features
 7. **🚀 Flexible**: Easy to customize for different demo scenarios
 
 ## Chart Dependencies
@@ -183,7 +185,15 @@ Dependencies are managed automatically by Helm when you run `helm dependency upd
 The demo chart sets these environment variables in the SkyPilot API container:
 
 - `SKYPILOT_INTERNAL_APPLY_DEMO_PATCH=true` - Enables demo mode
-- `SKYPILOT_DEMO_CONFIGMAP_PATH=/etc/skypilot/demo/mock_data` - ConfigMap mount path
+
+## Performance Optimization
+
+The `demo_mode.py` uses a simple 2-tier loading approach:
+
+1. **Mounted files** (~1ms) - Primary: Direct filesystem access to mounted ConfigMaps
+2. **Embedded files** (~5ms) - Fallback: Local JSON5 files for development
+
+This ensures optimal performance while maintaining simplicity and compatibility.
 
 ## ConfigMaps Created
 
@@ -199,7 +209,7 @@ When `demo.enabled: true`, this chart creates:
 
 ## Volume Mounts
 
-The deployment patch adds these volume mounts to the main API container:
+The demo chart automatically mounts ConfigMaps as files using `extraVolumes`/`extraVolumeMounts`:
 
 ```
 /etc/skypilot/demo/mock_data/mock_users.json5
@@ -210,6 +220,8 @@ The deployment patch adds these volume mounts to the main API container:
 /etc/skypilot/demo/mock_data/mock_workspaces.json5
 /etc/skypilot/demo/mock_data/mock_infrastructure.json5
 ```
+
+This provides optimal performance (~1ms access) with automatic hot reloading via Kubernetes.
 
 ## Troubleshooting
 

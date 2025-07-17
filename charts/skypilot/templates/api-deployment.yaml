@@ -256,6 +256,9 @@ spec:
         - name: nebius-credentials
           mountPath: /root/.nebius_credentials
         {{- end }}
+        {{- if .Values.apiService.extraVolumeMounts }}
+        {{- toYaml .Values.apiService.extraVolumeMounts | nindent 8 }}
+        {{- end }}
       initContainers:
       {{- if .Values.awsCredentials.enabled }}
       - name: create-aws-credentials
@@ -428,4 +431,7 @@ spec:
         secret:
           secretName: {{ .Values.apiService.sshKeySecret }}
           defaultMode: 0600 
+      {{- end }}
+      {{- if .Values.apiService.extraVolumes }}
+      {{- toYaml .Values.apiService.extraVolumes | nindent 6 }}
       {{- end }}
