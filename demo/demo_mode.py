@@ -33,6 +33,7 @@ import json5
 import uuid
 import multiprocessing
 import os
+import textwrap
 import time
 from typing import Any, Dict, List, Optional
 
@@ -63,20 +64,24 @@ DEMO_DIR = os.path.dirname(__file__)
 CONFIGMAP_MOUNT_PATH = '/etc/skypilot/demo/mock_data'
 
 
-
 def _read_from_mounted_file(data_type: str) -> Optional[str]:
     """Read mock data from mounted ConfigMap file (fastest approach)."""
-    if data_type not in ['users', 'clusters', 'jobs', 'cluster_jobs', 'volumes', 'workspaces', 'infrastructure']:
+    if data_type not in [
+            'users', 'clusters', 'jobs', 'cluster_jobs', 'volumes',
+            'workspaces', 'infrastructure'
+    ]:
         raise ValueError(f"Unknown data type: {data_type}")
-    
+
     filename = f'mock_{data_type}.json5'
     mounted_path = os.path.join(CONFIGMAP_MOUNT_PATH, filename)
-    
+
     try:
         if os.path.exists(mounted_path):
             with open(mounted_path, 'r') as f:
                 content = f.read()
-            logger.debug(f"Successfully read {filename} from mounted path: {mounted_path}")
+            logger.debug(
+                f"Successfully read {filename} from mounted path: {mounted_path}"
+            )
             return content
         else:
             logger.debug(f"Mounted file not found: {mounted_path}")
@@ -85,11 +90,15 @@ def _read_from_mounted_file(data_type: str) -> Optional[str]:
         logger.warning(f"Failed to read mounted file {mounted_path}: {e}")
         return None
 
+
 def _get_mock_data_file_path(data_type: str) -> str:
     """Get the path to a mock data file (fallback for embedded files)."""
-    if data_type not in ['users', 'clusters', 'jobs', 'cluster_jobs', 'volumes', 'workspaces', 'infrastructure']:
+    if data_type not in [
+            'users', 'clusters', 'jobs', 'cluster_jobs', 'volumes',
+            'workspaces', 'infrastructure'
+    ]:
         raise ValueError(f"Unknown data type: {data_type}")
-    
+
     filename = f'mock_{data_type}.json5'
     embedded_path = os.path.join(DEMO_DIR, 'mock_data', filename)
     return embedded_path
@@ -97,23 +106,28 @@ def _get_mock_data_file_path(data_type: str) -> str:
 
 def load_mock_data_file(data_type: str):
     """Load mock data with 2-tier approach: mounted files → embedded files."""
-    if data_type not in ['users', 'clusters', 'jobs', 'cluster_jobs', 'volumes', 'workspaces', 'infrastructure']:
+    if data_type not in [
+            'users', 'clusters', 'jobs', 'cluster_jobs', 'volumes',
+            'workspaces', 'infrastructure'
+    ]:
         raise ValueError(f"Unknown data type: {data_type}")
-    
+
     # Tier 1: Try mounted ConfigMap files first (fastest - direct file system access)
     mounted_content = _read_from_mounted_file(data_type)
     if mounted_content:
         try:
-            logger.debug(f"Loading {data_type} data from mounted ConfigMap file")
+            logger.debug(
+                f"Loading {data_type} data from mounted ConfigMap file")
             return json5.loads(mounted_content)
         except json5.JSONError as e:
-            logger.error(f"Invalid JSON5 in mounted ConfigMap file for {data_type}: {e}")
+            logger.error(
+                f"Invalid JSON5 in mounted ConfigMap file for {data_type}: {e}")
             # Fall through to embedded files
-    
+
     # Tier 2: Fall back to embedded file (for local development)
     file_path = _get_mock_data_file_path(data_type)
     logger.debug(f"Loading {data_type} data from embedded file: {file_path}")
-    
+
     try:
         with open(file_path, 'r') as f:
             return json5.load(f)
@@ -382,7 +396,7 @@ def _create_demo_handle(
     accelerators = resources_config.get('accelerators')
     cpus = resources_config.get('cpus')
     memory = resources_config.get('memory')
-    disk_size=resources_config.get('disk_size')
+    disk_size = resources_config.get('disk_size')
 
     # Create Resources object
     resources = resources_lib.Resources(cloud=cloud,
@@ -1459,7 +1473,7 @@ def patch_sky_commit_hash():
     try:
         import sky
         import subprocess
-        
+
         def get_current_git_commit():
             """Get the current git commit hash."""
             try:
@@ -1469,19 +1483,20 @@ def patch_sky_commit_hash():
                     cwd=cwd,
                     universal_newlines=True,
                     stderr=subprocess.DEVNULL).strip()
-                changes = subprocess.check_output(['git', 'status', '--porcelain'],
-                                                  cwd=cwd,
-                                                  universal_newlines=True,
-                                                  stderr=subprocess.DEVNULL).strip()
+                changes = subprocess.check_output(
+                    ['git', 'status', '--porcelain'],
+                    cwd=cwd,
+                    universal_newlines=True,
+                    stderr=subprocess.DEVNULL).strip()
                 return commit_hash
             except Exception as e:
                 logger.warning(f"Demo mode: Could not get git commit: {e}")
                 return sky.__commit__  # Fall back to original
-        
+
         # Update the commit hash
         current_commit = get_current_git_commit()
         sky.__commit__ = current_commit
-        
+
         logger.info(f"Demo mode: Updated sky commit hash to: {current_commit}")
     except Exception as e:
         logger.warning(f"Demo mode: Error patching sky commit hash: {e}")
@@ -1511,10 +1526,10 @@ def enable_demo_mode():
 
     # Patch permission functions
     patch_permission_functions()
-    
+
     # Patch auth middleware to not override auth_user if already set
     patch_auth_middleware()
-    
+
     # Patch sky commit hash to current git commit
     patch_sky_commit_hash()
 
@@ -1615,19 +1630,35 @@ def _inject_koala_script(html_content: str, page_name: str) -> str:
     Returns:
         HTML content with Koala script injected.
     """
-    koala_script = '''<script>
-!function(t){var k="ko",i=(window.globalKoalaKey=window.globalKoalaKey||k);if(window[i])return;var ko=(window[i]=[]);["identify","track","removeListeners","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_093007471cfd8f2983be1b76b4b7eb9acfeb/sdk.js"),(document.body || document.head).appendChild(n)}();
-</script>'''
-    
+    koala_script = textwrap.dedent("""\
+        <script>
+        !function(t){var k="ko",i=(window.globalKoalaKey=window.globalKoalaKey||k);if(window[i])return;var ko=(window[i]=[]);["identify","track","removeListeners","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_093007471cfd8f2983be1b76b4b7eb9acfeb/sdk.js"),(document.body || document.head).appendChild(n)}();
+        </script>
+        <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:6466296,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+        </script>
+        """)
+
     # Inject the script into the head section
     if '<head>' in html_content:
         html_content = html_content.replace('<head>', f'<head>\n{koala_script}')
-        logger.info(f'Demo mode: Koala analytics script injected into {page_name} <head> section')
+        logger.info(
+            f'Demo mode: Koala analytics script injected into {page_name} <head> section'
+        )
     else:
         # Fallback: inject at the beginning of the HTML
         html_content = koala_script + '\n' + html_content
-        logger.info(f'Demo mode: Koala analytics script injected at beginning of {page_name}')
-    
+        logger.info(
+            f'Demo mode: Koala analytics script injected at beginning of {page_name}'
+        )
+
     return html_content
 
 
@@ -1668,8 +1699,7 @@ def patch_server_endpoints(app):
     # Endpoints that expect immediate response (return success/error immediately)
     immediate_response_endpoints = [
         '/users/update', '/users/delete', '/users/create',
-        '/users/service-account-tokens',
-        '/users/service-account-tokens/delete',
+        '/users/service-account-tokens', '/users/service-account-tokens/delete',
         '/users/service-account-tokens/update-role',
         '/users/service-account-tokens/rotate'
     ]
@@ -1684,12 +1714,14 @@ def patch_server_endpoints(app):
         is_api_endpoint = (
             request.url.path.startswith('/api/') or
             request.url.path.startswith('/internal/dashboard/') or
-            request.url.path in ['/enabled_clouds', '/all_contexts', '/ssh_node_pools']
-        )
-        
+            request.url.path
+            in ['/enabled_clouds', '/all_contexts', '/ssh_node_pools'])
+
         if is_api_endpoint:
             # Only log for debugging if needed - remove this in production
-            logger.debug(f'Demo middleware: API request {request.method} {request.url.path}')
+            logger.debug(
+                f'Demo middleware: API request {request.method} {request.url.path}'
+            )
         else:
             # More detailed logging for non-API requests
             logger.info(f'Demo middleware: Processing request {request.method} '
@@ -1738,8 +1770,10 @@ def patch_server_endpoints(app):
                 if request.url.path in [
                         endpoint, f'/internal/dashboard{endpoint}'
                 ]:
-                    logger.info(f"Demo middleware: Blocking write operation {request.method} {request.url.path}")
-                    
+                    logger.info(
+                        f"Demo middleware: Blocking write operation {request.method} {request.url.path}"
+                    )
+
                     # Generate the demo request ID
                     random_request_id = str(uuid.uuid4())[:8]
                     demo_request_id = DEMO_BLOCKED_REQUEST_ID + f'-{random_request_id}'
@@ -1759,28 +1793,27 @@ def patch_server_endpoints(app):
 
         # Process request normally (for non-blocked endpoints)
         response = await call_next(request)
-        
+
         # Only inject analytics for actual HTML dashboard pages, not API endpoints
-        is_dashboard_page = (
-            request.url.path.startswith('/dashboard/') or 
-            request.url.path == '/token' or
-            request.url.path == '/'
-        )
-        
-        if (is_dashboard_page and 
-            response.status_code == 200 and 
-            hasattr(response, 'body_iterator') and
-            response.headers.get('content-type', '').startswith('text/html')):
-            logger.info(f'Demo mode: Injecting analytics for HTML page: {request.url.path}')
-            
+        is_dashboard_page = (request.url.path.startswith('/dashboard/') or
+                             request.url.path == '/token' or
+                             request.url.path == '/')
+
+        if (is_dashboard_page and response.status_code == 200 and
+                hasattr(response, 'body_iterator') and response.headers.get(
+                    'content-type', '').startswith('text/html')):
+            logger.info(
+                f'Demo mode: Injecting analytics for HTML page: {request.url.path}'
+            )
+
             try:
                 # Get response body
                 body = b''
                 async for chunk in response.body_iterator:
                     body += chunk
-                
+
                 html_content = body.decode('utf-8')
-                
+
                 # Determine page type for logging
                 page_name = 'unknown'
                 if request.url.path.startswith('/dashboard/'):
@@ -1789,28 +1822,26 @@ def patch_server_endpoints(app):
                     page_name = 'token page'
                 elif '/api/stream' in request.url.path:
                     page_name = 'stream page'
-                
+
                 # Inject Koala script
                 modified_content = _inject_koala_script(html_content, page_name)
-                
+
                 # Copy headers but remove Content-Length since we modified the content
                 response_headers = dict(response.headers)
                 if 'content-length' in response_headers:
                     del response_headers['content-length']
-                
+
                 # Create new response with modified content
                 from fastapi.responses import HTMLResponse
-                response = HTMLResponse(
-                    content=modified_content,
-                    status_code=response.status_code,
-                    headers=response_headers
-                )
-                
+                response = HTMLResponse(content=modified_content,
+                                        status_code=response.status_code,
+                                        headers=response_headers)
+
             except Exception as e:
                 logger.warning(f'Demo mode: Error injecting Koala script: {e}')
                 # Return original response if injection fails
                 pass
-        
+
         return response
 
 
