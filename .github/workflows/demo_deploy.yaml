@@ -182,7 +182,7 @@ jobs:
             echo "🚀 Deploying skypilot-demo-staging with ingress-nginx controller..."
             helm upgrade --install skypilot-demo-staging ./charts/skypilot \
               --namespace ${{ inputs.cluster_name }} \
-              --values demo/values-demo.yaml \
+              --values demo/charts/skypilot-demo/values.yaml \
               --set apiService.image=$DOCKER_IMAGE \
               --set apiService.skipResourceCheck=true \
               --set ingress.path=/staging \
@@ -193,7 +193,7 @@ jobs:
             echo "🚀 Deploying skypilot-demo reusing existing ingress controller..."
             helm upgrade --install skypilot-demo ./charts/skypilot \
               --namespace ${{ inputs.cluster_name }} \
-              --values demo/values-demo.yaml \
+              --values demo/charts/skypilot-demo/values.yaml \
               --set apiService.image=$DOCKER_IMAGE \
               --set apiService.skipResourceCheck=true \
               --set ingress-nginx.enabled=false \
