@@ -231,9 +231,20 @@ jobs:
           INTERVAL=10  # 10 seconds
           START_TIME=$(date +%s)
 
-          # Both deployments use the same ingress controller from skypilot-demo namespace
-          SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
-          NAMESPACE="skypilot-demo"
+          # Determine correct service name and namespace based on deployment target
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+            SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
+            NAMESPACE="skypilot-demo-staging"
+          else
+            # For skypilot-demo, look for staging controller first (shared), then its own
+            if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
+              SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
+              NAMESPACE="skypilot-demo-staging"
+            else
+              SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
+              NAMESPACE="skypilot-demo"
+            fi
+          fi
 
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
             ACCESS_PATH="/demo"
