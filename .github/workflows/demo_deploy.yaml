@@ -240,6 +240,19 @@ jobs:
 
           echo "🔍 Waiting for external IP assignment for service: $SERVICE_NAME"
           echo "⏱️  Timeout: ${TIMEOUT}s, Check interval: ${INTERVAL}s"
+          echo "🔍 Debug: Checking if service exists..."
+
+          # Debug: Check if service exists
+          if kubectl get svc $SERVICE_NAME -n $NAMESPACE >/dev/null 2>&1; then
+            echo "✅ Service $SERVICE_NAME found in namespace $NAMESPACE"
+            kubectl get svc $SERVICE_NAME -n $NAMESPACE
+          else
+            echo "❌ Service $SERVICE_NAME not found in namespace $NAMESPACE"
+            echo "📋 Available services in namespace $NAMESPACE:"
+            kubectl get svc -n $NAMESPACE
+            echo "📋 Available services in all namespaces (ingress-nginx):"
+            kubectl get svc --all-namespaces | grep ingress-nginx
+          fi
 
           # Event-based polling with timeout
           while true; do
@@ -267,6 +280,9 @@ jobs:
               break
             else
               echo "⏳ Waiting for external IP... (${ELAPSED}s/${TIMEOUT}s)"
+              echo "🔍 Debug: Current external IP value: '$EXTERNAL_IP'"
+              echo "🔍 Debug: Full service status:"
+              kubectl get svc $SERVICE_NAME -n $NAMESPACE -o yaml | grep -A 10 "status:" || echo "Failed to get service status"
               sleep $INTERVAL
             fi
           done
