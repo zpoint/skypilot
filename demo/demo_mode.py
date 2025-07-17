@@ -1545,10 +1545,14 @@ def enable_demo_mode_worker():
     logger.info(f"Demo mode: Enabling worker patches in process {pid}")
 
     # Apply only the essential patches needed
+    logger.info(f"Demo mode: Worker {pid} - Applying global_user_state patches")
+    patch_global_user_state()
     logger.info(f"Demo mode: Worker {pid} - Applying permission patches")
     patch_permission_functions()
     logger.info(f"Demo mode: Worker {pid} - Applying core patches")
     patch_core_functions()
+    logger.info(f"Demo mode: Worker {pid} - Applying infrastructure patches")
+    patch_infrastructure_functions()
     logger.info(f"Demo mode: Worker {pid} - Applying auth middleware patches")
     patch_auth_middleware()
 
