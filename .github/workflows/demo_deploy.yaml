@@ -187,6 +187,7 @@ jobs:
               --values demo/charts/skypilot-demo/values.yaml \
               --set skypilot.apiService.image=$DOCKER_IMAGE \
               --set skypilot.apiService.skipResourceCheck=true \
+              --set skypilot.ingress-nginx.enabled=true \
               --set skypilot.ingress.path=/staging \
               --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
               --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
@@ -227,20 +228,13 @@ jobs:
           INTERVAL=10  # 10 seconds
           START_TIME=$(date +%s)
 
-          # Determine service name and access path based on cluster
+          # Both deployments use the same ingress controller from skypilot-demo namespace
+          SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
+          NAMESPACE="skypilot-demo"
+
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            # For skypilot-demo, try to find the staging controller first, fallback to its own
-            if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
-              SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
-              NAMESPACE="skypilot-demo-staging"
-            else
-              SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
-              NAMESPACE="skypilot-demo"
-            fi
             ACCESS_PATH="/demo"
           else
-            SERVICE_NAME="${{ inputs.deployment_target }}-ingress-nginx-controller"
-            NAMESPACE="${{ inputs.deployment_target }}"
             ACCESS_PATH="/staging"
           fi
 
@@ -297,15 +291,10 @@ jobs:
           echo ""
           echo "🔗 To access the demo:"
           echo "   - Wait for external IP to be assigned"
+          echo "   - Run: kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo"
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
-              echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
-            else
-              echo "   - Run: kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo"
-            fi
             echo "   - Access via http://EXTERNAL_IP/demo/dashboard"
           else
-            echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
             echo "   - Access via http://EXTERNAL_IP/staging/dashboard"
           fi
           echo ""
