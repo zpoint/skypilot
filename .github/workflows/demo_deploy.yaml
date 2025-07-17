@@ -160,6 +160,13 @@ jobs:
           cd demo/charts/skypilot-demo
           helm dependency build
 
+      - name: Clean up existing namespace
+        run: |
+          echo "Cleaning up existing namespace: ${{ inputs.deployment_target }}"
+          kubectl delete namespace ${{ inputs.deployment_target }} --ignore-not-found=true
+          # Wait for namespace to be fully deleted
+          kubectl wait --for=delete namespace/${{ inputs.deployment_target }} --timeout=300s || true
+
       - name: Deploy to Kubernetes using Helm
         run: |
           # Use the built image
