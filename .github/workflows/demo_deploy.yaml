@@ -3,14 +3,19 @@ name: demo-deploy
 on:
   workflow_dispatch:
     inputs:
-      cluster_name:
-        description: 'Target cluster for deployment'
+      deployment_target:
+        description: 'Target deployment (staging or demo)'
         required: true
         type: choice
         options:
           - 'skypilot-demo'
           - 'skypilot-demo-staging'
         default: 'skypilot-demo-staging'
+      gke_cluster_name:
+        description: 'GKE cluster name'
+        required: false
+        type: string
+        default: 'skypilot-demo-2'
       skip_rebase:
         description: 'Skip rebase with upstream skypilot master'
         required: false
@@ -20,7 +25,7 @@ on:
 env:
   REGISTRY: us-central1-docker.pkg.dev
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CLUSTER_NAME: skypilot-demo
+  CLUSTER_NAME: ${{ inputs.gke_cluster_name || 'skypilot-demo-2' }}
   CLUSTER_ZONE: us-central1-a
 
 permissions:
@@ -98,57 +103,52 @@ jobs:
       - name: Determine deployment strategy and image
         id: strategy
         run: |
-          if [ "${{ inputs.cluster_name }}" == "skypilot-demo" ]; then
-            echo "deployment_type=reuse_image" >> $GITHUB_OUTPUT
-            echo "🔄 Deployment strategy: Reuse existing image from skypilot-demo-staging"
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
+            echo "deployment_type=build_image" >> $GITHUB_OUTPUT
+            echo "🔨 Deployment strategy: Build new image for demo with /demo basePath"
           else
             echo "deployment_type=build_image" >> $GITHUB_OUTPUT
-            echo "🔨 Deployment strategy: Build new image for skypilot-demo-staging"
+            echo "🔨 Deployment strategy: Build new image for staging with /staging basePath"
           fi
 
-      - name: Find latest image in skypilot-demo-staging
-        if: steps.strategy.outputs.deployment_type == 'reuse_image'
-        id: find_image
-        run: |
-          echo "🔍 Searching for latest image in skypilot-demo-staging repository..."
-          
-          # Get the latest image from skypilot-demo-staging
-          LATEST_IMAGE=$(gcloud artifacts docker images list ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/skypilot-demo-staging/demo \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            --sort-by=~CREATE_TIME \
-            --limit=1 \
-            --format="value(PACKAGE)" 2>/dev/null || echo "")
-          
-          if [ -z "$LATEST_IMAGE" ]; then
-            echo "❌ No images found in skypilot-demo-staging repository!"
-            echo "Please deploy to skypilot-demo-staging first to create an image."
-            exit 1
-          fi
-          
-          echo "✅ Found latest image: $LATEST_IMAGE"
-          echo "docker_image=$LATEST_IMAGE" >> $GITHUB_OUTPUT
-          
-          # Extract tag for display purposes
-          TAG=$(echo "$LATEST_IMAGE" | cut -d':' -f2)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Determine image tag for staging build
-        if: steps.strategy.outputs.deployment_type == 'build_image'
+      - name: Determine image tag and repository
         id: version
         run: |
           # Use today's date as the tag format (YYYYMMDD)
           TAG=$(date +%Y%m%d)
           echo "Using date-based tag: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "docker_image=${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/skypilot-demo-staging/demo:$TAG" >> $GITHUB_OUTPUT
+          
+          # Set repository based on deployment target
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+            REPO="skypilot-demo-staging"
+          else
+            REPO="skypilot-demo"
+          fi
+          
+          echo "docker_image=${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG" >> $GITHUB_OUTPUT
+          echo "Repository: $REPO, Tag: $TAG"
 
       - name: Build and push Docker image
         if: steps.strategy.outputs.deployment_type == 'build_image'
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
+          
+          # Set the appropriate basePath for each deployment target
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+            BASE_PATH="/staging/dashboard"
+            echo "Building staging image with basePath: $BASE_PATH"
+          elif [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
+            BASE_PATH="/demo/dashboard"
+            echo "Building demo image with basePath: $BASE_PATH"
+          else
+            echo "Unknown deployment target: ${{ inputs.deployment_target }}"
+            exit 1
+          fi
+          
           # Use regular docker build and push to avoid buildx issues
-          docker build -t $DOCKER_IMAGE -f Dockerfile .
+          docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
           docker push $DOCKER_IMAGE
 
       - name: Configure kubectl for cluster
@@ -157,47 +157,87 @@ jobs:
 
       - name: Build Helm dependencies
         run: |
-          cd charts/skypilot
+          cd demo/charts/skypilot-demo
           helm dependency build
+
+      - name: Clean up orphaned cluster resources
+        run: |
+          echo "🧹 Cleaning up orphaned cluster-scoped resources..."
+          
+          # Determine the release name that would be used
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+            RELEASE_NAME="skypilot-demo-staging"
+          else
+            RELEASE_NAME="skypilot-demo"
+          fi
+          
+          echo "Cleaning up resources for release: $RELEASE_NAME"
+          
+          # Clean up cluster-scoped resources
+          kubectl delete clusterrole ${RELEASE_NAME}-ingress-nginx --ignore-not-found=true
+          kubectl delete clusterrolebinding ${RELEASE_NAME}-ingress-nginx --ignore-not-found=true
+          kubectl delete validatingwebhookconfigurations ${RELEASE_NAME}-ingress-nginx-admission --ignore-not-found=true
+          
+          # Clean up IngressClass (shared resource, so be more careful)
+          EXISTING_INGRESSCLASS=$(kubectl get ingressclass nginx -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}' 2>/dev/null || echo "")
+          if [ "$EXISTING_INGRESSCLASS" == "$RELEASE_NAME" ]; then
+            echo "Deleting IngressClass owned by $RELEASE_NAME"
+            kubectl delete ingressclass nginx --ignore-not-found=true
+          elif [ -n "$EXISTING_INGRESSCLASS" ]; then
+            echo "IngressClass exists but owned by $EXISTING_INGRESSCLASS, skipping deletion"
+          else
+            echo "No IngressClass found or no ownership info"
+          fi
+          
+          echo "✅ Cleanup completed"
 
       - name: Deploy to Kubernetes using Helm
         run: |
-          # Determine which image to use based on deployment type
-          if [ "${{ steps.strategy.outputs.deployment_type }}" == "reuse_image" ]; then
-            DOCKER_IMAGE="${{ steps.find_image.outputs.docker_image }}"
-            TAG="${{ steps.find_image.outputs.tag }}"
-          else
-            DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
-            TAG="${{ steps.version.outputs.tag }}"
-          fi
+          # Use the built image
+          DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
+          TAG="${{ steps.version.outputs.tag }}"
           
           echo "Deploying to cluster: ${{ env.CLUSTER_NAME }}"
           echo "Using Docker image: $DOCKER_IMAGE"
-          echo "Namespace: ${{ inputs.cluster_name }}"
-          echo "Release: ${{ inputs.cluster_name }}"
+          echo "Namespace: ${{ inputs.deployment_target }}"
+          echo "Release: ${{ inputs.deployment_target }}"
           
           # Configure Helm values based on deployment target
-          if [ "${{ inputs.cluster_name }}" == "skypilot-demo-staging" ]; then
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             # First deployment - deploy with ingress-nginx controller
             echo "🚀 Deploying skypilot-demo-staging with ingress-nginx controller..."
-            helm upgrade --install skypilot-demo-staging ./charts/skypilot \
-              --namespace ${{ inputs.cluster_name }} \
+            helm upgrade --install skypilot-demo-staging ./demo/charts/skypilot-demo \
+              --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
-              --set apiService.image=$DOCKER_IMAGE \
-              --set apiService.skipResourceCheck=true \
-              --set ingress.path=/staging \
+              --set skypilot.apiService.image=$DOCKER_IMAGE \
+              --set skypilot.apiService.skipResourceCheck=true \
+              --set skypilot.ingress.path=/staging \
+              --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
+              --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
+              --set "skypilot.apiService.extraVolumes[2].configMap.name=skypilot-demo-staging-demo-jobs" \
+              --set "skypilot.apiService.extraVolumes[3].configMap.name=skypilot-demo-staging-demo-cluster-jobs" \
+              --set "skypilot.apiService.extraVolumes[4].configMap.name=skypilot-demo-staging-demo-volumes" \
+              --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-staging-demo-workspaces" \
+              --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
               --create-namespace \
               --wait
           else
             # Second deployment - reuse existing ingress controller
             echo "🚀 Deploying skypilot-demo reusing existing ingress controller..."
-            helm upgrade --install skypilot-demo ./charts/skypilot \
-              --namespace ${{ inputs.cluster_name }} \
+            helm upgrade --install skypilot-demo ./demo/charts/skypilot-demo \
+              --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
-              --set apiService.image=$DOCKER_IMAGE \
-              --set apiService.skipResourceCheck=true \
-              --set ingress-nginx.enabled=false \
-              --set ingress.path=/demo \
+              --set skypilot.apiService.image=$DOCKER_IMAGE \
+              --set skypilot.apiService.skipResourceCheck=true \
+              --set skypilot.ingress-nginx.enabled=false \
+              --set skypilot.ingress.path=/demo \
+              --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-demo-users" \
+              --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-demo-clusters" \
+              --set "skypilot.apiService.extraVolumes[2].configMap.name=skypilot-demo-demo-jobs" \
+              --set "skypilot.apiService.extraVolumes[3].configMap.name=skypilot-demo-demo-cluster-jobs" \
+              --set "skypilot.apiService.extraVolumes[4].configMap.name=skypilot-demo-demo-volumes" \
+              --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-demo-workspaces" \
+              --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-demo-infrastructure" \
               --create-namespace \
               --wait
           fi
@@ -212,13 +252,19 @@ jobs:
           START_TIME=$(date +%s)
           
           # Determine service name and access path based on cluster
-          if [ "${{ inputs.cluster_name }}" == "skypilot-demo" ]; then
-            SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
-            NAMESPACE="skypilot-demo-staging"
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
+            # For skypilot-demo, try to find the staging controller first, fallback to its own
+            if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
+              SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
+              NAMESPACE="skypilot-demo-staging"
+            else
+              SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
+              NAMESPACE="skypilot-demo"
+            fi
             ACCESS_PATH="/demo"
           else
-            SERVICE_NAME="${{ inputs.cluster_name }}-ingress-nginx-controller"
-            NAMESPACE="${{ inputs.cluster_name }}"
+            SERVICE_NAME="${{ inputs.deployment_target }}-ingress-nginx-controller"
+            NAMESPACE="${{ inputs.deployment_target }}"
             ACCESS_PATH="/staging"
           fi
           
@@ -257,16 +303,10 @@ jobs:
 
       - name: Deployment summary
         run: |
-          # Determine which image was used
-          if [ "${{ steps.strategy.outputs.deployment_type }}" == "reuse_image" ]; then
-            DOCKER_IMAGE="${{ steps.find_image.outputs.docker_image }}"
-            TAG="${{ steps.find_image.outputs.tag }}"
-            IMAGE_SOURCE="Reused from skypilot-demo-staging"
-          else
-            DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
-            TAG="${{ steps.version.outputs.tag }}"
-            IMAGE_SOURCE="Built and pushed new image"
-          fi
+          # Use the built image details
+          DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          IMAGE_SOURCE="Built and pushed new image"
           
           echo "✅ Demo deployment completed successfully!"
           echo ""
@@ -276,21 +316,25 @@ jobs:
           echo "   - Image: $DOCKER_IMAGE"
           echo "   - Image Tag: $TAG"
           echo "   - Image Source: $IMAGE_SOURCE"
-          echo "   - Namespace: ${{ inputs.cluster_name }}"
-          echo "   - Release: ${{ inputs.cluster_name }}"
+          echo "   - Namespace: ${{ inputs.deployment_target }}"
+          echo "   - Release: ${{ inputs.deployment_target }}"
           echo ""
           echo "🔗 To access the demo:"
           echo "   - Wait for external IP to be assigned"
-          if [ "${{ inputs.cluster_name }}" == "skypilot-demo" ]; then
-            echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
-            echo "   - Access via http://EXTERNAL_IP/demo"
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
+            if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
+              echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
+            else
+              echo "   - Run: kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo"
+            fi
+            echo "   - Access via http://EXTERNAL_IP/demo/dashboard"
           else
             echo "   - Run: kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging"
-            echo "   - Access via http://EXTERNAL_IP/staging"
+            echo "   - Access via http://EXTERNAL_IP/staging/dashboard"
           fi
           echo ""
           echo "📝 Notes:"
           echo "   - Both deployments share the same ingress controller"
           echo "   - skypilot-demo-staging: accessible at /staging path"
           echo "   - skypilot-demo: accessible at /demo path"
-          echo "   - Deploy to skypilot-demo-staging first to create images for skypilot-demo"
+          echo "   - Each deployment builds its own image with the correct basePath"
