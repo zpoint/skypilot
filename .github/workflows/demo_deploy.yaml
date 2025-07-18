@@ -130,8 +130,8 @@ jobs:
           echo "Repository: $REPO, Tag: $TAG"
 
       - name: Build and push Docker image
-        if: steps.strategy.outputs.deployment_type == 'build_image'
-        # if: false  # Skip docker build for debugging
+        # if: steps.strategy.outputs.deployment_type == 'build_image'
+        if: false  # Skip docker build for debugging
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
@@ -158,12 +158,19 @@ jobs:
 
       - name: Build Helm dependencies
         run: |
-          cd demo/charts/skypilot-demo
           echo "🔍 === HELM DEPENDENCY BUILD DEBUG ==="
-          echo "Building dependencies for demo chart..."
+          echo "Building dependencies for main skypilot chart first..."
+          cd charts/skypilot
           helm dependency build
-          echo "✅ Dependencies built successfully"
-          echo "📋 Listing dependencies:"
+          echo "✅ Main skypilot dependencies built successfully"
+          echo "📋 Main skypilot dependencies:"
+          helm dependency list
+          echo ""
+          echo "Building dependencies for demo chart..."
+          cd ../../demo/charts/skypilot-demo
+          helm dependency build
+          echo "✅ Demo chart dependencies built successfully"
+          echo "📋 Demo chart dependencies:"
           helm dependency list
 
       - name: Clean up existing namespace
@@ -198,7 +205,33 @@ jobs:
             echo "  - Ingress-nginx enabled: true"
             echo "  - Ingress path: /staging"
             echo ""
+            echo "📋 Checking packaged chart contents..."
+            echo "🔍 Demo chart dependencies:"
+            ls -la ./demo/charts/skypilot-demo/charts/
+            echo "🔍 Main skypilot chart dependencies:"
+            ls -la ./charts/skypilot/charts/
+            echo "🔍 Checking if ingress-nginx is in main skypilot chart:"
+            tar -tzf ./charts/skypilot/charts/ingress-nginx-*.tgz | head -10
+            echo ""
             echo "📋 Testing helm template to verify ingress-nginx resources..."
+            echo "🔍 First, let's see ALL resources being templated:"
+            helm template skypilot-demo-staging ./demo/charts/skypilot-demo \
+              --namespace ${{ inputs.deployment_target }} \
+              --values demo/charts/skypilot-demo/values.yaml \
+              --set skypilot.apiService.image=$DOCKER_IMAGE \
+              --set skypilot.apiService.skipResourceCheck=true \
+              --set skypilot.ingress-nginx.enabled=true \
+              --set skypilot.ingress.path=/staging \
+              --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
+              --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
+              --set "skypilot.apiService.extraVolumes[2].configMap.name=skypilot-demo-staging-demo-jobs" \
+              --set "skypilot.apiService.extraVolumes[3].configMap.name=skypilot-demo-staging-demo-cluster-jobs" \
+              --set "skypilot.apiService.extraVolumes[4].configMap.name=skypilot-demo-staging-demo-volumes" \
+              --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-staging-demo-workspaces" \
+              --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
+              | grep -E "^(apiVersion|kind|metadata)" | head -30
+            echo ""
+            echo "🔍 Looking specifically for ingress-nginx resources:"
             helm template skypilot-demo-staging ./demo/charts/skypilot-demo \
               --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
