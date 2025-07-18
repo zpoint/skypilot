@@ -181,6 +181,11 @@ jobs:
         if: ${{ inputs.clean_deploy }}
         run: |
           echo "Clean deploy enabled - deleting existing namespace: ${{ inputs.deployment_target }}"
+          # Clean up validatingwebhookconfiguration for staging deployment
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+            echo "Cleaning up validatingwebhookconfiguration for staging deployment..."
+            kubectl delete validatingwebhookconfiguration skypilot-demo-staging-ingress-nginx-admission --ignore-not-found=true
+          fi
           kubectl delete namespace ${{ inputs.deployment_target }} --ignore-not-found=true
           # Wait for namespace to be fully deleted
           kubectl wait --for=delete namespace/${{ inputs.deployment_target }} --timeout=300s || true
