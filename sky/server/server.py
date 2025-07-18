@@ -543,14 +543,14 @@ class CacheControlStaticMiddleware(starlette.middleware.base.BaseHTTPMiddleware
 
     async def dispatch(self, request: fastapi.Request, call_next):
         response = await call_next(request)
-        
+
         if request.url.path.startswith('/dashboard/_next'):
             # Cache static assets (JS, CSS) for 1 hour
             response.headers['Cache-Control'] = 'max-age=3600'
         elif request.url.path.startswith('/dashboard/'):
             # Don't cache HTML files to prevent version mismatch issues
             response.headers['Cache-Control'] = 'no-cache, must-revalidate'
-            
+
         return response
 
 
@@ -1786,8 +1786,7 @@ async def serve_dashboard(full_path: str):
                 'Cache-Control': 'no-cache, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0'
-            }
-        )
+            })
     except Exception as e:
         logger.error(f'Error serving dashboard: {e}')
         raise fastapi.HTTPException(status_code=500, detail=str(e))
