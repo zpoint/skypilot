@@ -71,12 +71,16 @@ jobs:
           git branch -v
           git log --oneline -5
 
-      - name: Download artifacts for demo deployment
+      - name: Download source code for demo deployment
         if: ${{ inputs.deployment_target == 'skypilot-demo' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: skypilot-source-code
-          path: ./
+        run: |
+          # Checkout the staging-deployed branch that contains the verified code
+          git clone https://github.com/${{ github.repository }}.git .
+          git checkout staging-deployed-latest || {
+            echo "❌ No staging deployment found. Please run skypilot-demo-staging first."
+            exit 1
+          }
+          echo "✅ Using verified code from staging deployment"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -160,17 +164,23 @@ jobs:
           docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
           docker push $DOCKER_IMAGE
 
-      - name: Upload source code artifacts for demo deployment
+      - name: Save source code for demo deployment
         if: ${{ inputs.deployment_target == 'skypilot-demo-staging' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: skypilot-source-code
-          path: |
-            .
-            !.git
-            !node_modules
-            !.github
-          retention-days: 7
+        run: |
+          # Create a branch to store the verified code
+          BRANCH_NAME="staging-deployed-latest"
+          echo "Creating/updating branch: $BRANCH_NAME"
+          
+          # Configure git
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          # Create and push the branch
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME" --force
+          
+          echo "✅ Source code saved to branch: $BRANCH_NAME"
+          echo "This branch will be used for demo deployment"
 
       - name: Build Helm dependencies
         run: |
