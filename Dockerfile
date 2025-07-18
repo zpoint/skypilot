@@ -7,6 +7,9 @@ ARG TARGETARCH
 # Control installation method - default to install from source
 ARG INSTALL_FROM_SOURCE=true
 
+# Control Next.js basePath for staging deployments
+ARG NEXT_BASE_PATH=/dashboard
+
 # Install Google Cloud SDK (least likely to change)
 RUN conda install -c conda-forge google-cloud-sdk
 
@@ -52,7 +55,7 @@ RUN cd /skypilot && \
         npm install -g npm@latest && \
         echo "Building dashboard" && \
         npm --prefix sky/dashboard install && \
-        npm --prefix sky/dashboard run build; \
+        NEXT_BASE_PATH=${NEXT_BASE_PATH} npm --prefix sky/dashboard run build; \
     else \
         echo "Installing from wheel file" && \
         WHEEL_FILE=$(ls dist/*skypilot*.whl 2>/dev/null | head -1) && \
