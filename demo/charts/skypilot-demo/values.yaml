@@ -96,6 +96,8 @@ skypilot:
   # Enable ingress without authentication for demo
   ingress:
     enabled: true
+    # The base path of API server - can be overridden via --set
+    path: '/'
     # No auth required - remove auth configurations
     authSecret: null
     authCredentials: null
