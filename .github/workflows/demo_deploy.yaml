@@ -158,20 +158,12 @@ jobs:
 
       - name: Build Helm dependencies
         run: |
-          echo "🔍 === HELM DEPENDENCY BUILD DEBUG ==="
-          echo "Building dependencies for main skypilot chart first..."
+          # Build main skypilot chart dependencies first
           cd charts/skypilot
           helm dependency build
-          echo "✅ Main skypilot dependencies built successfully"
-          echo "📋 Main skypilot dependencies:"
-          helm dependency list
-          echo ""
-          echo "Building dependencies for demo chart..."
+          # Build demo chart dependencies
           cd ../../demo/charts/skypilot-demo
           helm dependency build
-          echo "✅ Demo chart dependencies built successfully"
-          echo "📋 Demo chart dependencies:"
-          helm dependency list
 
       - name: Clean up existing namespace
         run: |
@@ -186,7 +178,6 @@ jobs:
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           TAG="${{ steps.version.outputs.tag }}"
 
-          echo "🚀 === DEPLOYMENT DEBUG INFO ==="
           echo "Deploying to cluster: ${{ env.CLUSTER_NAME }}"
           echo "Using Docker image: $DOCKER_IMAGE"
           echo "Namespace: ${{ inputs.deployment_target }}"
@@ -196,59 +187,6 @@ jobs:
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             # First deployment - deploy with ingress-nginx controller
             echo "🚀 Deploying skypilot-demo-staging with ingress-nginx controller..."
-            echo "🔍 === HELM DEPLOYMENT DEBUG ==="
-            echo "📋 Helm command parameters:"
-            echo "  - Release name: skypilot-demo-staging"
-            echo "  - Namespace: ${{ inputs.deployment_target }}"
-            echo "  - Chart path: ./demo/charts/skypilot-demo"
-            echo "  - Docker image: $DOCKER_IMAGE"
-            echo "  - Ingress-nginx enabled: true"
-            echo "  - Ingress path: /staging"
-            echo ""
-            echo "📋 Checking packaged chart contents..."
-            echo "🔍 Demo chart dependencies:"
-            ls -la ./demo/charts/skypilot-demo/charts/
-            echo "🔍 Main skypilot chart dependencies:"
-            ls -la ./charts/skypilot/charts/
-            echo "🔍 Checking if ingress-nginx is in main skypilot chart:"
-            tar -tzf ./charts/skypilot/charts/ingress-nginx-*.tgz | head -10
-            echo ""
-            echo "📋 Testing helm template to verify ingress-nginx resources..."
-            echo "🔍 First, let's see ALL resources being templated:"
-            helm template skypilot-demo-staging ./demo/charts/skypilot-demo \
-              --namespace ${{ inputs.deployment_target }} \
-              --values demo/charts/skypilot-demo/values.yaml \
-              --set skypilot.apiService.image=$DOCKER_IMAGE \
-              --set skypilot.apiService.skipResourceCheck=true \
-              --set skypilot.ingress-nginx.enabled=true \
-              --set skypilot.ingress.path=/staging \
-              --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
-              --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
-              --set "skypilot.apiService.extraVolumes[2].configMap.name=skypilot-demo-staging-demo-jobs" \
-              --set "skypilot.apiService.extraVolumes[3].configMap.name=skypilot-demo-staging-demo-cluster-jobs" \
-              --set "skypilot.apiService.extraVolumes[4].configMap.name=skypilot-demo-staging-demo-volumes" \
-              --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-staging-demo-workspaces" \
-              --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
-              | grep -E "^(apiVersion|kind|metadata)" | head -30
-            echo ""
-            echo "🔍 Looking specifically for ingress-nginx resources:"
-            helm template skypilot-demo-staging ./demo/charts/skypilot-demo \
-              --namespace ${{ inputs.deployment_target }} \
-              --values demo/charts/skypilot-demo/values.yaml \
-              --set skypilot.apiService.image=$DOCKER_IMAGE \
-              --set skypilot.apiService.skipResourceCheck=true \
-              --set skypilot.ingress-nginx.enabled=true \
-              --set skypilot.ingress.path=/staging \
-              --set "skypilot.apiService.extraVolumes[0].configMap.name=skypilot-demo-staging-demo-users" \
-              --set "skypilot.apiService.extraVolumes[1].configMap.name=skypilot-demo-staging-demo-clusters" \
-              --set "skypilot.apiService.extraVolumes[2].configMap.name=skypilot-demo-staging-demo-jobs" \
-              --set "skypilot.apiService.extraVolumes[3].configMap.name=skypilot-demo-staging-demo-cluster-jobs" \
-              --set "skypilot.apiService.extraVolumes[4].configMap.name=skypilot-demo-staging-demo-volumes" \
-              --set "skypilot.apiService.extraVolumes[5].configMap.name=skypilot-demo-staging-demo-workspaces" \
-              --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
-              | grep -E "(ingress-nginx|nginx)" | head -20
-            echo ""
-            echo "🚀 Starting actual helm deployment..."
             helm upgrade --install skypilot-demo-staging ./demo/charts/skypilot-demo \
               --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
@@ -265,24 +203,6 @@ jobs:
               --set "skypilot.apiService.extraVolumes[6].configMap.name=skypilot-demo-staging-demo-infrastructure" \
               --create-namespace \
               --wait
-            echo "✅ Helm deployment completed"
-            echo "🔍 === POST-DEPLOYMENT VERIFICATION ==="
-            echo "📋 Checking deployed resources..."
-            echo "🔍 All pods in namespace:"
-            kubectl get pods -n ${{ inputs.deployment_target }}
-            echo "🔍 All services in namespace:"
-            kubectl get svc -n ${{ inputs.deployment_target }}
-            echo "🔍 All ingress resources:"
-            kubectl get ingress -n ${{ inputs.deployment_target }}
-            echo "🔍 All ingress classes:"
-            kubectl get ingressclass
-            echo "🔍 Searching for ingress-nginx resources across all namespaces:"
-            kubectl get pods --all-namespaces | grep ingress-nginx || echo "No ingress-nginx pods found"
-            kubectl get svc --all-namespaces | grep ingress-nginx || echo "No ingress-nginx services found"
-            echo "🔍 Helm deployment values used:"
-            helm get values skypilot-demo-staging -n ${{ inputs.deployment_target }}
-            echo "🔍 Helm deployment status:"
-            helm status skypilot-demo-staging -n ${{ inputs.deployment_target }}
           else
             # Second deployment - reuse existing ingress controller
             echo "🚀 Deploying skypilot-demo reusing existing ingress controller..."
@@ -306,7 +226,6 @@ jobs:
 
       - name: Get external access information
         run: |
-          echo "🔍 === GET EXTERNAL IP DEBUG ==="
           echo "Getting external IP..."
 
           # Set timeout and check interval
@@ -323,49 +242,24 @@ jobs:
             if kubectl get svc skypilot-demo-staging-ingress-nginx-controller -n skypilot-demo-staging >/dev/null 2>&1; then
               SERVICE_NAME="skypilot-demo-staging-ingress-nginx-controller"
               NAMESPACE="skypilot-demo-staging"
-              echo "🔍 Using shared ingress controller from staging namespace"
             else
               SERVICE_NAME="skypilot-demo-ingress-nginx-controller"
               NAMESPACE="skypilot-demo"
-              echo "🔍 Using dedicated ingress controller in demo namespace"
             fi
           fi
 
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            ACCESS_PATH="/demo"
+            ACCESS_PATH="/demo/dashboard"
           else
-            ACCESS_PATH="/staging"
+            ACCESS_PATH="/staging/dashboard"
           fi
 
-          echo "🔍 Target deployment: ${{ inputs.deployment_target }}"
-          echo "🔍 Looking for service: $SERVICE_NAME"
-          echo "🔍 In namespace: $NAMESPACE"
-          echo "🔍 Access path: $ACCESS_PATH"
-          echo "🔍 Current kubectl context: $(kubectl config current-context)"
-          echo "🔍 Timeout: ${TIMEOUT}s, Check interval: ${INTERVAL}s"
-          echo ""
-          echo "🔍 === CLUSTER STATE DEBUG ==="
-          echo "🔍 All namespaces:"
-          kubectl get ns
-          echo ""
-          echo "🔍 All services across all namespaces:"
-          kubectl get svc --all-namespaces
-          echo ""
-          echo "🔍 All ingress-nginx related resources:"
-          kubectl get pods,svc,ingress --all-namespaces | grep -E "(ingress-nginx|nginx)" || echo "No ingress-nginx resources found"
-          echo ""
-          echo "🔍 Checking if service exists..."
+          echo "Getting external IP for ${{ inputs.deployment_target }}..."
 
-          # Debug: Check if service exists
-          if kubectl get svc $SERVICE_NAME -n $NAMESPACE >/dev/null 2>&1; then
-            echo "✅ Service $SERVICE_NAME found in namespace $NAMESPACE"
-            kubectl get svc $SERVICE_NAME -n $NAMESPACE
-          else
+          # Check if service exists
+          if ! kubectl get svc $SERVICE_NAME -n $NAMESPACE >/dev/null 2>&1; then
             echo "❌ Service $SERVICE_NAME not found in namespace $NAMESPACE"
-            echo "📋 Available services in namespace $NAMESPACE:"
-            kubectl get svc -n $NAMESPACE
-            echo "📋 Available services in all namespaces (ingress-nginx):"
-            kubectl get svc --all-namespaces | grep ingress-nginx
+            exit 1
           fi
 
           # Event-based polling with timeout
@@ -389,51 +283,19 @@ jobs:
             if [ -n "$EXTERNAL_IP" ] && [ "$EXTERNAL_IP" != "null" ]; then
               echo "✅ External IP found: $EXTERNAL_IP (after ${ELAPSED}s)"
               echo "🚀 Access dashboard at: http://$EXTERNAL_IP$ACCESS_PATH"
-              echo "📝 Service: $SERVICE_NAME"
-              echo "📝 Namespace: $NAMESPACE"
               break
             else
               echo "⏳ Waiting for external IP... (${ELAPSED}s/${TIMEOUT}s)"
-              echo "🔍 Debug: Current external IP value: '$EXTERNAL_IP'"
-              echo "🔍 Debug: Service exists check:"
-              kubectl get svc $SERVICE_NAME -n $NAMESPACE || echo "Service not found"
-              echo "🔍 Debug: All ingress-nginx services:"
-              kubectl get svc --all-namespaces | grep ingress-nginx || echo "No ingress-nginx services found"
-              echo "🔍 Debug: Full service status:"
-              kubectl get svc $SERVICE_NAME -n $NAMESPACE -o yaml | grep -A 10 "status:" || echo "Failed to get service status"
               sleep $INTERVAL
             fi
           done
 
-      - name: Deployment summary
-        run: |
-          # Use the built image details
-          DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
-          TAG="${{ steps.version.outputs.tag }}"
-          IMAGE_SOURCE="Built and pushed new image"
-
+          echo ""
           echo "✅ Demo deployment completed successfully!"
-          echo ""
-          echo "📋 Deployment Details:"
-          echo "   - Cluster: ${{ env.CLUSTER_NAME }}"
-          echo "   - Branch: ${{ github.ref_name }}"
-          echo "   - Image: $DOCKER_IMAGE"
-          echo "   - Image Tag: $TAG"
-          echo "   - Image Source: $IMAGE_SOURCE"
-          echo "   - Namespace: ${{ inputs.deployment_target }}"
-          echo "   - Release: ${{ inputs.deployment_target }}"
-          echo ""
-          echo "🔗 To access the demo:"
-          echo "   - Wait for external IP to be assigned"
-          echo "   - Run: kubectl get svc skypilot-demo-ingress-nginx-controller -n skypilot-demo"
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            echo "   - Access via http://EXTERNAL_IP/demo/dashboard"
-          else
-            echo "   - Access via http://EXTERNAL_IP/staging/dashboard"
-          fi
-          echo ""
-          echo "📝 Notes:"
-          echo "   - Both deployments share the same ingress controller"
-          echo "   - skypilot-demo-staging: accessible at /staging path"
-          echo "   - skypilot-demo: accessible at /demo path"
-          echo "   - Each deployment builds its own image with the correct basePath"
+          echo "Cluster: ${{ env.CLUSTER_NAME }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Image: $DOCKER_IMAGE"
+          echo "Namespace: ${{ inputs.deployment_target }}"
+          echo "Access via: http://$EXTERNAL_IP$ACCESS_PATH"
+
+
