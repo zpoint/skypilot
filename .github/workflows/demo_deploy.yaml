@@ -152,20 +152,12 @@ jobs:
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
 
-          # Set the appropriate basePath for each deployment target
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
-            BASE_PATH="/staging/dashboard"
-            echo "Building staging image with basePath: $BASE_PATH"
-          elif [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            BASE_PATH="/demo/dashboard"
-            echo "Building demo image with basePath: $BASE_PATH"
-          else
-            echo "Unknown deployment target: ${{ inputs.deployment_target }}"
-            exit 1
-          fi
+          # Use generic basePath that works for both deployments
+          echo "Building image with generic basePath: /dashboard"
+          echo "Frontend will dynamically detect actual path at runtime"
 
           # Use regular docker build and push to avoid buildx issues
-          docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
+          docker build -t $DOCKER_IMAGE -f Dockerfile .
           docker push $DOCKER_IMAGE
 
       - name: Build Helm dependencies
