@@ -105,6 +105,10 @@ jobs:
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
+      - name: Configure kubectl for cluster
+        run: |
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
+
       - name: Determine deployment strategy and image
         id: strategy
         run: |
@@ -163,10 +167,6 @@ jobs:
           # Use regular docker build and push to avoid buildx issues
           docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
           docker push $DOCKER_IMAGE
-
-      - name: Configure kubectl for cluster
-        run: |
-          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build Helm dependencies
         run: |
