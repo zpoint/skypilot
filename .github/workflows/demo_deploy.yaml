@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: false
+      clean_deploy:
+        description: 'Delete namespace before deployment for clean install'
+        required: false
+        type: boolean
+        default: true
 
 env:
   REGISTRY: us-central1-docker.pkg.dev
@@ -103,31 +108,39 @@ jobs:
       - name: Determine deployment strategy and image
         id: strategy
         run: |
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo" ]; then
-            echo "deployment_type=build_image" >> $GITHUB_OUTPUT
-            echo "🔨 Deployment strategy: Build new image for demo with /demo basePath"
-          else
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             echo "deployment_type=build_image" >> $GITHUB_OUTPUT
             echo "🔨 Deployment strategy: Build new image for staging with /staging basePath"
+          else
+            echo "deployment_type=reuse_image" >> $GITHUB_OUTPUT
+            echo "🔨 Deployment strategy: Reuse existing image from staging deployment"
           fi
 
       - name: Determine image tag and repository
         id: version
         run: |
-          # Use today's date as the tag format (YYYYMMDD)
-          TAG=$(date +%Y%m%d)
-          echo "Using date-based tag: $TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-          # Set repository based on deployment target
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
+          if [ "${{ steps.strategy.outputs.deployment_type }}" == "build_image" ]; then
+            # Build new image for staging
+            TAG=$(date +%Y%m%d)
             REPO="skypilot-demo-staging"
+            DOCKER_IMAGE="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG"
+            echo "Using date-based tag: $TAG"
+            echo "Repository: $REPO, Tag: $TAG"
           else
-            REPO="skypilot-demo"
+            # Reuse existing image from staging
+            echo "Getting current image from staging deployment..."
+            DOCKER_IMAGE=$(kubectl get deployment skypilot-demo-staging-api-server -n skypilot-demo-staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")
+            if [ -z "$DOCKER_IMAGE" ]; then
+              echo "❌ Could not find staging deployment to get image from"
+              exit 1
+            fi
+            TAG=$(echo "$DOCKER_IMAGE" | cut -d':' -f2)
+            echo "Reusing image from staging: $DOCKER_IMAGE"
+            echo "Extracted tag: $TAG"
           fi
 
-          echo "docker_image=${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG" >> $GITHUB_OUTPUT
-          echo "Repository: $REPO, Tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "docker_image=$DOCKER_IMAGE" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         if: steps.strategy.outputs.deployment_type == 'build_image'
@@ -164,9 +177,18 @@ jobs:
           cd ../../demo/charts/skypilot-demo
           helm dependency build
 
-      - name: Clean up existing namespace
+      - name: Check deployment mode
         run: |
-          echo "Cleaning up existing namespace: ${{ inputs.deployment_target }}"
+          if [ "${{ inputs.clean_deploy }}" == "true" ]; then
+            echo "🧹 Clean deploy mode: Will delete existing namespace"
+          else
+            echo "🔄 Upgrade mode: Will preserve existing namespace and upgrade in place"
+          fi
+
+      - name: Clean up existing namespace
+        if: ${{ inputs.clean_deploy }}
+        run: |
+          echo "Clean deploy enabled - deleting existing namespace: ${{ inputs.deployment_target }}"
           kubectl delete namespace ${{ inputs.deployment_target }} --ignore-not-found=true
           # Wait for namespace to be fully deleted
           kubectl wait --for=delete namespace/${{ inputs.deployment_target }} --timeout=300s || true
@@ -203,8 +225,8 @@ jobs:
               --create-namespace \
               --wait
           else
-            # Second deployment - reuse existing ingress controller
-            echo "🚀 Deploying skypilot-demo reusing existing ingress controller..."
+            # Second deployment - reuse existing ingress controller and image from staging
+            echo "🚀 Deploying skypilot-demo reusing existing ingress controller and staging image..."
             helm upgrade --install skypilot-demo ./demo/charts/skypilot-demo \
               --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
@@ -289,12 +311,27 @@ jobs:
             fi
           done
 
+          # Show image source info
+          if [ "${{ steps.strategy.outputs.deployment_type }}" == "build_image" ]; then
+            IMAGE_SOURCE="Built new image"
+          else
+            IMAGE_SOURCE="Reused image from staging"
+          fi
+
+          # Show deployment mode
+          if [ "${{ inputs.clean_deploy }}" == "true" ]; then
+            DEPLOY_MODE="Clean deploy"
+          else
+            DEPLOY_MODE="Upgrade deploy"
+          fi
+
           echo ""
           echo "✅ Demo deployment completed successfully!"
           echo "Cluster: ${{ env.CLUSTER_NAME }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "Image: $DOCKER_IMAGE"
+          echo "Image: $DOCKER_IMAGE ($IMAGE_SOURCE)"
           echo "Namespace: ${{ inputs.deployment_target }}"
+          echo "Mode: $DEPLOY_MODE"
           echo "Access via: http://$EXTERNAL_IP$ACCESS_PATH"
 
 
