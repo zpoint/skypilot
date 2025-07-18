@@ -312,7 +312,7 @@ jobs:
 
             if [ -n "$EXTERNAL_IP" ] && [ "$EXTERNAL_IP" != "null" ]; then
               echo "✅ External IP found: $EXTERNAL_IP (after ${ELAPSED}s)"
-              echo "🚀 Access dashboard at: http://$EXTERNAL_IP$ACCESS_PATH"
+              echo "🚀 Access dashboard at: http://$EXTERNAL_IP$ACCESS_PATH/"
               break
             else
               echo "⏳ Waiting for external IP... (${ELAPSED}s/${TIMEOUT}s)"
@@ -327,6 +327,6 @@ jobs:
           echo "Image: $DOCKER_IMAGE (Built with correct basePath)"
           echo "Namespace: ${{ inputs.deployment_target }}"
           echo "Mode: ${{ inputs.clean_deploy && 'Clean deploy' || 'Upgrade deploy' }}"
-          echo "Access via: http://$EXTERNAL_IP$ACCESS_PATH"
+          echo "Access via: http://$EXTERNAL_IP$ACCESS_PATH/"
 
 
