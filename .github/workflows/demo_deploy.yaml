@@ -124,7 +124,7 @@ jobs:
         id: version
         run: |
           # Always build new image for each deployment target
-          TAG=$(date +%Y%m%d-%H%M%S)
+          TAG=$(date +%Y%m%d)
           
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             REPO="skypilot-demo-staging"
