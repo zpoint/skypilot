@@ -130,8 +130,7 @@ jobs:
           echo "Repository: $REPO, Tag: $TAG"
 
       - name: Build and push Docker image
-        # if: steps.strategy.outputs.deployment_type == 'build_image'
-        if: false  # Skip docker build for debugging
+        if: steps.strategy.outputs.deployment_type == 'build_image'
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
