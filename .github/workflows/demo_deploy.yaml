@@ -42,13 +42,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout selected branch from current repository
+        if: ${{ inputs.deployment_target == 'skypilot-demo-staging' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Git and merge with upstream master
-        if: ${{ !inputs.skip_rebase }}
+        if: ${{ inputs.deployment_target == 'skypilot-demo-staging' && !inputs.skip_rebase }}
         run: |
           # Configure git
           git config user.name "GitHub Actions"
@@ -69,6 +70,14 @@ jobs:
           echo "Current branch and commit:"
           git branch -v
           git log --oneline -5
+
+      - name: Download artifacts for demo deployment
+        if: ${{ inputs.deployment_target == 'skypilot-demo' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: skypilot-source-code
+          path: ./
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         id: auth
@@ -90,6 +99,7 @@ jobs:
       - name: Install GKE gcloud auth plugin
         run: |
           gcloud components install gke-gcloud-auth-plugin
+
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
@@ -98,6 +108,7 @@ jobs:
       - name: Configure Docker for Google Cloud
         run: |
           gcloud auth configure-docker ${{ env.REGISTRY }}
+
       - name: Login to Artifact Registry
         uses: docker/login-action@v3
         with:
@@ -109,45 +120,26 @@ jobs:
         run: |
           gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Determine deployment strategy and image
-        id: strategy
-        run: |
-          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
-            echo "deployment_type=build_image" >> $GITHUB_OUTPUT
-            echo "🔨 Deployment strategy: Build new image for staging with /staging basePath"
-          else
-            echo "deployment_type=reuse_image" >> $GITHUB_OUTPUT
-            echo "🔨 Deployment strategy: Reuse existing image from staging deployment"
-          fi
-
       - name: Determine image tag and repository
         id: version
         run: |
-          if [ "${{ steps.strategy.outputs.deployment_type }}" == "build_image" ]; then
-            # Build new image for staging
-            TAG=$(date +%Y%m%d)
+          # Always build new image for each deployment target
+          TAG=$(date +%Y%m%d-%H%M%S)
+          
+          if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
             REPO="skypilot-demo-staging"
-            DOCKER_IMAGE="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG"
-            echo "Using date-based tag: $TAG"
-            echo "Repository: $REPO, Tag: $TAG"
           else
-            # Reuse existing image from staging
-            echo "Getting current image from staging deployment..."
-            DOCKER_IMAGE=$(kubectl get deployment skypilot-demo-staging-api-server -n skypilot-demo-staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")
-            if [ -z "$DOCKER_IMAGE" ]; then
-              echo "❌ Could not find staging deployment to get image from"
-              exit 1
-            fi
-            TAG=$(echo "$DOCKER_IMAGE" | cut -d':' -f2)
-            echo "Reusing image from staging: $DOCKER_IMAGE"
-            echo "Extracted tag: $TAG"
+            REPO="skypilot-demo"
           fi
+          
+          DOCKER_IMAGE="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/$REPO/demo:$TAG"
+          echo "Repository: $REPO, Tag: $TAG"
+          echo "Docker image: $DOCKER_IMAGE"
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "docker_image=$DOCKER_IMAGE" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
-        if: steps.strategy.outputs.deployment_type == 'build_image'
         run: |
           DOCKER_IMAGE="${{ steps.version.outputs.docker_image }}"
           echo "Building and pushing Docker image: $DOCKER_IMAGE"
@@ -167,6 +159,18 @@ jobs:
           # Use regular docker build and push to avoid buildx issues
           docker build -t $DOCKER_IMAGE -f Dockerfile --build-arg NEXT_BASE_PATH=$BASE_PATH .
           docker push $DOCKER_IMAGE
+
+      - name: Upload source code artifacts for demo deployment
+        if: ${{ inputs.deployment_target == 'skypilot-demo-staging' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: skypilot-source-code
+          path: |
+            .
+            !.git
+            !node_modules
+            !.github
+          retention-days: 7
 
       - name: Build Helm dependencies
         run: |
@@ -230,8 +234,8 @@ jobs:
               --create-namespace \
               --wait
           else
-            # Second deployment - reuse existing ingress controller and image from staging
-            echo "🚀 Deploying skypilot-demo reusing existing ingress controller and staging image..."
+            # Second deployment - reuse existing ingress controller but build new image
+            echo "🚀 Deploying skypilot-demo with newly built image (reusing existing ingress controller)..."
             helm upgrade --install skypilot-demo ./demo/charts/skypilot-demo \
               --namespace ${{ inputs.deployment_target }} \
               --values demo/charts/skypilot-demo/values.yaml \
@@ -316,27 +320,13 @@ jobs:
             fi
           done
 
-          # Show image source info
-          if [ "${{ steps.strategy.outputs.deployment_type }}" == "build_image" ]; then
-            IMAGE_SOURCE="Built new image"
-          else
-            IMAGE_SOURCE="Reused image from staging"
-          fi
-
-          # Show deployment mode
-          if [ "${{ inputs.clean_deploy }}" == "true" ]; then
-            DEPLOY_MODE="Clean deploy"
-          else
-            DEPLOY_MODE="Upgrade deploy"
-          fi
-
           echo ""
           echo "✅ Demo deployment completed successfully!"
           echo "Cluster: ${{ env.CLUSTER_NAME }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "Image: $DOCKER_IMAGE ($IMAGE_SOURCE)"
+          echo "Image: $DOCKER_IMAGE (Built with correct basePath)"
           echo "Namespace: ${{ inputs.deployment_target }}"
-          echo "Mode: $DEPLOY_MODE"
+          echo "Mode: ${{ inputs.clean_deploy && 'Clean deploy' || 'Upgrade deploy' }}"
           echo "Access via: http://$EXTERNAL_IP$ACCESS_PATH"
 
 
