@@ -18,11 +18,11 @@ skypilot:
     # Reduce resource requirements for demo
     resources:
       requests:
-        cpu: "3"
-        memory: "12Gi"
+        cpu: "2"
+        memory: "8Gi"
       limits:
-        cpu: "3"
-        memory: "12Gi"
+        cpu: "2"
+        memory: "8Gi"
     
     # Enable demo mode with additional environment variables
     # The SKYPILOT_INTERNAL_APPLY_DEMO_PATCH env var is used by the parent chart
