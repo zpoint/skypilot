@@ -25,6 +25,8 @@ skypilot:
         memory: "12Gi"
     
     # Enable demo mode with additional environment variables
+    # The SKYPILOT_INTERNAL_APPLY_DEMO_PATCH env var is used by the parent chart
+    # to detect demo mode and automatically add the demo ConfigMap volumes
     extraEnv:
     - name: SKYPILOT_INTERNAL_APPLY_DEMO_PATCH
       value: "true"
@@ -32,29 +34,30 @@ skypilot:
     preDeployHook: |-
       pip install json5
 
-    # Mount demo ConfigMaps as volumes for optimal performance (Tier 1: ~1ms access)
+    # Mount demo ConfigMaps as volumes
+    # Using predictable ConfigMap names that match the release name pattern
     extraVolumes:
     - name: demo-users
       configMap:
-        name: "{{ .Release.Name }}-demo-users"
+        name: skypilot-demo-demo-users
     - name: demo-clusters
       configMap:
-        name: "{{ .Release.Name }}-demo-clusters"
+        name: skypilot-demo-demo-clusters
     - name: demo-jobs
       configMap:
-        name: "{{ .Release.Name }}-demo-jobs"
+        name: skypilot-demo-demo-jobs
     - name: demo-cluster-jobs
       configMap:
-        name: "{{ .Release.Name }}-demo-cluster-jobs"
+        name: skypilot-demo-demo-cluster-jobs
     - name: demo-volumes
       configMap:
-        name: "{{ .Release.Name }}-demo-volumes"
+        name: skypilot-demo-demo-volumes
     - name: demo-workspaces
       configMap:
-        name: "{{ .Release.Name }}-demo-workspaces"
+        name: skypilot-demo-demo-workspaces
     - name: demo-infrastructure
       configMap:
-        name: "{{ .Release.Name }}-demo-infrastructure"
+        name: skypilot-demo-demo-infrastructure
 
     extraVolumeMounts:
     - name: demo-users
