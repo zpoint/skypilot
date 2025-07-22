@@ -18,10 +18,10 @@ skypilot:
     # Reduce resource requirements for demo
     resources:
       requests:
-        cpu: "2"
+        cpu: "3"
         memory: "8Gi"
       limits:
-        cpu: "2"
+        cpu: "3"
         memory: "8Gi"
     
     # Enable demo mode with additional environment variables
