@@ -523,6 +523,8 @@ def mock_get_cached_enabled_clouds(cloud_capability, workspace: str) -> List:
         mock_clouds.append(clouds.GCP())
     if 'aws' in enabled_clouds:
         mock_clouds.append(clouds.AWS())
+    if 'kubernetes' in enabled_clouds:
+        mock_clouds.append(clouds.Kubernetes())
     return mock_clouds
 
 
@@ -606,9 +608,29 @@ def mock_enabled_clouds(workspace: Optional[str] = None,
     if not expand:
         return enabled_clouds.copy()
     else:
-        # Return expanded infrastructure names
-        # For demo purposes, just return the basic cloud names since we don't need complex infra expansion
-        return enabled_clouds.copy()
+        # Return expanded infrastructure names - properly expand Kubernetes contexts
+        enabled_ssh_infras = []
+        enabled_k8s_infras = []
+        enabled_cloud_infras = []
+        
+        for cloud_name in enabled_clouds:
+            if cloud_name.lower() == 'kubernetes':
+                # Expand Kubernetes contexts from demo data
+                node_info = infrastructure_data.get('node_info', {})
+                contexts = [f'Kubernetes/{context}' for context in node_info.keys()]
+                enabled_k8s_infras.extend(contexts)
+            elif cloud_name.lower() == 'ssh':
+                # For SSH, would expand SSH node pools (but we don't have demo SSH pools)
+                enabled_ssh_infras.append(cloud_name)  # Just add the cloud name for now
+            else:
+                # For other clouds (AWS, GCP), just return canonical name
+                enabled_cloud_infras.append(cloud_name)
+        
+        # Return in the same order as real core.enabled_clouds
+        all_infras = sorted(enabled_ssh_infras) + sorted(enabled_k8s_infras) + sorted(enabled_cloud_infras)
+        
+        logger.info(f"Demo mode: Expanded infrastructure list: {all_infras}")
+        return all_infras
 
 
 def mock_get_all_contexts() -> List[str]:
@@ -1745,8 +1767,8 @@ def patch_server_endpoints(app):
                 error_content = {
                     'detail': {
                         'error':
-                            '{"message": "Write operations are not '
-                            'allowed in Demo Mode", "type": "DemoModeError"}'
+                            '{"message": "Modifying the demo environment is '
+                            'not allowed.", "type": "DemoModeError"}'
                     }
                 }
                 return fastapi.responses.JSONResponse(status_code=500,
@@ -1765,7 +1787,8 @@ def patch_server_endpoints(app):
                     return fastapi.responses.JSONResponse(
                         status_code=500,
                         content={
-                            'detail': 'Write operations are not allowed in Demo Mode'
+                            'detail': 'Modifying the demo environment is not '
+                                      'allowed.'
                         })
 
         # Handle request/get pattern endpoints - return fake success response

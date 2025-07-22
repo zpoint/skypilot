@@ -7,6 +7,11 @@
       },
       "aws": {
         "disabled": false
+      },
+      "kubernetes": {
+        "allowed_contexts": [
+          "nebius"
+        ]
       }
     },
     "research-private": {
@@ -20,6 +25,11 @@
       },
       "aws": {
         "disabled": true
+      },
+      "kubernetes": {
+        "allowed_contexts": [
+          "coreweave"
+        ]
       }
     }
   }

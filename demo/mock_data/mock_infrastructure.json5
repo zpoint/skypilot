@@ -1,5 +1,5 @@
 {
-  "enabled_clouds": ["gcp", "aws"],
+  "enabled_clouds": ["gcp", "aws", "kubernetes"],
   "gpu_availability": {
     "coreweave": [
       {
