@@ -1,6 +1,13 @@
 {
   "workspaces": {
-    "default": {},
+    "default": {
+      "kubernetes": {
+        "allowed_contexts": [
+          "nebius",
+          "coreweave"
+        ]
+      }
+    },
     "ml-team": {
       "gcp": {
         "project_id": "skypilot-ml-team-prod"

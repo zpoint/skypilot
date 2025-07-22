@@ -605,6 +605,10 @@ def mock_enabled_clouds(workspace: Optional[str] = None,
     infrastructure_data = load_mock_data_file('infrastructure')
     enabled_clouds = infrastructure_data['enabled_clouds']
 
+    # Default to 'default' workspace if none specified
+    if workspace is None:
+        workspace = 'default'
+
     if not expand:
         return enabled_clouds.copy()
     else:
@@ -615,10 +619,29 @@ def mock_enabled_clouds(workspace: Optional[str] = None,
         
         for cloud_name in enabled_clouds:
             if cloud_name.lower() == 'kubernetes':
-                # Expand Kubernetes contexts from demo data
+                # Load workspace data to get allowed_contexts
+                workspaces_data = load_mock_data_file('workspaces')
+                workspace_config = workspaces_data.get('workspaces', {}).get(workspace, {})
+                k8s_config = workspace_config.get('kubernetes', {})
+                allowed_contexts = k8s_config.get('allowed_contexts')
+                
+                # Get all available contexts from demo data
                 node_info = infrastructure_data.get('node_info', {})
-                contexts = [f'Kubernetes/{context}' for context in node_info.keys()]
+                all_contexts = list(node_info.keys())
+                
+                # Apply allowed_contexts filtering if specified
+                if allowed_contexts is not None:
+                    filtered_contexts = [ctx for ctx in all_contexts if ctx in allowed_contexts]
+                else:
+                    # If no allowed_contexts specified, use all available contexts
+                    filtered_contexts = all_contexts
+                
+                # Format contexts with Kubernetes prefix
+                contexts = [f'Kubernetes/{context}' for context in filtered_contexts]
                 enabled_k8s_infras.extend(contexts)
+                
+                logger.info(f"Demo mode: Workspace '{workspace}' allowed_contexts: {allowed_contexts}, filtered to: {filtered_contexts}")
+                
             elif cloud_name.lower() == 'ssh':
                 # For SSH, would expand SSH node pools (but we don't have demo SSH pools)
                 enabled_ssh_infras.append(cloud_name)  # Just add the cloud name for now
@@ -629,7 +652,7 @@ def mock_enabled_clouds(workspace: Optional[str] = None,
         # Return in the same order as real core.enabled_clouds
         all_infras = sorted(enabled_ssh_infras) + sorted(enabled_k8s_infras) + sorted(enabled_cloud_infras)
         
-        logger.info(f"Demo mode: Expanded infrastructure list: {all_infras}")
+        logger.info(f"Demo mode: Expanded infrastructure list for workspace '{workspace}': {all_infras}")
         return all_infras
 
 
