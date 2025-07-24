@@ -118,9 +118,9 @@ jobs:
         id: cluster
         run: |
           if [ "${{ inputs.deployment_target }}" == "skypilot-demo-staging" ]; then
-            CLUSTER_NAME="skypilot-demo-2"
+            CLUSTER_NAME="skypilot-demo-new-staging"
           else
-            CLUSTER_NAME="skypilot-demo"
+            CLUSTER_NAME="skypilot-demo-new"
           fi
           echo "cluster_name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
           echo "Using cluster: $CLUSTER_NAME"
@@ -160,8 +160,8 @@ jobs:
         run: |
           echo "Getting current image from skypilot-demo-staging deployment..."
           # Switch to staging cluster to get the image
-          echo "Connecting to staging cluster (skypilot-demo-2)..."
-          gcloud container clusters get-credentials skypilot-demo-2 --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
+          echo "Connecting to staging cluster (skypilot-demo-new-staging)..."
+          gcloud container clusters get-credentials skypilot-demo-new-staging --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
 
           # Get the current image from the staging deployment
           STAGING_IMAGE=$(kubectl get deployment skypilot-demo-staging-api-server -n skypilot-demo-staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")
@@ -175,8 +175,8 @@ jobs:
           echo "staging_image=$STAGING_IMAGE" >> $GITHUB_OUTPUT
 
           # Switch back to demo cluster for deployment
-          echo "Switching back to demo cluster (skypilot-demo)..."
-          gcloud container clusters get-credentials skypilot-demo --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
+          echo "Switching back to demo cluster (skypilot-demo-new)..."
+          gcloud container clusters get-credentials skypilot-demo-new --zone=${{ env.CLUSTER_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }}
       - name: Save source code for demo deployment
         if: ${{ inputs.deployment_target == 'skypilot-demo-staging' }}
         run: |
