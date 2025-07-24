@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: process.env.NEXT_BASE_PATH || '/dashboard',
+  basePath: '/dashboard',
   output: 'export',
   images: {
     unoptimized: true,
