@@ -26,86 +26,87 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version extracted: $VERSION"
 
-  build-package:
-    needs: extract-version
-    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'test_releases/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.base_ref }}
+  # Build and publish jobs disabled for YAML testing
+  # build-package:
+  #   needs: extract-version
+  #   if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'test_releases/')
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ github.base_ref }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '23'
-          cache: 'npm'
-          cache-dependency-path: 'sky/dashboard/package-lock.json'
-      - name: Install dashboard dependencies
-        run: |
-          cd sky/dashboard
-          npm ci
-      - name: Build dashboard
-        run: |
-          cd sky/dashboard
-          npm run build
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '23'
+  #         cache: 'npm'
+  #         cache-dependency-path: 'sky/dashboard/package-lock.json'
+  #     - name: Install dashboard dependencies
+  #       run: |
+  #         cd sky/dashboard
+  #         npm ci
+  #     - name: Build dashboard
+  #       run: |
+  #         cd sky/dashboard
+  #         npm run build
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          cache: 'pip'
+  #     - name: Set up Python 3.10
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.10'
+  #         cache: 'pip'
 
-      - name: Install pypa/build
-        run: >-
-          python -m
-          pip install
-          build
-          --user
+  #     - name: Install pypa/build
+  #       run: >-
+  #         python -m
+  #         pip install
+  #         build
+  #         --user
 
-      - name: Build a binary wheel and a source tarball
-        run: >-
-          python -m
-          build
-          --sdist
-          --wheel
-          --outdir dist/
-          .
+  #     - name: Build a binary wheel and a source tarball
+  #       run: >-
+  #         python -m
+  #         build
+  #         --sdist
+  #         --wheel
+  #         --outdir dist/
+  #         .
 
-      - name: Upload distribution artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: skypilot-artifacts-skypilot
-          path: dist/
+  #     - name: Upload distribution artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: skypilot-artifacts-skypilot
+  #         path: dist/
 
-  publish-and-validate-test-pypi:
-    needs: [extract-version, build-package]
-    uses: ./.github/workflows/publish-and-validate.yml
-    with:
-      package_name: skypilot
-      expected_version: ${{ needs.extract-version.outputs.version }}
-      repository_type: 'test-pypi'
-    secrets: inherit
+  # publish-and-validate-test-pypi:
+  #   needs: [extract-version, build-package]
+  #   uses: ./.github/workflows/publish-and-validate.yml
+  #   with:
+  #     package_name: skypilot
+  #     expected_version: ${{ needs.extract-version.outputs.version }}
+  #     repository_type: 'test-pypi'
+  #   secrets: inherit
 
-  publish-and-validate-pypi:
-    needs: [extract-version, publish-and-validate-test-pypi]
-    uses: ./.github/workflows/publish-and-validate.yml
-    with:
-      package_name: skypilot
-      expected_version: ${{ needs.extract-version.outputs.version }}
-      repository_type: 'pypi'
-    secrets: inherit
+  # publish-and-validate-pypi:
+  #   needs: [extract-version, publish-and-validate-test-pypi]
+  #   uses: ./.github/workflows/publish-and-validate.yml
+  #   with:
+  #     package_name: skypilot
+  #     expected_version: ${{ needs.extract-version.outputs.version }}
+  #     repository_type: 'pypi'
+  #   secrets: inherit
 
-  trigger-helm-release:
-    needs: [publish-and-validate-pypi]
-    uses: ./.github/workflows/helm-docker-release.yaml
-    with:
-      package_name: skypilot
-    secrets: inherit
+  # trigger-helm-release:
+  #   needs: [publish-and-validate-pypi]
+  #   uses: ./.github/workflows/helm-docker-release.yaml
+  #   with:
+  #     package_name: skypilot
+  #   secrets: inherit
 
   create-release:
-    needs: [extract-version, publish-and-validate-pypi]
+    needs: [extract-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
