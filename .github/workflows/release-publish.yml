@@ -176,13 +176,13 @@ jobs:
             --title "Release v$VERSION" \
             --notes-file release_prefix.md \
             --generate-notes \
-            --previous-tag "$PREVIOUS_TAG" \
+            --notes-start-tag "$PREVIOUS_TAG" \
             --draft
 
   cleanup-branches:
     needs: extract-version
     if: github.event.pull_request.merged == false && startsWith(github.head_ref, 'test_releases/')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latestg
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
