@@ -5904,13 +5904,7 @@ def local():
     '--context-name',
     type=str,
     required=False,
-    help='Name to use for the kubeconfig context. Defaults to "default". '
-    'Used with the ip list.')
-@click.option(
-    '--name',
-    type=str,
-    required=False,
-    help='Name of the cluster. Defaults to "skypilot". Used without ip list.')
+    help='Name to use for the kubeconfig context. Defaults to "default".')
 @click.option('--password',
               type=str,
               required=False,
@@ -5921,7 +5915,7 @@ def local():
 @_add_click_options(flags.COMMON_OPTIONS)
 @usage_lib.entrypoint
 def local_up(gpus: bool, ips: str, ssh_user: str, ssh_key_path: str,
-             cleanup: bool, context_name: Optional[str], name: Optional[str],
+             cleanup: bool, context_name: Optional[str],
              password: Optional[str], async_call: bool):
     """Creates a local or remote cluster."""
 
@@ -5968,26 +5962,17 @@ def local_up(gpus: bool, ips: str, ssh_user: str, ssh_key_path: str,
                 f'Failed to read SSH key file {ssh_key_path}: {str(e)}')
 
     request_id = sdk.local_up(gpus, ip_list, ssh_user, ssh_key, cleanup,
-                              context_name, name, password)
+                              context_name, password)
     _async_call_or_wait(request_id, async_call, request_name='local up')
 
 
-@click.option('--name',
-              type=str,
-              required=False,
-              help='Name of the cluster to down. Defaults to "skypilot".')
 @local.command('down', cls=_DocumentedCodeCommand)
 @flags.config_option(expose_value=False)
 @_add_click_options(flags.COMMON_OPTIONS)
 @usage_lib.entrypoint
-def local_down(name: Optional[str], async_call: bool):
-    """Deletes a local cluster.
-
-    This will only delete a local cluster started without the ip list.
-    To clean up the local cluster started with a ip list, use `sky local up`
-    with the cleanup flag.
-    """
-    request_id = sdk.local_down(name)
+def local_down(async_call: bool):
+    """Deletes a local cluster."""
+    request_id = sdk.local_down()
     _async_call_or_wait(request_id, async_call, request_name='sky.local.down')
 
 

@@ -661,14 +661,13 @@ async def local_up(
         ssh_key: Optional[str],
         cleanup: bool,
         context_name: Optional[str] = None,
-        name: Optional[str] = None,
         password: Optional[str] = None,
         stream_logs: Optional[StreamConfig] = DEFAULT_STREAM_CONFIG) -> None:
     """Async version of local_up() that launches a Kubernetes cluster on
     local machines."""
     request_id = await context_utils.to_thread(sdk.local_up, gpus, ips,
                                                ssh_user, ssh_key, cleanup,
-                                               context_name, name, password)
+                                               context_name, password)
     if stream_logs is not None:
         return await _stream_and_get(request_id, stream_logs)
     else:
@@ -678,11 +677,10 @@ async def local_up(
 @usage_lib.entrypoint
 @annotations.client_api
 async def local_down(
-        name: Optional[str] = None,
         stream_logs: Optional[StreamConfig] = DEFAULT_STREAM_CONFIG) -> None:
     """Async version of local_down() that tears down the Kubernetes cluster
     started by local_up."""
-    request_id = await context_utils.to_thread(sdk.local_down, name)
+    request_id = await context_utils.to_thread(sdk.local_down)
     if stream_logs is not None:
         return await _stream_and_get(request_id, stream_logs)
     else:

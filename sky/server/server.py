@@ -1427,13 +1427,12 @@ async def local_up(request: fastapi.Request,
 
 
 @app.post('/local_down')
-async def local_down(request: fastapi.Request,
-                     local_down_body: payloads.LocalDownBody) -> None:
+async def local_down(request: fastapi.Request) -> None:
     """Tears down the Kubernetes cluster started by local_up."""
     executor.schedule_request(
         request_id=request.state.request_id,
         request_name='local_down',
-        request_body=local_down_body,
+        request_body=payloads.RequestBody(),
         func=core.local_down,
         schedule_type=requests_lib.ScheduleType.LONG,
     )

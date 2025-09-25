@@ -1,19 +1,22 @@
 #!/bin/bash
 # Creates a local Kubernetes cluster using kind with optional GPU support
-# Usage: ./create_cluster.sh [name] [yaml_path] [--gpus]
+# Usage: ./create_cluster.sh [--gpus]
+# Invokes generate_kind_config.py to generate a kind-cluster.yaml with NodePort mappings
 set -e
 
 # Images
 IMAGE="us-central1-docker.pkg.dev/skypilot-375900/skypilotk8s/skypilot:latest"
 IMAGE_GPU="us-central1-docker.pkg.dev/skypilot-375900/skypilotk8s/skypilot-gpu:latest"
 
-# Arguments
-NAME=$1
-YAML_PATH=$2
+# Limit port range to speed up kind cluster creation
+PORT_RANGE_START=30000
+PORT_RANGE_END=30100
+
+USER_HASH=$1
 
 # Check for GPU flag
 ENABLE_GPUS=false
-if [[ "$3" == "--gpus" ]]; then
+if [[ "$2" == "--gpus" ]]; then
     ENABLE_GPUS=true
 fi
 
@@ -79,16 +82,28 @@ fi
 # ====== End of dependency checks =======
 
 # Check if the local cluster already exists
-if kind get clusters | grep -q $NAME; then
-    echo "Local cluster $NAME already exists. Exiting."
+if kind get clusters | grep -q skypilot; then
+    echo "Local cluster already exists. Exiting."
     # Switch context to the local cluster
-    kind export kubeconfig --name $NAME
-    kubectl config use-context kind-$NAME
+    kind export kubeconfig --name skypilot
+    kubectl config use-context kind-skypilot
     exit 100
 fi
 
-kind create cluster --config $YAML_PATH --name $NAME
-echo "Kind cluster $NAME created."
+# Generate cluster YAML
+YAML_PATH="/tmp/skypilot-kind-$USER_HASH.yaml"
+echo "Generating $YAML_PATH"
+
+# Add GPUs flag to the generate_kind_config.py command if GPUs are enabled
+if $ENABLE_GPUS; then
+    python -m sky.utils.kubernetes.generate_kind_config --path $YAML_PATH --port-start ${PORT_RANGE_START} --port-end ${PORT_RANGE_END} --gpus
+else
+  python -m sky.utils.kubernetes.generate_kind_config --path $YAML_PATH --port-start ${PORT_RANGE_START} --port-end ${PORT_RANGE_END}
+fi
+
+kind create cluster --config $YAML_PATH --name skypilot
+
+echo "Kind cluster created."
 
 # Function to wait for GPU operator to be correctly installed
 wait_for_gpu_operator_installation() {
@@ -142,7 +157,7 @@ if $ENABLE_GPUS; then
     echo "Enabling GPU support..."
     # Run patch for missing ldconfig.real
     # https://github.com/NVIDIA/nvidia-docker/issues/614#issuecomment-423991632
-    docker exec -ti $NAME-control-plane /bin/bash -c '[ ! -f /sbin/ldconfig.real ] && ln -s /sbin/ldconfig /sbin/ldconfig.real || echo "/sbin/ldconfig.real already exists"'
+    docker exec -ti skypilot-control-plane /bin/bash -c '[ ! -f /sbin/ldconfig.real ] && ln -s /sbin/ldconfig /sbin/ldconfig.real || echo "/sbin/ldconfig.real already exists"'
 
     echo "Installing NVIDIA GPU operator..."
     # Install the NVIDIA GPU operator
@@ -170,4 +185,4 @@ if $ENABLE_GPUS; then
         echo "GPU support is enabled. Run 'sky show-gpus --cloud kubernetes' to see the GPUs available on the cluster."
     fi
 fi
-echo "Number of CPUs available on the local cluster $NAME: $NUM_CPUS"
+echo "Number of CPUs available on the local cluster: $NUM_CPUS"
