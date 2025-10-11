@@ -280,6 +280,8 @@ def generate_kind_config(port_start: int,
 
     config = textwrap.dedent(f"""
     apiVersion: kind.x-k8s.io/v1alpha4
+    networking:
+      apiServerAddress: "172.23.208.138"
     kind: Cluster
     kubeadmConfigPatches:
     - |
@@ -540,3 +542,5 @@ def teardown_local_cluster(name: Optional[str] = None):
             ux_utils.finishing_message(f'Local cluster {name} removed.',
                                        log_path=log_path,
                                        is_local=True))
+
+sky launch -y -c t-long-setup-run-by-56 --infra kubernetes --cpus 2+ --memory 4+ /tmp/sky_app_gth57r_y.yaml

@@ -4789,7 +4789,7 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
             tail: int = 0,
             require_outputs: bool = False,
             stream_logs: bool = True,
-            process_stream: bool = False) -> Union[int, Tuple[int, str, str]]:
+            process_stream: bool = True) -> Union[int, Tuple[int, str, str]]:
         """Tail the logs of a job.
 
         Args:

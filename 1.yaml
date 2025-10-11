@@ -1,0 +1,70 @@
+file_mounts:
+  # Mounting public buckets for AWS
+  
+  /mount_public_s3:
+    source: s3://digitalcorpora
+    mode: MOUNT
+  
+
+  # Mounting public buckets for GCP
+  
+
+  
+
+  # Mounting private buckets in COPY mode with a source dir
+  /mount_private_copy:
+    name: sky-test-1760075331
+    source: ~/tmp-workdir
+    mode: COPY
+    store: nebius
+
+  # Mounting private buckets in COPY mode with a list of files as source
+  /mount_private_copy_lof:
+    name: sky-test-1760075331
+    source: ['~/tmp-workdir/tmp file', '~/tmp-workdir/tmp file2']
+    mode: COPY
+    store: nebius
+
+  # Mounting private buckets in MOUNT mode
+  /mount_private_mount:
+    name: sky-test-1760075331
+    source: ~/tmp-workdir
+    mode: MOUNT
+    store: nebius
+
+  # Mounting private buckets in MOUNT_CACHED mode
+  
+
+  # Mounting empty workdir
+  /mount_empty_workdir:
+    name: sky-test-empty-1760075331
+    source: ~/empty-workdir
+    mode: MOUNT
+    store: nebius
+
+run: |
+  set -ex
+
+  # Check public bucket contents
+  
+  ls -ltr /mount_public_s3/corpora
+  
+  
+  
+
+  # Check private bucket contents
+  ls -ltr /mount_private_copy/foo
+  ls -ltr /mount_private_copy/tmp\ file
+  ls -ltr /mount_private_copy_lof/tmp\ file
+  ls -ltr /mount_private_copy_lof/tmp\ file2
+  ls -ltr /mount_private_mount/foo
+  ls -ltr /mount_private_mount/tmp\ file
+
+  # Symlinks are not copied to buckets
+  ! ls /mount_private_copy/circle-link
+  ! ls /mount_private_mount/circle-link
+
+  # Write to private bucket in MOUNT mode should pass
+  echo "hello" > /mount_private_mount/hello.txt
+
+  
