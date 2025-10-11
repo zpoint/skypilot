@@ -81,19 +81,21 @@ def _get_context():
 
 def _handle_io_stream(io_stream, out_stream, args: _ProcessingArgs):
     """Process the stream of a process."""
+    from collections import deque
     import sys as sys_module
     import time as time_module
-    from collections import deque
-    
+
     start_time = time_module.time()
     line_count = 0
     lines_written_to_file = 0
     lines_printed_to_stdout = 0
     last_lines = deque(maxlen=20)
-    
-    print(f'[DEBUG _handle_io_stream] Starting, log_path={args.log_path}, stream_logs={args.stream_logs}, start_streaming_at="{args.start_streaming_at}"',
-          file=sys_module.stderr, flush=True)
-    
+
+    print(
+        f'[DEBUG _handle_io_stream] Starting, log_path={args.log_path}, stream_logs={args.stream_logs}, start_streaming_at="{args.start_streaming_at}"',
+        file=sys_module.stderr,
+        flush=True)
+
     out_io = io.TextIOWrapper(io_stream,
                               encoding='utf-8',
                               newline='',
@@ -113,16 +115,18 @@ def _handle_io_stream(io_stream, out_stream, args: _ProcessingArgs):
                 while True:
                     ctx = _get_context()
                     if ctx is not None and ctx.is_canceled():
-                        print(f'[DEBUG _handle_io_stream] Context cancelled after {line_count} lines',
-                              file=sys_module.stderr, flush=True)
+                        print(
+                            f'[DEBUG _handle_io_stream] Context cancelled after {line_count} lines',
+                            file=sys_module.stderr,
+                            flush=True)
                         return
                     line = out_io.readline()
                     if not line:
                         break
-                    
+
                     line_count += 1
                     last_lines.append(line.rstrip('\n')[:100])
-                    
+
                     # start_streaming_at logic in processor.process_line(line)
                     if args.replace_crlf and line.endswith('\r\n'):
                         # Replace CRLF with LF to avoid ray logging to the same
@@ -149,36 +153,45 @@ def _handle_io_stream(io_stream, out_stream, args: _ProcessingArgs):
                                   flush=True)
                             lines_printed_to_stdout += 1
                         except Exception as e:
-                            print(f'[DEBUG _handle_io_stream] Failed to print to stdout at line {line_count}: {e}',
-                                  file=sys_module.stderr, flush=True)
+                            print(
+                                f'[DEBUG _handle_io_stream] Failed to print to stdout at line {line_count}: {e}',
+                                file=sys_module.stderr,
+                                flush=True)
                     if args.log_path != '/dev/null':
                         fout.write(line)
                         # REMOVED: fout.flush() - only flush at the end for performance
                         lines_written_to_file += 1
                     line_processor.process_line(line)
                     out.append(line)
-                    
+
                     if line_count % 50000 == 0:
-                        print(f'[DEBUG _handle_io_stream] Processed {line_count} lines, written to file: {lines_written_to_file}, printed to stdout: {lines_printed_to_stdout}',
-                              file=sys_module.stderr, flush=True)
-                
+                        print(
+                            f'[DEBUG _handle_io_stream] Processed {line_count} lines, written to file: {lines_written_to_file}, printed to stdout: {lines_printed_to_stdout}',
+                            file=sys_module.stderr,
+                            flush=True)
+
                 # Flush at the end
                 if args.log_path != '/dev/null':
                     fout.flush()
-                    
+
     except Exception as e:
-        print(f'[DEBUG _handle_io_stream] Exception after {line_count} lines: {type(e).__name__}: {e}',
-              file=sys_module.stderr, flush=True)
+        print(
+            f'[DEBUG _handle_io_stream] Exception after {line_count} lines: {type(e).__name__}: {e}',
+            file=sys_module.stderr,
+            flush=True)
         raise
     finally:
         elapsed = time_module.time() - start_time
-        print(f'[DEBUG _handle_io_stream] Finished in {elapsed:.2f}s. Total lines read: {line_count}, written to file: {lines_written_to_file}, printed to stdout: {lines_printed_to_stdout}',
-              file=sys_module.stderr, flush=True)
+        print(
+            f'[DEBUG _handle_io_stream] Finished in {elapsed:.2f}s. Total lines read: {line_count}, written to file: {lines_written_to_file}, printed to stdout: {lines_printed_to_stdout}',
+            file=sys_module.stderr,
+            flush=True)
         print(f'[DEBUG _handle_io_stream] Last 20 lines read from subprocess:',
-              file=sys_module.stderr, flush=True)
+              file=sys_module.stderr,
+              flush=True)
         for i, line in enumerate(last_lines, 1):
             print(f'  line[{i}] {line}', file=sys_module.stderr, flush=True)
-        
+
     return ''.join(out)
 
 
@@ -241,7 +254,10 @@ def run_with_log(
     print('require_outputs:', require_outputs, file=sys.stderr, flush=True)
     print('process_stream:', process_stream, file=sys.stderr, flush=True)
     print('stream_logs:', stream_logs, file=sys.stderr, flush=True)
-    print('start_streaming_at:', start_streaming_at, file=sys.stderr, flush=True)
+    print('start_streaming_at:',
+          start_streaming_at,
+          file=sys.stderr,
+          flush=True)
     print('end_streaming_at:', end_streaming_at, file=sys.stderr, flush=True)
     print('skip_lines:', skip_lines, file=sys.stderr, flush=True)
     print('line_processor:', line_processor, file=sys.stderr, flush=True)
@@ -284,8 +300,14 @@ def run_with_log(
                           stdin=stdin,
                           **kwargs) as proc:
         try:
-            print(f'[DEBUG run_with_log] Subprocess created with PID {proc.pid}', file=sys.stderr, flush=True)
-            print(f'[DEBUG run_with_log] Command: {cmd if isinstance(cmd, str) else " ".join(cmd)}', file=sys.stderr, flush=True)
+            print(
+                f'[DEBUG run_with_log] Subprocess created with PID {proc.pid}',
+                file=sys.stderr,
+                flush=True)
+            print(
+                f'[DEBUG run_with_log] Command: {cmd if isinstance(cmd, str) else " ".join(cmd)}',
+                file=sys.stderr,
+                flush=True)
             subprocess_utils.kill_process_daemon(proc.pid)
             stdout = ''
             stderr = ''
@@ -336,7 +358,10 @@ def run_with_log(
                 #    stdout/stderr of current coroutine.
                 import time as time_module
                 pipe_start = time_module.time()
-                print(f'[DEBUG run_with_log] Calling pipe_and_wait_process at {pipe_start}', file=sys.stderr, flush=True)
+                print(
+                    f'[DEBUG run_with_log] Calling pipe_and_wait_process at {pipe_start}',
+                    file=sys.stderr,
+                    flush=True)
                 stdout, stderr = context_utils.pipe_and_wait_process(
                     ctx,
                     proc,
@@ -344,7 +369,10 @@ def run_with_log(
                     stdout_stream_handler=stdout_stream_handler,
                     stderr_stream_handler=stderr_stream_handler)
                 pipe_end = time_module.time()
-                print(f'[DEBUG run_with_log] pipe_and_wait_process returned at {pipe_end} (took {pipe_end - pipe_start:.2f}s)', file=sys.stderr, flush=True)
+                print(
+                    f'[DEBUG run_with_log] pipe_and_wait_process returned at {pipe_end} (took {pipe_end - pipe_start:.2f}s)',
+                    file=sys.stderr,
+                    flush=True)
             elif process_stream:
                 # When runs in a process, only process subprocess stream if
                 # necessary to avoid unnecessary stream handling overhead.
@@ -352,7 +380,10 @@ def run_with_log(
                     proc, stdout_stream_handler, stderr_stream_handler)
             # Ensure returncode is set.
             proc.wait()
-            print('proc.returncode:', proc.returncode, file=sys.stderr, flush=True)
+            print('proc.returncode:',
+                  proc.returncode,
+                  file=sys.stderr,
+                  flush=True)
             print('stdout:', stdout, file=sys.stderr, flush=True)
             print('stderr:', stderr, file=sys.stderr, flush=True)
             if require_outputs:

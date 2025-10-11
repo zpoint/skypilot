@@ -1,15 +1,15 @@
 file_mounts:
   # Mounting public buckets for AWS
-  
+
   /mount_public_s3:
     source: s3://digitalcorpora
     mode: MOUNT
-  
+
 
   # Mounting public buckets for GCP
-  
 
-  
+
+
 
   # Mounting private buckets in COPY mode with a source dir
   /mount_private_copy:
@@ -33,7 +33,7 @@ file_mounts:
     store: nebius
 
   # Mounting private buckets in MOUNT_CACHED mode
-  
+
 
   # Mounting empty workdir
   /mount_empty_workdir:
@@ -46,11 +46,11 @@ run: |
   set -ex
 
   # Check public bucket contents
-  
+
   ls -ltr /mount_public_s3/corpora
-  
-  
-  
+
+
+
 
   # Check private bucket contents
   ls -ltr /mount_private_copy/foo
@@ -66,5 +66,3 @@ run: |
 
   # Write to private bucket in MOUNT mode should pass
   echo "hello" > /mount_private_mount/hello.txt
-
-  

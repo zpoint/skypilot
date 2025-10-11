@@ -161,8 +161,9 @@ async def _tail_log_file(
     flush_count = 0
     total_bytes_sent = 0
 
-    logger.info(f'[DEBUG _tail_log_file] Starting with BUFFER_SIZE={_BUFFER_SIZE}, '
-                f'BUFFER_TIMEOUT={_BUFFER_TIMEOUT}, follow={follow}')
+    logger.info(
+        f'[DEBUG _tail_log_file] Starting with BUFFER_SIZE={_BUFFER_SIZE}, '
+        f'BUFFER_TIMEOUT={_BUFFER_TIMEOUT}, follow={follow}')
 
     async def flush_buffer() -> AsyncGenerator[str, None]:
         nonlocal buffer, buffer_bytes, last_flush_time, flush_count, total_bytes_sent
@@ -173,8 +174,9 @@ async def _tail_log_file(
             total_bytes_sent += chunk_size
             if flush_count % 10 == 0:
                 elapsed = asyncio.get_event_loop().time() - start_time
-                logger.info(f'[DEBUG _tail_log_file] Flushed {flush_count} chunks, '
-                           f'{total_bytes_sent} bytes in {elapsed:.2f}s')
+                logger.info(
+                    f'[DEBUG _tail_log_file] Flushed {flush_count} chunks, '
+                    f'{total_bytes_sent} bytes in {elapsed:.2f}s')
             yield chunk
             buffer.clear()
             buffer_bytes = 0
@@ -268,10 +270,11 @@ async def _tail_log_file(
     # Flush remaining lines in the buffer.
     async for chunk in flush_buffer():
         yield chunk
-    
+
     elapsed = asyncio.get_event_loop().time() - start_time
-    logger.info(f'[DEBUG _tail_log_file] Finished. Total flushes: {flush_count}, '
-                f'total bytes: {total_bytes_sent}, elapsed: {elapsed:.2f}s')
+    logger.info(
+        f'[DEBUG _tail_log_file] Finished. Total flushes: {flush_count}, '
+        f'total bytes: {total_bytes_sent}, elapsed: {elapsed:.2f}s')
 
 
 def stream_response_for_long_request(

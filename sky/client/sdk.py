@@ -154,25 +154,37 @@ def stream_response(request_id: Optional[server_common.RequestId[T]],
                     print(line, flush=True, end='', file=output_stream)
                     retry_context.line_processed = line_count
                     lines_printed += 1
-        
+
         import sys
-        print(f'[DEBUG stream_response] Received {line_count} lines, printed {lines_printed} lines',
-              file=sys.stderr, flush=True)
-        
+        print(
+            f'[DEBUG stream_response] Received {line_count} lines, printed {lines_printed} lines',
+            file=sys.stderr,
+            flush=True)
+
         # Check what's in the output file
         if output_stream is not None and hasattr(output_stream, 'name'):
             try:
                 import subprocess
                 result = subprocess.run(['tail', '-10', output_stream.name],
-                                      capture_output=True, text=True, timeout=2)
+                                        capture_output=True,
+                                        text=True,
+                                        timeout=2)
                 if result.returncode == 0:
-                    print(f'[DEBUG stream_response] Last 10 lines in output file {output_stream.name}:',
-                          file=sys.stderr, flush=True)
-                    for i, line in enumerate(result.stdout.strip().split('\n')[-10:], 1):
-                        print(f'  [{i}] {line[:100]}', file=sys.stderr, flush=True)
+                    print(
+                        f'[DEBUG stream_response] Last 10 lines in output file {output_stream.name}:',
+                        file=sys.stderr,
+                        flush=True)
+                    for i, line in enumerate(
+                            result.stdout.strip().split('\n')[-10:], 1):
+                        print(f'  [{i}] {line[:100]}',
+                              file=sys.stderr,
+                              flush=True)
             except Exception as e:
-                print(f'[DEBUG stream_response] Could not read output file: {e}', file=sys.stderr, flush=True)
-        
+                print(
+                    f'[DEBUG stream_response] Could not read output file: {e}',
+                    file=sys.stderr,
+                    flush=True)
+
         if request_id is not None and get_result:
             return get(request_id)
         else:

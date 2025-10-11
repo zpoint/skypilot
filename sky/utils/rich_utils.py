@@ -296,7 +296,7 @@ def decode_rich_status(
     chunk_count = 0
     total_bytes = 0
     line_count = 0
-    
+
     decoding_status = None
     try:
         last_line = ''
@@ -311,8 +311,10 @@ def decode_rich_status(
             if chunk is not None:
                 total_bytes += len(chunk)
                 if chunk_count % 100 == 0:
-                    print(f'[DEBUG decode_rich_status] Received {chunk_count} chunks, {total_bytes} bytes, yielded {line_count} lines',
-                          file=sys.stderr, flush=True)
+                    print(
+                        f'[DEBUG decode_rich_status] Received {chunk_count} chunks, {total_bytes} bytes, yielded {line_count} lines',
+                        file=sys.stderr,
+                        flush=True)
             if chunk is None:
                 return
 
@@ -380,11 +382,13 @@ def decode_rich_status(
                     line_count += 1
                     yield line
                     continue
-                
+
                 # This line is a control message - NOT yielding it
                 if line_count > 0 and line_count % 50000 == 0:
-                    print(f'[DEBUG decode_rich_status] Skipped control message at line {line_count}, control={control}',
-                          file=sys.stderr, flush=True)
+                    print(
+                        f'[DEBUG decode_rich_status] Skipped control message at line {line_count}, control={control}',
+                        file=sys.stderr,
+                        flush=True)
 
                 if control == Control.RETRY:
                     raise exceptions.RequestInterruptedError(
@@ -414,15 +418,21 @@ def decode_rich_status(
                         # Heartbeat is not displayed to the user, so we do not
                         # need to update the status.
                         pass
-        
-        print(f'[DEBUG decode_rich_status] Finished. Total chunks: {chunk_count}, bytes: {total_bytes}, lines yielded: {line_count}',
-              file=sys.stderr, flush=True)
+
+        print(
+            f'[DEBUG decode_rich_status] Finished. Total chunks: {chunk_count}, bytes: {total_bytes}, lines yielded: {line_count}',
+            file=sys.stderr,
+            flush=True)
     except Exception as e:
-        print(f'[DEBUG decode_rich_status] Exception after {chunk_count} chunks, {line_count} lines: {type(e).__name__}: {e}',
-              file=sys.stderr, flush=True)
+        print(
+            f'[DEBUG decode_rich_status] Exception after {chunk_count} chunks, {line_count} lines: {type(e).__name__}: {e}',
+            file=sys.stderr,
+            flush=True)
         # Print what was in the last few chunks to debug
-        print(f'[DEBUG decode_rich_status] Last line buffer state: {last_line[:200] if last_line else "empty"}',
-              file=sys.stderr, flush=True)
+        print(
+            f'[DEBUG decode_rich_status] Last line buffer state: {last_line[:200] if last_line else "empty"}',
+            file=sys.stderr,
+            flush=True)
         raise
     finally:
         if decoding_status is not None:

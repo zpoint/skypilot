@@ -46,5 +46,3 @@ echo ""
 echo "Expected ~501,605 lines based on server logs"
 echo "Actual lines received: $LINE_COUNT"
 echo "Missing lines: $((501605 - LINE_COUNT))"
-
-
