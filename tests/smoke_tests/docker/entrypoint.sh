@@ -93,6 +93,9 @@ if [ ! -d "/skypilot" ]; then
     exit 1
 fi
 
+# Execute the hash regeneration function
+regenerate_user_hash
+
 cd /skypilot
 uv pip uninstall skypilot
 uv pip install --prerelease=allow "azure-cli>=2.65.0"
@@ -101,9 +104,6 @@ uv pip install -e ".[all]"
 sky api start
 sky check
 sky api stop
-
-# Execute the hash regeneration function
-regenerate_user_hash
 
 # Create a temporary file to initialize only once
 touch $HOME/TEMP_FILE_FOR_TEST
