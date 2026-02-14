@@ -611,6 +611,12 @@ function createPluginApi(dispatch) {
         normalizeUrl: normalizeUrlForHistory,
       };
     },
+    getComponents() {
+      // Lazy import to avoid circular dependencies.
+      // This dynamically provides all components from the ui directory.
+      // eslint-disable-next-line no-undef
+      return require('@/components/ui');
+    },
     registerDataProvider(config) {
       if (!config?.id) {
         console.warn(
