@@ -1458,11 +1458,15 @@ def test_kubernetes_context_failover(unreachable_context):
                 f'sky logs {name}-1 --status',
                 # It should be launched not on kind-skypilot
                 f'sky status -v {name}-1 | grep "{context}"',
+                f'sky exec {name}-1 ls /home/sky/.kube',
+                f"sky logs {name}-1 2 | grep \"'/home/sky/.kube': No such file or directory\"",
                 # Test failure for launching H100 on other cluster
                 f'sky launch -y -c {name}-2 --gpus H100 --cpus 1 --infra kubernetes/{context} echo hi && exit 1 || true',
                 # Test failover
                 f'sky launch -y -c {name}-3 --gpus H100 --cpus 1 --infra kubernetes echo hi',
                 f'sky logs {name}-3 --status',
+                f'sky exec {name}-3 ls /home/sky/.kube',
+                f"sky logs {name}-3 2 | grep \"'/home/sky/.kube': No such file or directory\"",
                 # Test pods
                 f'kubectl get pods --context kind-skypilot | grep "{name}-3"',
                 # It should be launched on kind-skypilot
@@ -1477,6 +1481,8 @@ def test_kubernetes_context_failover(unreachable_context):
                 f'sky launch -y -c {name}-4 --gpus H100 --cpus 1 --infra kubernetes/{unreachable_context} echo hi && exit 1 || true',
                 # Test failover from unreachable context
                 f'sky launch -y -c {name}-5 --cpus 1 --infra kubernetes echo hi',
+                f'sky exec {name}-5 ls /home/sky/.kube',
+                f"sky logs {name}-5 2 | grep \"'/home/sky/.kube': No such file or directory\"",
                 # switch back to kind-skypilot where GPU cluster is launched
                 f'kubectl config use-context kind-skypilot',
                 # test if sky status-kubernetes shows H100
@@ -1535,10 +1541,11 @@ def test_kubernetes_get_nodes():
 def test_kubernetes_slurm_show_gpus(generic_cloud: str):
     assert generic_cloud in ('kubernetes', 'slurm')
 
-    test = smoke_tests_utils.Test(
-        'kubernetes_show_gpus',
-        [(
-            f's=$(SKYPILOT_DEBUG=0 sky gpus list --infra {generic_cloud}) && '
+    def _gpu_check(verbose: bool) -> str:
+        verbose_flag = ' -v' if verbose else ''
+        # NOTE: For now, -v is a NOP for Kubernetes.
+        return (
+            f's=$(SKYPILOT_DEBUG=0 sky gpus list --infra {generic_cloud}{verbose_flag}) && '
             'echo "$s" && '
             # Verify either:
             # 1. We have at least one GPU entry with utilization info
@@ -1549,7 +1556,12 @@ def test_kubernetes_slurm_show_gpus(generic_cloud: str):
             '(echo "$s" | grep -A 1 "REQUESTABLE_QTY_PER_NODE" | '
             'grep -E "^[A-Z0-9]+[[:space:]]+[0-9, ]+[[:space:]]+[0-9]+ of [0-9]+ free" || '
             f'echo "$s" | grep "No GPUs found in any {generic_cloud.capitalize()} clusters")'
-        )],
+        )
+
+    test = smoke_tests_utils.Test(
+        'kubernetes_show_gpus',
+        [_gpu_check(verbose=False),
+         _gpu_check(verbose=True)],
     )
     smoke_tests_utils.run_one_test(test)
 
