@@ -801,7 +801,14 @@ def pre_init(namespace: str, context: Optional[str], new_nodes: List) -> None:
 
     check_k8s_user_sudo_cmd = (
         'if [ $(id -u) -eq 0 ]; then'
-        # If user is root, create an alias for sudo used in skypilot setup
+        # If user is root and sudo is not installed, create a wrapper script
+        # so that commands using `sudo` work in all contexts (interactive
+        # shells, non-interactive scripts, sky exec, etc.).  A simple alias
+        # in ~/.bashrc only works in interactive shells.
+        '  if ! command -v sudo >/dev/null 2>&1; then'
+        '    printf \'#!/bin/sh\\nexec "$@"\\n\' > /usr/local/bin/sudo;'
+        '    chmod +x /usr/local/bin/sudo;'
+        '  fi;'
         '  echo \'alias sudo=""\' >> ~/.bashrc; echo succeed;'
         'else '
         '  if command -v sudo >/dev/null 2>&1; then '
