@@ -1211,7 +1211,7 @@ def test_add_and_remove_pod_annotations_with_autostop():
             # Get names of the pods containing cluster name.
             smoke_tests_utils.run_cloud_cmd_on_cluster(
                 name,
-                f'pod_1=$(kubectl get pods -o name | grep {name} | sed -n 1p) && '
+                f'pod_1=$(kubectl get pods -o name | grep {name} | grep -v cloud-cmd | sed -n 1p) && '
                 # Describe the first pod and check for annotations.
                 'pod_tag=$(kubectl describe $pod_1); echo "$pod_tag"; echo "$pod_tag" | grep -q skypilot.co/autodown && '
                 'pod_tag=$(kubectl describe $pod_1); echo "$pod_tag"; echo "$pod_tag" | grep -q skypilot.co/idle_minutes_to_autostop',
@@ -1219,7 +1219,7 @@ def test_add_and_remove_pod_annotations_with_autostop():
             # Describe the second pod and check for annotations.
             smoke_tests_utils.run_cloud_cmd_on_cluster(
                 name,
-                f'pod_2=$(kubectl get pods -o name | grep {name} | sed -n 2p) && '
+                f'pod_2=$(kubectl get pods -o name | grep {name} | grep -v cloud-cmd | sed -n 2p) && '
                 'pod_tag=$(kubectl describe $pod_2); echo "$pod_tag"; echo "$pod_tag" | grep -q skypilot.co/autodown && '
                 'pod_tag=$(kubectl describe $pod_2); echo "$pod_tag"; echo "$pod_tag" | grep -q skypilot.co/idle_minutes_to_autostop'
             ),
@@ -1228,14 +1228,14 @@ def test_add_and_remove_pod_annotations_with_autostop():
             # Describe the first pod and check if annotations are removed.
             smoke_tests_utils.run_cloud_cmd_on_cluster(
                 name,
-                f'pod_1=$(kubectl get pods -o name | grep {name} | sed -n 1p) && '
+                f'pod_1=$(kubectl get pods -o name | grep {name} | grep -v cloud-cmd | sed -n 1p) && '
                 'pod_tag=$(kubectl describe $pod_1); echo "$pod_tag"; ! echo "$pod_tag" | grep -q skypilot.co/autodown && '
                 'pod_tag=$(kubectl describe $pod_1); echo "$pod_tag"; ! echo "$pod_tag" | grep -q skypilot.co/idle_minutes_to_autostop',
             ),
             # Describe the second pod and check if annotations are removed.
             smoke_tests_utils.run_cloud_cmd_on_cluster(
                 name,
-                f'pod_2=$(kubectl get pods -o name | grep {name} | sed -n 2p) && '
+                f'pod_2=$(kubectl get pods -o name | grep {name} | grep -v cloud-cmd | sed -n 2p) && '
                 'pod_tag=$(kubectl describe $pod_2); echo "$pod_tag"; ! echo "$pod_tag" | grep -q skypilot.co/autodown && '
                 'pod_tag=$(kubectl describe $pod_2); echo "$pod_tag"; ! echo "$pod_tag" | grep -q skypilot.co/idle_minutes_to_autostop',
             ),
