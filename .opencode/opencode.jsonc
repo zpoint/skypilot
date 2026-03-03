@@ -1,0 +1,6 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "~/.claude/projects/-Users-zpoint-dalang-Desktop-skypilot/memory/MEMORY.md"
+  ]
+}
