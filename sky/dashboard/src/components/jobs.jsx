@@ -326,12 +326,11 @@ export function ManagedJobs() {
   // Helper function to update URL query parameters
   const updateURLParams = (filters) => {
     sharedUpdateURLParams(router, filters);
-    // Track each active filter for analytics
-    (filters || []).forEach((f) => {
-      if (f.property && f.value) {
-        trackFilterUsed('job', { property: f.property, value: f.value });
-      }
-    });
+  };
+
+  // Track only the newly added filter (called from FilterDropdown callbacks)
+  const trackNewFilter = (property, value) => {
+    trackFilterUsed('job', { property, value });
   };
 
   const updateFiltersByURLParams = React.useCallback(() => {
@@ -373,6 +372,7 @@ export function ManagedJobs() {
             valueList={valueList}
             setFilters={setFilters}
             updateURLParams={updateURLParams}
+            onFilterAdd={trackNewFilter}
             placeholder="Filter jobs"
           />
         </div>
