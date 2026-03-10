@@ -6,7 +6,7 @@
  */
 import posthog from 'posthog-js';
 
-const POSTHOG_API_KEY = 'phc_NP0EO5Koq1dWqXEHwR14Po7bVqqtAdWINXiWypKU6H7';
+const POSTHOG_API_KEY = 'phc_QHyDrOac26TKUEYArlailR2EDe8xOCg2Vb4kjzdoADi';
 const POSTHOG_HOST = 'https://us.i.posthog.com';
 
 let _initialized = false;

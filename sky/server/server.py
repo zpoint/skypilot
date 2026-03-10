@@ -648,29 +648,40 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
     # Content-Security-Policy directives:
     # - default-src 'self': Only allow resources from the same origin
-    # - script-src 'self' 'unsafe-inline': Allow same-origin scripts and
-    #   inline scripts (needed for Next.js __NEXT_DATA__)
+    # - script-src 'self' 'unsafe-inline' https://*.posthog.com
+    #   https://us-assets.i.posthog.com: Allow same-origin scripts,
+    #   inline scripts (needed for Next.js __NEXT_DATA__), and PostHog
+    #   dynamically loaded scripts (surveys, session recording, etc.).
     # - style-src 'self' 'unsafe-inline': Allow same-origin styles and
     #   inline styles (needed for MUI/Emotion dynamic style injection)
     # - font-src 'self': Only allow same-origin fonts
-    # - connect-src 'self': Only allow same-origin fetch/XHR/WebSocket
+    # - connect-src 'self' https://*.posthog.com https://us.i.posthog.com:
+    #   Allow same-origin fetch/XHR/WebSocket and PostHog analytics.
+    #   TODO: Once the Cloudflare reverse proxy (usage-v3.skypilot.co) is
+    #   configured, replace these PostHog domains with
+    #   https://usage-v3.skypilot.co.
+    # - worker-src 'self' blob:: Allow same-origin workers and blob
+    #   workers (needed by PostHog session recording).
     # - frame-src 'self': Allow same-origin iframes (for Grafana panels)
     # - img-src 'self' data:: Allow same-origin images and data URIs
     # - object-src 'none': Block all plugin content (Flash, Java, etc.)
     # - base-uri 'self': Restrict <base> element to same origin
     # - form-action 'self': Restrict form submissions to same origin
     # - frame-ancestors 'self': Prevent clickjacking via framing
-    _CSP_POLICY = ('default-src \'self\'; '
-                   'script-src \'self\' \'unsafe-inline\'; '
-                   'style-src \'self\' \'unsafe-inline\'; '
-                   'font-src \'self\'; '
-                   'connect-src \'self\'; '
-                   'frame-src \'self\'; '
-                   'img-src \'self\' data:; '
-                   'object-src \'none\'; '
-                   'base-uri \'self\'; '
-                   'form-action \'self\'; '
-                   'frame-ancestors \'self\'')
+    _CSP_POLICY = (
+        'default-src \'self\'; '
+        'script-src \'self\' \'unsafe-inline\' '
+        'https://*.posthog.com https://us-assets.i.posthog.com; '
+        'style-src \'self\' \'unsafe-inline\'; '
+        'font-src \'self\'; '
+        'connect-src \'self\' https://*.posthog.com https://us.i.posthog.com; '
+        'worker-src \'self\' blob:; '
+        'frame-src \'self\'; '
+        'img-src \'self\' data:; '
+        'object-src \'none\'; '
+        'base-uri \'self\'; '
+        'form-action \'self\'; '
+        'frame-ancestors \'self\'')
 
     async def dispatch(self, request: fastapi.Request, call_next):
         response = await call_next(request)
