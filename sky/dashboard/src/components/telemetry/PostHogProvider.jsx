@@ -33,15 +33,11 @@ export default function PostHogProvider({ children }) {
     identified.current = true;
 
     const identify = async () => {
-      // Fetch health first to check opt-out before any other analytics calls.
+      // Fetch health for deployment metadata.
       try {
         const res = await fetch(`${ENDPOINT}/api/health`);
         if (res.ok) {
           const data = await res.json();
-          if (data.usage_collection_disabled) {
-            optOut();
-            return;
-          }
           registerDeployment({
             sky_version: data.version || 'unknown',
             api_version: data.api_version || 'unknown',
@@ -51,10 +47,16 @@ export default function PostHogProvider({ children }) {
         // Ignore – analytics should never break the app
       }
 
+      // Fetch user role; also carries the telemetry opt-out signal.
       try {
         const res = await fetch(`${ENDPOINT}/users/role`);
         if (!res.ok) return;
         const data = await res.json();
+        // Use strict === false so older servers (without the field) don't opt out.
+        if (data.telemetry_enabled === false) {
+          optOut();
+          return;
+        }
         const userHash = data.id || 'anonymous';
         const username = data.name || '';
         identifyUser(userHash, username);
