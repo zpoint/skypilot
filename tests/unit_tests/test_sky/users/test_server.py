@@ -236,19 +236,25 @@ class TestUsersEndpoints:
         assert result == {'id': 'test_user', 'name': 'Test User', 'role': ''}
         mock_get_user_roles.assert_called_once_with('test_user')
 
+    @mock.patch('sky.utils.common_utils.get_local_user_name')
+    @mock.patch('sky.utils.common_utils.get_user_hash')
     @pytest.mark.asyncio
-    async def test_get_current_user_role_no_auth_user(self, mock_request):
+    async def test_get_current_user_role_no_auth_user(self, mock_get_user_hash,
+                                                      mock_get_local_user_name,
+                                                      mock_request):
         """Test GET /users/role endpoint with no authenticated user."""
         # Setup
         mock_request.state.auth_user = None
+        mock_get_user_hash.return_value = 'ab12cd34'
+        mock_get_local_user_name.return_value = 'localuser'
 
         # Execute
         result = server.get_current_user_role(mock_request)
 
-        # Verify - should return admin role when no auth user
+        # Verify - should return stable identity with admin role
         assert result == {
-            'id': '',
-            'name': '',
+            'id': 'ab12cd34',
+            'name': 'localuser',
             'role': rbac.RoleName.ADMIN.value
         }
 

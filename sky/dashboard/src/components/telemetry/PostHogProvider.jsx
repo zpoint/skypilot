@@ -55,8 +55,8 @@ export default function PostHogProvider({ children }) {
         const res = await fetch(`${ENDPOINT}/users/role`);
         if (!res.ok) return;
         const data = await res.json();
-        const userHash = data.user_hash || data.user_id || 'anonymous';
-        const username = data.username || data.user || '';
+        const userHash = data.id || 'anonymous';
+        const username = data.name || '';
         identifyUser(userHash, username);
       } catch {
         // Ignore
