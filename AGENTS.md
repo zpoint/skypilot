@@ -333,6 +333,8 @@ sky api start
 
 **For remote API server (Docker/Kubernetes)**, the Dockerfile automatically builds the dashboard - no manual build needed before `docker build`.
 
+**Analytics route patterns**: When adding new dashboard routes with dynamic segments (e.g., `/foo/[id]`), update the `ROUTE_PATTERNS` constant in `sky/dashboard/src/lib/analytics.js` so pageview paths are normalized correctly.
+
 The dashboard is a Next.js application. For development with hot reloading:
 
 ```bash

@@ -77,7 +77,10 @@ export function registerDeployment(properties) {
 
 // ── Path Normalization ──────────────────────────────────────────────────────
 
-// Route patterns for normalization (order matters - more specific first)
+// ⚠️  IMPORTANT: Keep this list in sync with dashboard routes!
+// When adding a new route with dynamic segments to sky/dashboard/src/pages/,
+// add a corresponding pattern here so analytics paths are normalized correctly.
+// Order matters — more specific patterns must come before less specific ones.
 const ROUTE_PATTERNS = [
   // Jobs: /jobs/pools/[pool] (must be before /jobs/[job]/[task])
   [/^\/jobs\/pools\/[^/]+$/, '/jobs/pools/[pool]'],
