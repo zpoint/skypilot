@@ -70,13 +70,18 @@ export default function PostHogProvider({ children }) {
     identify();
   }, []);
 
-  // Track page views on route changes (only after PostHog is initialized).
+  // Fire the initial page view exactly once, when PostHog becomes ready.
+  const initialTracked = useRef(false);
+  useEffect(() => {
+    if (!ready || initialTracked.current) return;
+    initialTracked.current = true;
+    trackPageView(router.asPath);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Track subsequent page views via routeChangeComplete.
+  // router.events is a stable singleton so we only need to bind once.
   useEffect(() => {
     if (!ready) return;
-
-    // Track the initial page view once ready.
-    trackPageView(router.asPath);
-
     const handleRouteChange = (url) => {
       trackPageView(url);
     };
@@ -84,7 +89,7 @@ export default function PostHogProvider({ children }) {
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
-  }, [router, ready]);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return children;
 }

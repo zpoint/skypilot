@@ -5,6 +5,7 @@
  * calling optOut() when the server reports that usage collection is disabled.
  */
 import posthog from 'posthog-js';
+import { BASE_PATH } from '@/data/connectors/constants';
 
 const POSTHOG_API_KEY = 'phc_QHyDrOac26TKUEYArlailR2EDe8xOCg2Vb4kjzdoADi';
 const POSTHOG_HOST = 'https://usage-v3.skypilot.co';
@@ -112,12 +113,20 @@ const ROUTE_PATTERNS = [
  * @returns {string} The normalized path
  */
 export function normalizePath(path) {
+  // Strip the basePath prefix (e.g. "/dashboard") before matching.
+  // router.asPath omits it, but routeChangeComplete includes it.
+  const stripped =
+    BASE_PATH && path.startsWith(BASE_PATH)
+      ? path.slice(BASE_PATH.length) || '/'
+      : path;
   for (const [pattern, normalized] of ROUTE_PATTERNS) {
-    if (pattern.test(path)) {
-      return typeof normalized === 'function' ? normalized(path) : normalized;
+    if (pattern.test(stripped)) {
+      return typeof normalized === 'function'
+        ? normalized(stripped)
+        : normalized;
     }
   }
-  return path;
+  return stripped;
 }
 
 // ── Pageviews ───────────────────────────────────────────────────────────────
