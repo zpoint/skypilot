@@ -22,18 +22,17 @@ export default function PostHogProvider({ children }) {
   const router = useRouter();
   const identified = useRef(false);
 
-  // Initialize PostHog once on mount
-  useEffect(() => {
-    initPostHog();
-  }, []);
-
-  // Identify user and register deployment metadata
+  // Initialize PostHog only after confirming telemetry is enabled, then
+  // identify the user and register deployment metadata.
   useEffect(() => {
     if (identified.current) return;
     identified.current = true;
 
     const identify = async () => {
       // Fetch health (verbose) for deployment metadata and telemetry opt-out.
+      // We must check this BEFORE calling initPostHog() so that no events
+      // are sent when telemetry is disabled.
+      let deploymentData = null;
       try {
         const res = await fetch(`${ENDPOINT}/api/health?verbose=1`);
         if (res.ok) {
@@ -43,13 +42,20 @@ export default function PostHogProvider({ children }) {
             optOut();
             return;
           }
-          registerDeployment({
-            sky_version: data.version || 'unknown',
-            api_version: data.api_version || 'unknown',
-          });
+          deploymentData = data;
         }
       } catch {
         // Ignore – analytics should never break the app
+      }
+
+      // Telemetry is allowed – now initialize PostHog.
+      initPostHog();
+
+      if (deploymentData) {
+        registerDeployment({
+          sky_version: deploymentData.version || 'unknown',
+          api_version: deploymentData.api_version || 'unknown',
+        });
       }
 
       // Fetch user role for identification.
