@@ -7,7 +7,7 @@
 import posthog from 'posthog-js';
 
 const POSTHOG_API_KEY = 'phc_QHyDrOac26TKUEYArlailR2EDe8xOCg2Vb4kjzdoADi';
-const POSTHOG_HOST = 'https://us.i.posthog.com';
+const POSTHOG_HOST = 'https://usage-v3.skypilot.co';
 
 let _initialized = false;
 let _optedOut = false;

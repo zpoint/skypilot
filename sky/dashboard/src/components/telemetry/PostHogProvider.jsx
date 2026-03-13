@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   initPostHog,
@@ -21,6 +21,7 @@ import { ENDPOINT } from '@/data/connectors/constants';
 export default function PostHogProvider({ children }) {
   const router = useRouter();
   const identified = useRef(false);
+  const [ready, setReady] = useState(false);
 
   // Initialize PostHog only after confirming telemetry is enabled, then
   // identify the user and register deployment metadata.
@@ -56,38 +57,34 @@ export default function PostHogProvider({ children }) {
           sky_version: deploymentData.version || 'unknown',
           api_version: deploymentData.api_version || 'unknown',
         });
+        const user = deploymentData.user;
+        const userHash = (user && user.id) || 'anonymous';
+        const username = (user && user.name) || '';
+        identifyUser(userHash, username);
       }
 
-      // Fetch user role for identification.
-      try {
-        const res = await fetch(`${ENDPOINT}/users/role`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const userHash = data.id || 'anonymous';
-        const username = data.name || '';
-        identifyUser(userHash, username);
-      } catch {
-        // Ignore
-      }
+      // Signal that PostHog is ready so page views can start.
+      setReady(true);
     };
 
     identify();
   }, []);
 
-  // Track page views on route changes
+  // Track page views on route changes (only after PostHog is initialized).
   useEffect(() => {
+    if (!ready) return;
+
+    // Track the initial page view once ready.
+    trackPageView(router.asPath);
+
     const handleRouteChange = (url) => {
       trackPageView(url);
     };
-
-    // Track the initial page view
-    trackPageView(router.asPath);
-
     router.events.on('routeChangeComplete', handleRouteChange);
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
-  }, [router]);
+  }, [router, ready]);
 
   return children;
 }
