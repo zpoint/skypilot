@@ -99,6 +99,42 @@ describe('registerDeployment', () => {
       sky_version: '1.0',
     });
   });
+
+  test('registers plugin super properties when plugins active', () => {
+    analytics.initPostHog();
+    analytics.registerDeployment({
+      sky_version: '1.0',
+      api_version: '2',
+      active_plugins: ['sidebar', 'cron'],
+      plugin_count: 2,
+    });
+
+    expect(posthog.register).toHaveBeenCalledWith({
+      source: 'dashboard',
+      sky_version: '1.0',
+      api_version: '2',
+      active_plugins: ['sidebar', 'cron'],
+      plugin_count: 2,
+    });
+  });
+
+  test('registers empty plugin properties when no plugins', () => {
+    analytics.initPostHog();
+    analytics.registerDeployment({
+      sky_version: '1.0',
+      api_version: '2',
+      active_plugins: [],
+      plugin_count: 0,
+    });
+
+    expect(posthog.register).toHaveBeenCalledWith({
+      source: 'dashboard',
+      sky_version: '1.0',
+      api_version: '2',
+      active_plugins: [],
+      plugin_count: 0,
+    });
+  });
 });
 
 describe('trackPageView', () => {

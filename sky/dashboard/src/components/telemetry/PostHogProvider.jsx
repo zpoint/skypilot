@@ -78,10 +78,28 @@ export default function PostHogProvider({ children }) {
       // Telemetry is allowed – now initialize PostHog.
       initPostHog();
 
+      // Fetch active plugins to tag every event with plugin metadata.
+      let pluginNames = [];
+      try {
+        const pluginsRes = await fetch(`${ENDPOINT}/api/plugins`);
+        if (pluginsRes.ok) {
+          const pluginsData = await pluginsRes.json();
+          if (pluginsData && Array.isArray(pluginsData.plugins)) {
+            pluginNames = pluginsData.plugins
+              .map((p) => p.name)
+              .filter(Boolean);
+          }
+        }
+      } catch {
+        // Ignore – analytics should never break the app
+      }
+
       if (deploymentData) {
         registerDeployment({
           sky_version: deploymentData.version || 'unknown',
           api_version: deploymentData.api_version || 'unknown',
+          active_plugins: pluginNames,
+          plugin_count: pluginNames.length,
         });
       }
 
