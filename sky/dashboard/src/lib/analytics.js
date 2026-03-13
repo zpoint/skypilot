@@ -127,6 +127,7 @@ export function trackPageView(path, properties = {}) {
   const normalized = normalizePath(path);
   posthog.capture('$pageview', {
     $current_url: window.location.href,
+    $pathname: normalized,
     path: normalized,
     raw_path: path,
     ...properties,
