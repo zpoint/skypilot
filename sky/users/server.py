@@ -22,7 +22,6 @@ from sky.users import rbac
 from sky.users import token_service
 from sky.utils import common
 from sky.utils import common_utils
-from sky.utils import env_options
 from sky.utils import resource_checker
 
 logger = sky_logging.init_logger(__name__)
@@ -92,20 +91,17 @@ def get_current_user_role(request: fastapi.Request):
     # TODO(hailong): is there a reliable way to get the user
     # hash for the request without 'X-Auth-Request-Email' header?
     auth_user = request.state.auth_user
-    telemetry_enabled = not env_options.Options.DISABLE_LOGGING.get()
     if auth_user is None:
         return {
             'id': common_utils.get_user_hash(),
             'name': common_utils.get_local_user_name(),
             'role': rbac.RoleName.ADMIN.value,
-            'telemetry_enabled': telemetry_enabled,
         }
     user_roles = permission.permission_service.get_user_roles(auth_user.id)
     return {
         'id': auth_user.id,
         'name': auth_user.name,
         'role': user_roles[0] if user_roles else '',
-        'telemetry_enabled': telemetry_enabled,
     }
 
 

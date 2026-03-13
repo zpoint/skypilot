@@ -33,11 +33,16 @@ export default function PostHogProvider({ children }) {
     identified.current = true;
 
     const identify = async () => {
-      // Fetch health for deployment metadata.
+      // Fetch health (verbose) for deployment metadata and telemetry opt-out.
       try {
-        const res = await fetch(`${ENDPOINT}/api/health`);
+        const res = await fetch(`${ENDPOINT}/api/health?verbose=1`);
         if (res.ok) {
           const data = await res.json();
+          // Use strict === false so older servers (without the field) don't opt out.
+          if (data.telemetry_enabled === false) {
+            optOut();
+            return;
+          }
           registerDeployment({
             sky_version: data.version || 'unknown',
             api_version: data.api_version || 'unknown',
@@ -47,16 +52,11 @@ export default function PostHogProvider({ children }) {
         // Ignore – analytics should never break the app
       }
 
-      // Fetch user role; also carries the telemetry opt-out signal.
+      // Fetch user role for identification.
       try {
         const res = await fetch(`${ENDPOINT}/users/role`);
         if (!res.ok) return;
         const data = await res.json();
-        // Use strict === false so older servers (without the field) don't opt out.
-        if (data.telemetry_enabled === false) {
-          optOut();
-          return;
-        }
         const userHash = data.id || 'anonymous';
         const username = data.name || '';
         identifyUser(userHash, username);
