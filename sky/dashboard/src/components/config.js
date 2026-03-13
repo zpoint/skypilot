@@ -14,6 +14,7 @@ import {
 } from '@/components/elements/version-display';
 import { apiClient } from '@/data/connectors/client';
 import { checkGrafanaAvailability, getGrafanaUrl } from '@/utils/grafana';
+import { trackSettingsAction } from '@/lib/analytics';
 
 export function Config() {
   const [editableConfig, setEditableConfig] = useState('');
@@ -66,6 +67,7 @@ export function Config() {
   };
 
   const handleSave = async () => {
+    trackSettingsAction('save');
     setSaving(true);
     setError(null);
     // Clear any existing success timeout

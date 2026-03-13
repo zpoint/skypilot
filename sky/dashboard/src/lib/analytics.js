@@ -172,6 +172,18 @@ export function trackInfraAction(action, properties = {}) {
   trackEvent('infra_action', { action, ...properties });
 }
 
+export function trackVolumeAction(action, properties = {}) {
+  trackEvent('volume_action', { action, ...properties });
+}
+
+export function trackUserAction(action, properties = {}) {
+  trackEvent('user_action', { action, ...properties });
+}
+
+export function trackSettingsAction(action, properties = {}) {
+  trackEvent('settings_action', { action, ...properties });
+}
+
 export function trackFilterUsed(filterType, properties = {}) {
   trackEvent('filter_used', { filter_type: filterType, ...properties });
 }

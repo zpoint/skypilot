@@ -30,6 +30,7 @@ import dashboardCache from '@/lib/cache';
 import { useLogStreamer } from '@/hooks/useLogStreamer';
 import { checkGrafanaAvailability } from '@/utils/grafana';
 import { GPUMetricsSection } from '@/components/GPUMetricsSection';
+import { trackJobAction } from '@/lib/analytics';
 
 function TaskDetails() {
   const router = useRouter();
@@ -223,6 +224,9 @@ function TaskDetails() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            trackJobAction('download_logs', {
+                              jobId,
+                            });
                             downloadManagedJobLogs({
                               jobId: parseInt(jobId),
                               controller: false,

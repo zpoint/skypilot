@@ -32,7 +32,7 @@ describe('initPostHog', () => {
     expect(posthog.init).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        api_host: 'https://us.i.posthog.com',
+        api_host: 'https://usage-v3.skypilot.co',
         autocapture: true,
         capture_pageview: false,
         capture_pageleave: true,
@@ -279,6 +279,34 @@ describe('domain-specific tracking', () => {
     });
   });
 
+  test('trackVolumeAction captures volume_action', () => {
+    analytics.trackVolumeAction('delete', { volume: 'my-vol' });
+
+    expect(posthog.capture).toHaveBeenCalledWith('volume_action', {
+      source: 'dashboard',
+      action: 'delete',
+      volume: 'my-vol',
+    });
+  });
+
+  test('trackUserAction captures user_action', () => {
+    analytics.trackUserAction('create');
+
+    expect(posthog.capture).toHaveBeenCalledWith('user_action', {
+      source: 'dashboard',
+      action: 'create',
+    });
+  });
+
+  test('trackSettingsAction captures settings_action', () => {
+    analytics.trackSettingsAction('save');
+
+    expect(posthog.capture).toHaveBeenCalledWith('settings_action', {
+      source: 'dashboard',
+      action: 'save',
+    });
+  });
+
   test('trackFilterUsed captures filter_used with filter_type', () => {
     analytics.trackFilterUsed('cluster', { property: 'status' });
 
@@ -348,6 +376,9 @@ describe('no-ops before init', () => {
     analytics.trackWorkspaceAction('create');
     analytics.trackRecipeAction('view');
     analytics.trackInfraAction('refresh');
+    analytics.trackVolumeAction('delete');
+    analytics.trackUserAction('create');
+    analytics.trackSettingsAction('save');
     analytics.trackFilterUsed('cluster');
     analytics.trackPluginPageView('test', '/path');
     analytics.registerDeployment({ version: '1.0' });

@@ -37,6 +37,7 @@ import { UserDisplay } from '@/components/elements/UserDisplay';
 import { YamlHighlighter } from '@/components/YamlHighlighter';
 import { PluginSlot } from '@/plugins/PluginSlot';
 import { GPUMetricsSection } from '@/components/GPUMetricsSection';
+import { trackClusterAction } from '@/lib/analytics';
 
 // Helper function to format autostop information, similar to _get_autostop in CLI utils
 const formatAutostop = (autostop, toDown) => {
@@ -142,10 +143,12 @@ function ClusterDetails() {
   };
 
   const handleConnectClick = () => {
+    trackClusterAction('connect', { cluster });
     setIsSSHModalOpen(true);
   };
 
   const handleVSCodeClick = () => {
+    trackClusterAction('vscode', { cluster });
     setIsVSCodeModalOpen(true);
   };
 

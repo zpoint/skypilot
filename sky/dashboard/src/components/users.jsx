@@ -70,6 +70,7 @@ import {
   updateFiltersByURLParams as sharedUpdateFiltersByURLParams,
   filterData,
 } from '@/components/shared/FilterSystem';
+import { trackUserAction, trackFilterUsed } from '@/lib/analytics';
 
 const ACTIVE_JOB_STATUSES = new Set(statusGroups.active);
 
@@ -489,6 +490,7 @@ export function Users() {
   };
 
   const handleRefresh = () => {
+    trackUserAction('refresh');
     dashboardCache.invalidate(getUsers);
     dashboardCache.invalidate(getClusters);
     dashboardCache.invalidate(getManagedJobs, [
@@ -525,6 +527,7 @@ export function Users() {
       setShowCreateUser(false);
       return;
     }
+    trackUserAction('create');
     setCreating(true);
     setCreateError(null);
     setCreateSuccess(null);
@@ -648,6 +651,7 @@ export function Users() {
   };
 
   const handleDeleteUserClick = (user) => {
+    trackUserAction('delete', { user: user.usernameDisplay });
     checkPermissionAndAct('cannot delete users', () => {
       setUserToDelete(user);
       setShowDeleteConfirmDialog(true);
@@ -697,6 +701,7 @@ export function Users() {
   // Show loading while fetching health check
   const handleTabChange = useCallback(
     (tab) => {
+      trackUserAction('tab_change', { tab });
       setActiveMainTab(tab);
       if (tab === 'users') {
         router.push('/users', undefined, { shallow: true });
@@ -815,6 +820,9 @@ export function Users() {
               valueList={valueList}
               setFilters={setFilters}
               updateURLParams={updateURLParams}
+              onFilterAdd={(property, value) =>
+                trackFilterUsed('user', { property, value })
+              }
               placeholder="Filter users"
             />
           </div>
