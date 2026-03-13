@@ -107,6 +107,7 @@ describe('registerDeployment', () => {
       api_version: '2',
       active_plugins: ['sidebar', 'cron'],
       plugin_count: 2,
+      has_plugins: true,
     });
 
     expect(posthog.register).toHaveBeenCalledWith({
@@ -115,6 +116,7 @@ describe('registerDeployment', () => {
       api_version: '2',
       active_plugins: ['sidebar', 'cron'],
       plugin_count: 2,
+      has_plugins: true,
     });
   });
 
@@ -125,6 +127,7 @@ describe('registerDeployment', () => {
       api_version: '2',
       active_plugins: [],
       plugin_count: 0,
+      has_plugins: false,
     });
 
     expect(posthog.register).toHaveBeenCalledWith({
@@ -133,6 +136,7 @@ describe('registerDeployment', () => {
       api_version: '2',
       active_plugins: [],
       plugin_count: 0,
+      has_plugins: false,
     });
   });
 });

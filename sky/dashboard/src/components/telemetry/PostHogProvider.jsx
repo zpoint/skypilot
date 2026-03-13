@@ -100,6 +100,7 @@ export default function PostHogProvider({ children }) {
           api_version: deploymentData.api_version || 'unknown',
           active_plugins: pluginNames,
           plugin_count: pluginNames.length,
+          has_plugins: pluginNames.length > 0,
         });
       }
 
