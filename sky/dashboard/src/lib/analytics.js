@@ -26,7 +26,12 @@ export function initPostHog() {
   posthog.init(POSTHOG_API_KEY, {
     api_host: POSTHOG_HOST,
     autocapture: true,
-    capture_pageview: false, // we fire manual pageviews on route change
+    // Disable automatic pageview capture; we fire standard '$pageview'
+    // events manually via trackPageView() from PostHogProvider on both
+    // initial load and Next.js routeChangeComplete events.  See the
+    // detailed comment in PostHogProvider.jsx for why we can't use the
+    // built-in 'history_change' mode (timing conflict with async init).
+    capture_pageview: false,
     capture_pageleave: true,
     persistence: 'localStorage',
     disable_session_recording: false,
@@ -131,9 +136,28 @@ export function normalizePath(path) {
 
 // ── Pageviews ───────────────────────────────────────────────────────────────
 
+let _lastPageviewPath = null;
+let _lastPageviewTime = 0;
+
+/**
+ * Track a page view using the standard PostHog '$pageview' event.
+ *
+ * We fire this manually (instead of using posthog-js's built-in
+ * capture_pageview: 'history_change') because our async init flow
+ * (health check → init → identify) must complete before any events are
+ * sent.  See PostHogProvider.jsx for a detailed explanation.
+ *
+ * Includes a 1-second dedup guard to prevent double-firing on initial load
+ * (e.g. from concurrent init + routeChangeComplete sources).
+ */
 export function trackPageView(path, properties = {}) {
   if (!isEnabled()) return;
   const normalized = normalizePath(path);
+  const now = Date.now();
+  if (normalized === _lastPageviewPath && now - _lastPageviewTime < 1000)
+    return;
+  _lastPageviewPath = normalized;
+  _lastPageviewTime = now;
   posthog.capture('$pageview', {
     $current_url: window.location.href,
     $pathname: normalized,

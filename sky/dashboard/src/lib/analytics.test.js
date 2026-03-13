@@ -126,6 +126,23 @@ describe('trackPageView', () => {
       })
     );
   });
+
+  test('deduplicates same path within 1 second', () => {
+    analytics.initPostHog();
+    analytics.trackPageView('/clusters');
+    analytics.trackPageView('/clusters');
+
+    expect(posthog.capture).toHaveBeenCalledTimes(1);
+  });
+
+  test('allows same path after navigating elsewhere', () => {
+    analytics.initPostHog();
+    analytics.trackPageView('/clusters');
+    analytics.trackPageView('/jobs');
+    analytics.trackPageView('/clusters');
+
+    expect(posthog.capture).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe('normalizePath', () => {
