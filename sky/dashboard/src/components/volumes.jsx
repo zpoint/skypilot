@@ -38,6 +38,7 @@ import { TimestampWithTooltip, LastUpdatedTimestamp } from '@/components/utils';
 import { StatusBadge } from '@/components/elements/StatusBadge';
 import dashboardCache from '@/lib/cache';
 import cachePreloader from '@/lib/cache-preloader';
+import { trackVolumeAction } from '@/lib/analytics';
 
 const REFRESH_INTERVAL = REFRESH_INTERVALS.REFRESH_INTERVAL;
 
@@ -53,6 +54,7 @@ export function Volumes() {
   const [lastFetchedTime, setLastFetchedTime] = useState(null);
 
   const handleRefresh = () => {
+    trackVolumeAction('refresh');
     dashboardCache.invalidate(getVolumes);
     // Reset preloading state so VolumesTable can fetch fresh data immediately
     setPreloadingComplete(false);
@@ -68,6 +70,7 @@ export function Volumes() {
   };
 
   const handleDeleteVolumeClick = (volume) => {
+    trackVolumeAction('delete', { volume: volume.name });
     setVolumeToDelete(volume);
     setShowDeleteConfirmDialog(true);
     setDeleteError(null);

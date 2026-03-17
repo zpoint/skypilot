@@ -701,16 +701,21 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
 
     # Content-Security-Policy directives:
     # - default-src 'self': Only allow resources from the same origin
-    # - script-src 'self' 'unsafe-inline': Allow same-origin scripts and
-    #   inline scripts (needed for Next.js __NEXT_DATA__)
+    # - script-src 'self' 'unsafe-inline' https://usage-v3.skypilot.co:
+    #   Allow same-origin scripts, inline scripts (needed for Next.js
+    #   __NEXT_DATA__), and PostHog scripts via the Cloudflare proxy.
     # - style-src 'self' 'unsafe-inline': Allow same-origin styles and
     #   inline styles (needed for MUI/Emotion dynamic style injection)
     # - font-src 'self': Only allow same-origin fonts
-    # - connect-src 'self' http://localhost:* http://127.0.0.1:*:
-    #   Allow same-origin fetch/XHR/WebSocket plus localhost connections
+    # - connect-src 'self' https://usage-v3.skypilot.co
+    #   http://localhost:* http://127.0.0.1:*:
+    #   Allow same-origin fetch/XHR/WebSocket, PostHog analytics
+    #   via the Cloudflare reverse proxy, and localhost connections
     #   needed by the /token page's legacy auth callback flow (the page's
     #   JavaScript POSTs the auth token to a local HTTP server started by
     #   the CLI on localhost)
+    # - worker-src 'self' blob:: Allow same-origin workers and blob
+    #   workers (needed by PostHog session recording).
     # - frame-src 'self': Allow same-origin iframes (for Grafana panels)
     # - img-src 'self' data:: Allow same-origin images and data URIs
     # - object-src 'none': Block all plugin content (Flash, Java, etc.)
@@ -718,11 +723,13 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     # - form-action 'self': Restrict form submissions to same origin
     # - frame-ancestors 'self': Prevent clickjacking via framing
     _CSP_POLICY = ('default-src \'self\'; '
-                   'script-src \'self\' \'unsafe-inline\'; '
+                   'script-src \'self\' \'unsafe-inline\' '
+                   'https://usage-v3.skypilot.co; '
                    'style-src \'self\' \'unsafe-inline\'; '
                    'font-src \'self\'; '
-                   'connect-src \'self\' http://localhost:* '
-                   'http://127.0.0.1:*; '
+                   'connect-src \'self\' https://usage-v3.skypilot.co '
+                   'http://localhost:* http://127.0.0.1:*; '
+                   'worker-src \'self\' blob:; '
                    'frame-src \'self\'; '
                    'img-src \'self\' data:; '
                    'object-src \'none\'; '
@@ -2369,7 +2376,8 @@ async def list_plugins() -> Dict[str, List[Dict[str, Any]]]:
     # response_model_exclude_unset omits unset fields
     # in the response JSON.
     response_model_exclude_unset=True)
-async def health(request: fastapi.Request) -> responses.APIHealthResponse:
+async def health(request: fastapi.Request,
+                 verbose: bool = False) -> responses.APIHealthResponse:
     """Checks the health of the API server.
 
     Returns:
@@ -2442,6 +2450,9 @@ async def health(request: fastapi.Request) -> responses.APIHealthResponse:
         enabled,
         # Latest version info (if available and newer than current)
         latest_version=latest_version,
+        # Whether telemetry is enabled (only included when verbose=True)
+        **(dict(telemetry_enabled=not env_options.Options.DISABLE_LOGGING.get())
+           if verbose else {}),
     )
 
 

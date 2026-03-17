@@ -88,6 +88,8 @@ class APIHealthResponse(ResponseBaseModel):
     latest_version: Optional[str] = None
     # Whether external proxy auth is enabled
     external_proxy_auth_enabled: bool = False
+    # Whether telemetry is enabled (only set when verbose=1)
+    telemetry_enabled: Optional[bool] = None
 
 
 class StatusResponse(ResponseBaseModel):
