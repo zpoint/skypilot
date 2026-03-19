@@ -259,6 +259,19 @@ describe('normalizePath', () => {
     );
   });
 
+  test('normalizes devspace detail paths', () => {
+    expect(analytics.normalizePath('/devspaces/romil-dev')).toBe(
+      '/devspaces/[name]'
+    );
+    expect(analytics.normalizePath('/devspaces/my-workspace')).toBe(
+      '/devspaces/[name]'
+    );
+  });
+
+  test('leaves devspaces list path unchanged', () => {
+    expect(analytics.normalizePath('/devspaces')).toBe('/devspaces');
+  });
+
   test('leaves static routes unchanged', () => {
     expect(analytics.normalizePath('/clusters')).toBe('/clusters');
     expect(analytics.normalizePath('/jobs')).toBe('/jobs');
@@ -421,6 +434,245 @@ describe('optOut', () => {
 
     expect(posthog.identify).not.toHaveBeenCalled();
     expect(posthog.register).not.toHaveBeenCalled();
+  });
+});
+
+describe('initPostHog before_send', () => {
+  test('passes before_send option to posthog.init', () => {
+    analytics.initPostHog();
+
+    expect(posthog.init).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        before_send: expect.any(Function),
+      })
+    );
+  });
+});
+
+describe('enrichAutocaptureEvent', () => {
+  // Pass 1: standard interactive tags
+  test('pass 1: finds button ancestor for svg click', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg', $el_text: '' },
+          {
+            tag_name: 'button',
+            $el_text: 'Download',
+            attr__title: 'Download logs',
+          },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('button');
+    expect(result.properties.action_label).toBe('Download');
+  });
+
+  test('pass 1: uses title when button has no text', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg', $el_text: '' },
+          {
+            tag_name: 'button',
+            $el_text: '',
+            attr__title: 'Request remediation',
+          },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('button');
+    expect(result.properties.action_label).toBe('Request remediation');
+  });
+
+  test('pass 1: uses placeholder for input', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          {
+            tag_name: 'input',
+            $el_text: '',
+            attr__placeholder: 'Filter workloads',
+          },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('input');
+    expect(result.properties.action_label).toBe('Filter workloads');
+  });
+
+  // Pass 2: interactivity signals (class patterns, aria-label, title, role)
+  test('pass 2: finds tr with "clickable" class', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'td', $el_text: 'gpu-node-01' },
+          {
+            tag_name: 'tr',
+            $el_text: '',
+            attr__class: 'clickable-node-row selected',
+          },
+          { tag_name: 'tbody', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('tr');
+    expect(result.properties.action_label).toBe('clickable-node-row selected');
+  });
+
+  test('pass 2: finds span with "pill" class', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          {
+            tag_name: 'span',
+            $el_text: 'H100',
+            attr__class: 'gpu-obs-filter-pill search',
+          },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('span');
+    expect(result.properties.action_label).toBe('H100');
+  });
+
+  test('pass 2: finds div with "clickable" class', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg', $el_text: '' },
+          {
+            tag_name: 'div',
+            $el_text: '',
+            attr__class: 'gpu-inv-header clickable',
+          },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('div');
+    expect(result.properties.action_label).toBe('gpu-inv-header clickable');
+  });
+
+  test('pass 2: finds element with aria-label', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg', $el_text: '' },
+          {
+            tag_name: 'div',
+            $el_text: '',
+            attr__aria_label: 'Toggle GPU inventory',
+          },
+          { tag_name: 'section', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('div');
+    expect(result.properties.action_label).toBe('Toggle GPU inventory');
+  });
+
+  test('pass 2: finds element with role attribute', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'span', $el_text: 'ON', attr__role: 'switch' },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('span');
+    expect(result.properties.action_label).toBe('ON');
+  });
+
+  // Pass 3: fallback to target
+  test('pass 3: falls back to target when no signals found', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'rect', $el_text: '', attr__class: 'quota-tree-node' },
+          { tag_name: 'g', $el_text: '' },
+          { tag_name: 'svg', $el_text: '' },
+          { tag_name: 'div', $el_text: '' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('rect');
+    expect(result.properties.action_label).toBe('quota-tree-node');
+  });
+
+  // Priority: pass 1 wins over pass 2
+  test('prefers standard interactive tag over class signal', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg', $el_text: '' },
+          { tag_name: 'div', $el_text: '', attr__class: 'clickable wrapper' },
+          { tag_name: 'button', $el_text: 'Save' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('button');
+    expect(result.properties.action_label).toBe('Save');
+  });
+
+  // Edge cases
+  test('ignores non-autocapture events', () => {
+    const event = {
+      event: 'cluster_action',
+      properties: { action: 'ssh' },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBeUndefined();
+  });
+
+  test('handles missing $elements gracefully', () => {
+    const event = { event: '$autocapture', properties: {} };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBeUndefined();
+  });
+
+  test('handles null event', () => {
+    expect(analytics.enrichAutocaptureEvent(null)).toBeNull();
+  });
+
+  test('handles elements with undefined attributes (not empty string)', () => {
+    const event = {
+      event: '$autocapture',
+      properties: {
+        $elements: [
+          { tag_name: 'svg' },
+          { tag_name: 'button', attr__title: 'Save changes' },
+        ],
+      },
+    };
+    const result = analytics.enrichAutocaptureEvent(event);
+    expect(result.properties.action_element).toBe('button');
+    expect(result.properties.action_label).toBe('Save changes');
   });
 });
 
