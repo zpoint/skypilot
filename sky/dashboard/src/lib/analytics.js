@@ -94,6 +94,38 @@ function extractLabel(el) {
 }
 
 /**
+ * Try to derive a label from an icon SVG's class name.
+ * Lucide icons use classes like "lucide lucide-download" — extract "download".
+ * Also handles "icon-foo", "fa-bar", etc.
+ */
+function extractIconLabel(el) {
+  const cls = el.attrs.attr__class || '';
+  // lucide-<name>
+  const lucide = cls.match(/\blucide-([a-z][-a-z0-9]*)/i);
+  if (lucide) return lucide[1].replace(/-/g, ' ');
+  // icon-<name> or fa-<name>
+  const icon = cls.match(/\b(?:icon|fa)-([a-z][-a-z0-9]*)/i);
+  if (icon) return icon[1].replace(/-/g, ' ');
+  return '';
+}
+
+/**
+ * Search child elements (earlier in chain) for a label when the interactive
+ * element itself has none. Checks children's text, title, aria-label, and
+ * icon class names.
+ */
+function extractLabelFromChildren(components, interactiveIdx) {
+  for (let i = 0; i < interactiveIdx; i++) {
+    const child = components[i];
+    const label = extractLabel(child);
+    if (label) return label;
+    const iconLabel = extractIconLabel(child);
+    if (iconLabel) return iconLabel;
+  }
+  return '';
+}
+
+/**
  * Enrich an autocapture event with human-readable action context.
  *
  * PostHog autocapture fires on the innermost DOM element (e.g. an <svg>
@@ -123,21 +155,29 @@ export function enrichAutocaptureEvent(event) {
   if (components.length === 0) return event;
 
   // Pass 1: standard interactive tag
-  for (const el of components) {
+  for (let i = 0; i < components.length; i++) {
+    const el = components[i];
     if (INTERACTIVE_TAGS.has(el.tag_name)) {
       event.properties.action_element = el.tag_name;
       event.properties.action_label =
-        extractLabel(el) || event.properties.$el_text || '';
+        extractLabel(el) ||
+        event.properties.$el_text ||
+        extractLabelFromChildren(components, i) ||
+        '';
       return event;
     }
   }
 
   // Pass 2: element with interactivity signals
-  for (const el of components) {
+  for (let i = 0; i < components.length; i++) {
+    const el = components[i];
     if (hasInteractivitySignal(el)) {
       event.properties.action_element = el.tag_name;
       event.properties.action_label =
-        extractLabel(el) || event.properties.$el_text || '';
+        extractLabel(el) ||
+        event.properties.$el_text ||
+        extractLabelFromChildren(components, i) ||
+        '';
       return event;
     }
   }
