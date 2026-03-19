@@ -35,28 +35,60 @@ const INTERACTIVE_CLASS_PATTERN =
   /\b(clickable|btn|button|toggle|pill|tab|switch|chip)\b/i;
 
 /**
- * Check whether an element in the $elements chain has signals of
- * interactivity (title, aria-label, role, or class patterns like
- * "clickable", "btn").
+ * Parse a single component from the $elements_chain string into a structured
+ * object with tag_name and attributes.
+ *
+ * Elements_chain format (semicolon-separated, innermost first):
+ *   tag.class1.class2:attr__key="value"attr__key2="value2"nth-child="N"text="T"
+ */
+function parseChainComponent(component) {
+  if (!component) return null;
+  // Tag name is everything before the first dot, colon, or bracket
+  const tagMatch = component.match(/^([a-z][a-z0-9]*)/i);
+  const tag_name = tagMatch ? tagMatch[1] : '';
+
+  // Extract attr__* values
+  const attrs = {};
+  const attrRe = /attr__([a-z_-]+)="([^"]*)"/gi;
+  let m;
+  while ((m = attrRe.exec(component)) !== null) {
+    attrs['attr__' + m[1]] = m[2];
+  }
+
+  // Extract text="..." (element text content)
+  const textMatch = component.match(/(?:^|[;:"])text="([^"]*)"/);
+  const text = textMatch ? textMatch[1] : '';
+
+  return { tag_name, text, attrs };
+}
+
+/**
+ * Check whether a parsed chain element has signals of interactivity.
  */
 function hasInteractivitySignal(el) {
-  if (el.attr__title || el.attr__aria_label || el.attr__role) return true;
-  const cls = el.attr__class || '';
+  if (
+    el.attrs.attr__title ||
+    el.attrs.attr__aria_label ||
+    el.attrs['attr__aria-label'] ||
+    el.attrs.attr__role
+  )
+    return true;
+  const cls = el.attrs.attr__class || '';
   return INTERACTIVE_CLASS_PATTERN.test(cls);
 }
 
 /**
- * Extract a human-readable label from an element's attributes.
+ * Extract a human-readable label from a parsed chain element.
  */
 function extractLabel(el) {
   return (
-    el.$el_text ||
-    el.attr__title ||
-    el.attr__aria_label ||
-    el.attr__placeholder ||
-    el.attr__name ||
-    el.attr__id ||
-    el.attr__class ||
+    el.text ||
+    el.attrs.attr__title ||
+    el.attrs.attr__aria_label ||
+    el.attrs['attr__aria-label'] ||
+    el.attrs.attr__placeholder ||
+    el.attrs.attr__name ||
+    el.attrs.attr__id ||
     ''
   );
 }
@@ -66,45 +98,55 @@ function extractLabel(el) {
  *
  * PostHog autocapture fires on the innermost DOM element (e.g. an <svg>
  * icon inside a <button>), producing vague labels like "clicked svg".
- * This function walks up the $elements chain and adds:
+ * This function parses the $elements_chain string and adds:
  *
  *   action_element — tag of the best interactive ancestor (or target)
  *   action_label   — human-readable label from text/title/aria-label/
- *                    placeholder/class
+ *                    placeholder
+ *
+ * NOTE: We parse $elements_chain (string) because $elements (array) is
+ * deprecated and not available at before_send time in posthog-js v1.356+.
  *
  * Two-pass strategy:
  *   1. Find nearest standard interactive tag (button, a, input, etc.)
  *   2. If none, find nearest element with interactivity signals
  *      (title, aria-label, role, or class like "clickable"/"btn"/"pill")
- *   3. If none, fall back to the target element itself
+ *   3. If none, fall back to $el_text if available
  */
 export function enrichAutocaptureEvent(event) {
   if (!event || event.event !== '$autocapture') return event;
-  const elements = event.properties?.$elements;
-  if (!Array.isArray(elements) || elements.length === 0) return event;
+  const chain = event.properties?.$elements_chain;
+  if (typeof chain !== 'string' || chain.length === 0) return event;
+
+  // Split chain into components (semicolon-separated, innermost first)
+  const components = chain.split(';').map(parseChainComponent).filter(Boolean);
+  if (components.length === 0) return event;
 
   // Pass 1: standard interactive tag
-  for (const el of elements) {
+  for (const el of components) {
     if (INTERACTIVE_TAGS.has(el.tag_name)) {
       event.properties.action_element = el.tag_name;
-      event.properties.action_label = extractLabel(el);
+      event.properties.action_label =
+        extractLabel(el) || event.properties.$el_text || '';
       return event;
     }
   }
 
   // Pass 2: element with interactivity signals
-  for (const el of elements) {
+  for (const el of components) {
     if (hasInteractivitySignal(el)) {
       event.properties.action_element = el.tag_name;
-      event.properties.action_label = extractLabel(el);
+      event.properties.action_label =
+        extractLabel(el) || event.properties.$el_text || '';
       return event;
     }
   }
 
-  // Pass 3: fall back to the target element
-  const target = elements[0];
+  // Pass 3: fall back to the target element (first in chain)
+  const target = components[0];
   event.properties.action_element = target.tag_name;
-  event.properties.action_label = extractLabel(target);
+  event.properties.action_label =
+    extractLabel(target) || event.properties.$el_text || '';
   return event;
 }
 
