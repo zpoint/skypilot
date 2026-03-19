@@ -137,5 +137,21 @@ export default function PostHogProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Track plugin sub-navigations via pushState interception.
+  // Plugin frontends (devspaces, kueue, etc.) navigate via pushState, bypassing
+  // Next.js router. PluginProvider dispatches 'skydashboard:url-changed' after
+  // each successful pushState call.
+  useEffect(() => {
+    const handleUrlChanged = (e) => {
+      if (ready.current && e.detail?.url) {
+        trackPageView(e.detail.url);
+      }
+    };
+    window.addEventListener('skydashboard:url-changed', handleUrlChanged);
+    return () => {
+      window.removeEventListener('skydashboard:url-changed', handleUrlChanged);
+    };
+  }, []);
+
   return children;
 }

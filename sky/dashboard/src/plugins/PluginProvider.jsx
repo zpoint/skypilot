@@ -472,7 +472,13 @@ function interceptHistoryApi() {
       normalizedUrl = normalizeUrlForHistory(url);
     }
     try {
-      return originalPushState.call(this, state, title, normalizedUrl);
+      const result = originalPushState.call(this, state, title, normalizedUrl);
+      window.dispatchEvent(
+        new CustomEvent('skydashboard:url-changed', {
+          detail: { url: normalizedUrl || url },
+        })
+      );
+      return result;
     } catch (error) {
       // If pushState still fails (e.g., due to origin mismatch), try with a relative URL
       if (
@@ -483,7 +489,18 @@ function interceptHistoryApi() {
         try {
           const urlObj = new URL(normalizedUrl, window.location.href);
           const relativeUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-          return originalPushState.call(this, state, title, relativeUrl);
+          const result = originalPushState.call(
+            this,
+            state,
+            title,
+            relativeUrl
+          );
+          window.dispatchEvent(
+            new CustomEvent('skydashboard:url-changed', {
+              detail: { url: relativeUrl },
+            })
+          );
+          return result;
         } catch {
           // If that also fails, rethrow the original error
           throw error;

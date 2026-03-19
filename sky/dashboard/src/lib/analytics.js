@@ -13,6 +13,101 @@ const POSTHOG_HOST = 'https://usage-v3.skypilot.co';
 let _initialized = false;
 let _optedOut = false;
 
+// ── Autocapture enrichment ──────────────────────────────────────────────────
+
+/**
+ * Standard interactive HTML tags — matched first in the walk-up.
+ */
+const INTERACTIVE_TAGS = new Set([
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+]);
+
+/**
+ * CSS class patterns that signal an element is intentionally interactive.
+ * Matched in the second pass when no standard interactive tag is found.
+ */
+const INTERACTIVE_CLASS_PATTERN =
+  /\b(clickable|btn|button|toggle|pill|tab|switch|chip)\b/i;
+
+/**
+ * Check whether an element in the $elements chain has signals of
+ * interactivity (title, aria-label, role, or class patterns like
+ * "clickable", "btn").
+ */
+function hasInteractivitySignal(el) {
+  if (el.attr__title || el.attr__aria_label || el.attr__role) return true;
+  const cls = el.attr__class || '';
+  return INTERACTIVE_CLASS_PATTERN.test(cls);
+}
+
+/**
+ * Extract a human-readable label from an element's attributes.
+ */
+function extractLabel(el) {
+  return (
+    el.$el_text ||
+    el.attr__title ||
+    el.attr__aria_label ||
+    el.attr__placeholder ||
+    el.attr__name ||
+    el.attr__id ||
+    el.attr__class ||
+    ''
+  );
+}
+
+/**
+ * Enrich an autocapture event with human-readable action context.
+ *
+ * PostHog autocapture fires on the innermost DOM element (e.g. an <svg>
+ * icon inside a <button>), producing vague labels like "clicked svg".
+ * This function walks up the $elements chain and adds:
+ *
+ *   action_element — tag of the best interactive ancestor (or target)
+ *   action_label   — human-readable label from text/title/aria-label/
+ *                    placeholder/class
+ *
+ * Two-pass strategy:
+ *   1. Find nearest standard interactive tag (button, a, input, etc.)
+ *   2. If none, find nearest element with interactivity signals
+ *      (title, aria-label, role, or class like "clickable"/"btn"/"pill")
+ *   3. If none, fall back to the target element itself
+ */
+export function enrichAutocaptureEvent(event) {
+  if (!event || event.event !== '$autocapture') return event;
+  const elements = event.properties?.$elements;
+  if (!Array.isArray(elements) || elements.length === 0) return event;
+
+  // Pass 1: standard interactive tag
+  for (const el of elements) {
+    if (INTERACTIVE_TAGS.has(el.tag_name)) {
+      event.properties.action_element = el.tag_name;
+      event.properties.action_label = extractLabel(el);
+      return event;
+    }
+  }
+
+  // Pass 2: element with interactivity signals
+  for (const el of elements) {
+    if (hasInteractivitySignal(el)) {
+      event.properties.action_element = el.tag_name;
+      event.properties.action_label = extractLabel(el);
+      return event;
+    }
+  }
+
+  // Pass 3: fall back to the target element
+  const target = elements[0];
+  event.properties.action_element = target.tag_name;
+  event.properties.action_label = extractLabel(target);
+  return event;
+}
+
 /**
  * Initialize PostHog. Safe to call multiple times – only the first call has
  * any effect. Call optOut() after init to disable collection at runtime.
@@ -35,6 +130,16 @@ export function initPostHog() {
     capture_pageleave: true,
     persistence: 'localStorage',
     disable_session_recording: false,
+    // Enrich autocapture events with human-readable action context.
+    // Wrapping in try-catch because PostHog does NOT catch before_send
+    // errors — an uncaught throw would kill event delivery.
+    before_send: (event) => {
+      try {
+        return enrichAutocaptureEvent(event) ?? event;
+      } catch {
+        return event;
+      }
+    },
   });
 }
 
@@ -107,6 +212,8 @@ const ROUTE_PATTERNS = [
   [/^\/workspaces\/[^/]+$/, '/workspaces/[name]'],
   // Infra: /infra/[context]
   [/^\/infra\/[^/]+$/, '/infra/[context]'],
+  // Devspaces: /devspaces/[name] (plugin route, uses pushState not Next.js router)
+  [/^\/devspaces\/[^/]+$/, '/devspaces/[name]'],
   // Plugins: catch-all /plugins/[...slug]
   [/^\/plugins\/.*$/, '/plugins/[...slug]'],
 ];
