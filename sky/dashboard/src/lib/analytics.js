@@ -89,8 +89,26 @@ function extractLabel(el) {
     el.attrs.attr__placeholder ||
     el.attrs.attr__name ||
     el.attrs.attr__id ||
+    extractInteractiveClassName(el) ||
     ''
   );
+}
+
+/**
+ * Extract a human-readable label from an element's CSS class when it
+ * matches an interactive pattern (e.g. "clickable-node-row" → "node row").
+ */
+function extractInteractiveClassName(el) {
+  const cls = el.attrs.attr__class || '';
+  const match = cls.match(
+    /\b(?:clickable|btn|button|toggle|pill|tab|switch|chip)[-_]?([\w-]*)/i
+  );
+  if (match) {
+    // Return the full matched class segment, cleaned up
+    const full = match[0].replace(/[-_]/g, ' ').trim();
+    return full || '';
+  }
+  return '';
 }
 
 /**
