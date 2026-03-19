@@ -1263,6 +1263,10 @@ export function Users() {
                     link.download = `users_export_${y}-${m}-${d}-${h}-${min}-${s}.csv`;
                     link.click();
                     URL.revokeObjectURL(url);
+                    trackUserAction('export_csv', {
+                      user_count: data.user_count,
+                      filename: link.download,
+                    });
 
                     // Show success message
                     alert(
