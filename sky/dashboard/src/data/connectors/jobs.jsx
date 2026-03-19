@@ -8,6 +8,7 @@ import {
 import dashboardCache from '@/lib/cache';
 import jobsCacheManager from '@/lib/jobs-cache-manager';
 import { apiClient } from './client';
+import { trackJobAction } from '@/lib/analytics';
 import { applyEnhancements } from '@/plugins/dataEnhancement';
 
 // ============ Pagination Plugin Integration ============
@@ -849,12 +850,21 @@ export async function downloadManagedJobLogs({
     const ts = new Date().toISOString().replace(/[:.]/g, '-');
     const namePart = jobId ? `job-${jobId}` : name ? `job-${name}` : 'job';
     const logType = controller ? 'controller-logs' : 'logs';
+    const filename = `managed-${namePart}-${logType}-${ts}.zip`;
     a.href = url;
-    a.download = `managed-${namePart}-${logType}-${ts}.zip`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+    // Track download explicitly — PostHog autocapture misses programmatic
+    // <a>.click() on dynamically created elements.
+    trackJobAction('download_logs', {
+      job_id: jobId,
+      job_name: name,
+      controller,
+      filename,
+    });
   } catch (error) {
     console.error('Error downloading managed job logs:', error);
     showToast(`Error downloading managed job logs: ${error.message}`, 'error');

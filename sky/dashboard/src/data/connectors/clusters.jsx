@@ -6,6 +6,7 @@ import { apiClient } from '@/data/connectors/client';
 import { ENDPOINT } from '@/data/connectors/constants';
 import dashboardCache from '@/lib/cache';
 import { applyEnhancements } from '@/plugins/dataEnhancement';
+import { trackClusterAction } from '@/lib/analytics';
 
 // ============ Pagination Plugin Integration ============
 
@@ -311,11 +312,19 @@ export async function downloadJobLogs({
     const namePart =
       jobIds && jobIds.length === 1 ? `job-${jobIds[0]}` : 'jobs';
     a.href = url;
-    a.download = `${clusterName}-${namePart}-logs-${ts}.zip`;
+    const filename = `${clusterName}-${namePart}-logs-${ts}.zip`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+    // Track download explicitly — PostHog autocapture misses programmatic
+    // <a>.click() on dynamically created elements.
+    trackClusterAction('download_logs', {
+      cluster_name: clusterName,
+      job_ids: jobIds,
+      filename,
+    });
   } catch (error) {
     console.error('Error downloading logs:', error);
     showToast(`Error downloading logs: ${error.message}`, 'error');
