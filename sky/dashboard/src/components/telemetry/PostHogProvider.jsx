@@ -104,12 +104,26 @@ export default function PostHogProvider({ children }) {
         });
       }
 
+      // Check whether the server has the usage enforcement plugin installed.
+      // If so, send the username for enhanced analytics; otherwise default
+      // to hash-only identification to avoid sending PII in OSS deployments.
+      let enhanced = false;
+      try {
+        const cfgRes = await fetch(`${ENDPOINT}/plugins/api/usage/config`);
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          enhanced = cfg.enhanced === true;
+        }
+      } catch {
+        // Ignore – 404 or network error means plugin not installed
+      }
+
       // Reuse the cached /users/role fetch from client.js, which returns
       // the correct user hash and name in both auth and no-auth/local modes.
       // (The health endpoint's `user` field is null in no-auth mode.)
       try {
         const userInfo = await getCurrentUserInfo();
-        identifyUser(userInfo.id, userInfo.name);
+        identifyUser(userInfo.id, enhanced ? userInfo.name : undefined);
       } catch {
         // Ignore – analytics should never break the app
       }
