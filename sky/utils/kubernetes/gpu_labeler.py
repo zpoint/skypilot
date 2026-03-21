@@ -267,10 +267,23 @@ def wait_for_jobs_completion(jobs_to_node_names: Dict[str, str],
                           timeout_seconds=timeout,
                           resource_version='0'):
         job = event['object']
-        job_name = job.metadata.name
+        # Handle both dict and Kubernetes API object formats.
+        # The watch stream may return raw dicts when
+        # resource_version='0' is used.
+        if isinstance(job, dict):
+            job_name = job.get('metadata', {}).get('name')
+            job_status = job.get('status') or {}
+            completion_time = job_status.get('completionTime')
+            failed = job_status.get('failed')
+        else:
+            job_name = job.metadata.name
+            job_status = job.status
+            completion_time = (job_status.completion_time
+                               if job_status else None)
+            failed = job_status.failed if job_status else None
         if job_name in jobs_to_node_names:
             node_name = jobs_to_node_names[job_name]
-            if job.status and job.status.completion_time:
+            if completion_time:
                 print(_format_string(
                     f'GPU labeler job for node {node_name} '
                     'completed successfully', colorama.Style.DIM),
@@ -281,7 +294,7 @@ def wait_for_jobs_completion(jobs_to_node_names: Dict[str, str],
                 if num_remaining_jobs == 0:
                     w.stop()
                     return True
-            elif job.status and job.status.failed:
+            elif failed:
                 print(_format_string(
                     f'GPU labeler job for node {node_name} failed',
                     colorama.Style.DIM),
