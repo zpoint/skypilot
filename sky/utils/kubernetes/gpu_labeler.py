@@ -272,9 +272,10 @@ def wait_for_jobs_completion(jobs_to_node_names: Dict[str, str],
         # resource_version='0' is used.
         if isinstance(job, dict):
             job_name = job.get('metadata', {}).get('name')
-            job_status = job.get('status') or {}
-            completion_time = job_status.get('completionTime')
-            failed = job_status.get('failed')
+            job_status = job.get('status')
+            completion_time = (job_status.get('completionTime')
+                               if job_status else None)
+            failed = job_status.get('failed') if job_status else None
         else:
             job_name = job.metadata.name
             job_status = job.status
