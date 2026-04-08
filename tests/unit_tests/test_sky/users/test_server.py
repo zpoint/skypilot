@@ -198,12 +198,10 @@ class TestUsersEndpoints:
         # Should still call get_users_for_role for each supported role even with no users
         assert mock_get_users_for_role.call_count == 2  # admin and user roles
 
-    @mock.patch('sky.utils.env_options.Options.DISABLE_LOGGING.get',
-                return_value=False)
     @mock.patch('sky.users.permission.permission_service.get_user_roles')
     @pytest.mark.asyncio
     async def test_get_current_user_role_authenticated_user(
-            self, mock_get_user_roles, mock_disable_logging, mock_request):
+            self, mock_get_user_roles, mock_request):
         """Test GET /users/role endpoint with authenticated user."""
         # Setup
         test_user = models.User(id='test_user', name='Test User')
@@ -217,17 +215,14 @@ class TestUsersEndpoints:
         assert result == {
             'id': 'test_user',
             'name': 'Test User',
-            'role': 'admin',
-            'telemetry_enabled': True,
+            'role': 'admin'
         }
         mock_get_user_roles.assert_called_once_with('test_user')
 
-    @mock.patch('sky.utils.env_options.Options.DISABLE_LOGGING.get',
-                return_value=False)
     @mock.patch('sky.users.permission.permission_service.get_user_roles')
     @pytest.mark.asyncio
     async def test_get_current_user_role_authenticated_user_no_roles(
-            self, mock_get_user_roles, mock_disable_logging, mock_request):
+            self, mock_get_user_roles, mock_request):
         """Test GET /users/role endpoint with authenticated user who has no roles."""
         # Setup
         test_user = models.User(id='test_user', name='Test User')
@@ -238,63 +233,23 @@ class TestUsersEndpoints:
         result = server.get_current_user_role(mock_request)
 
         # Verify
-        assert result == {
-            'id': 'test_user',
-            'name': 'Test User',
-            'role': '',
-            'telemetry_enabled': True,
-        }
+        assert result == {'id': 'test_user', 'name': 'Test User', 'role': ''}
         mock_get_user_roles.assert_called_once_with('test_user')
 
-    @mock.patch('sky.utils.env_options.Options.DISABLE_LOGGING.get',
-                return_value=False)
-    @mock.patch('sky.utils.common_utils.get_local_user_name')
-    @mock.patch('sky.utils.common_utils.get_user_hash')
     @pytest.mark.asyncio
-    async def test_get_current_user_role_no_auth_user(self, mock_get_user_hash,
-                                                      mock_get_local_user_name,
-                                                      mock_disable_logging,
-                                                      mock_request):
+    async def test_get_current_user_role_no_auth_user(self, mock_request):
         """Test GET /users/role endpoint with no authenticated user."""
         # Setup
         mock_request.state.auth_user = None
-        mock_get_user_hash.return_value = 'ab12cd34'
-        mock_get_local_user_name.return_value = 'localuser'
 
         # Execute
         result = server.get_current_user_role(mock_request)
 
-        # Verify - should return stable identity with admin role
+        # Verify - should return admin role when no auth user
         assert result == {
-            'id': 'ab12cd34',
-            'name': 'localuser',
-            'role': rbac.RoleName.ADMIN.value,
-            'telemetry_enabled': True,
-        }
-
-    @mock.patch('sky.utils.common_utils.get_local_user_name')
-    @mock.patch('sky.utils.common_utils.get_user_hash')
-    @mock.patch('sky.utils.env_options.Options.DISABLE_LOGGING.get',
-                return_value=True)
-    @pytest.mark.asyncio
-    async def test_get_current_user_role_telemetry_disabled(
-            self, mock_disable_logging, mock_get_user_hash,
-            mock_get_local_user_name, mock_request):
-        """Test GET /users/role returns telemetry_enabled=False when env var set."""
-        # Setup
-        mock_request.state.auth_user = None
-        mock_get_user_hash.return_value = 'ab12cd34'
-        mock_get_local_user_name.return_value = 'localuser'
-
-        # Execute
-        result = server.get_current_user_role(mock_request)
-
-        # Verify
-        assert result == {
-            'id': 'ab12cd34',
-            'name': 'localuser',
-            'role': rbac.RoleName.ADMIN.value,
-            'telemetry_enabled': False,
+            'id': '',
+            'name': '',
+            'role': rbac.RoleName.ADMIN.value
         }
 
     @mock.patch('sky.users.rbac.get_supported_roles')
@@ -477,13 +432,10 @@ class TestUsersEndpoints:
             'user_type': 'legacy',
         }
 
-    @mock.patch('sky.utils.env_options.Options.DISABLE_LOGGING.get',
-                return_value=False)
     @mock.patch('sky.users.permission.permission_service.get_user_roles')
     @pytest.mark.asyncio
     async def test_get_current_user_role_multiple_roles(self,
                                                         mock_get_user_roles,
-                                                        mock_disable_logging,
                                                         mock_request):
         """Test GET /users/role endpoint when user has multiple roles."""
         # Setup
@@ -498,8 +450,7 @@ class TestUsersEndpoints:
         assert result == {
             'id': 'test_user',
             'name': 'Test User',
-            'role': 'admin',
-            'telemetry_enabled': True,
+            'role': 'admin'
         }
         mock_get_user_roles.assert_called_once_with('test_user')
 

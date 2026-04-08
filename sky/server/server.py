@@ -2376,8 +2376,7 @@ async def list_plugins() -> Dict[str, List[Dict[str, Any]]]:
     # response_model_exclude_unset omits unset fields
     # in the response JSON.
     response_model_exclude_unset=True)
-async def health(request: fastapi.Request,
-                 verbose: bool = False) -> responses.APIHealthResponse:
+async def health(request: fastapi.Request) -> responses.APIHealthResponse:
     """Checks the health of the API server.
 
     Returns:
@@ -2450,9 +2449,6 @@ async def health(request: fastapi.Request,
         enabled,
         # Latest version info (if available and newer than current)
         latest_version=latest_version,
-        # Whether telemetry is enabled (only included when verbose=True)
-        **(dict(telemetry_enabled=not env_options.Options.DISABLE_LOGGING.get())
-           if verbose else {}),
     )
 
 

@@ -92,16 +92,12 @@ def get_current_user_role(request: fastapi.Request):
     # hash for the request without 'X-Auth-Request-Email' header?
     auth_user = request.state.auth_user
     if auth_user is None:
-        return {
-            'id': common_utils.get_user_hash(),
-            'name': common_utils.get_local_user_name(),
-            'role': rbac.RoleName.ADMIN.value,
-        }
+        return {'id': '', 'name': '', 'role': rbac.RoleName.ADMIN.value}
     user_roles = permission.permission_service.get_user_roles(auth_user.id)
     return {
         'id': auth_user.id,
         'name': auth_user.name,
-        'role': user_roles[0] if user_roles else '',
+        'role': user_roles[0] if user_roles else ''
     }
 
 

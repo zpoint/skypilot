@@ -11,8 +11,6 @@ import { BASE_PATH } from '@/data/connectors/constants';
 import { TourProvider } from '@/hooks/useTour';
 import { PluginProvider } from '@/plugins/PluginProvider';
 import { VersionProvider } from '@/components/elements/version-display';
-import PostHogProvider from '@/components/telemetry/PostHogProvider';
-
 const Layout = dynamic(
   () => import('@/components/elements/layout').then((mod) => mod.Layout),
   { ssr: false }
@@ -36,15 +34,13 @@ function App({ Component, pageProps }) {
 
   return (
     <PluginProvider>
-      <PostHogProvider>
-        <VersionProvider>
-          <TourProvider>
-            <Layout highlighted={pageProps.highlighted}>
-              <Component {...pageProps} />
-            </Layout>
-          </TourProvider>
-        </VersionProvider>
-      </PostHogProvider>
+      <VersionProvider>
+        <TourProvider>
+          <Layout highlighted={pageProps.highlighted}>
+            <Component {...pageProps} />
+          </Layout>
+        </TourProvider>
+      </VersionProvider>
     </PluginProvider>
   );
 }

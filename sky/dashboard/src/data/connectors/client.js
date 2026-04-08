@@ -8,7 +8,7 @@ let cachedUserInfo = null;
 let userInfoPromise = null;
 
 // Fetch and cache the current user info
-export async function getCurrentUserInfo() {
+async function getCurrentUserInfo() {
   if (cachedUserInfo) {
     return cachedUserInfo;
   }
