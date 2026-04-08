@@ -1,0 +1,73 @@
+[     113ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/favicon.ico:0
+[     207ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:46580/plugins/auth.js:0
+[     207ms] [ERROR] Refused to execute script from 'http://127.0.0.1:46580/plugins/auth.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled. @ http://127.0.0.1:46580/dashboard/jobs:0
+[     210ms] [WARNING] [SkyDashboardPlugin] Failed to load plugin script: http://127.0.0.1:46580/plugins/auth.js Event @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[   34311ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183)
+    at r8 (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:44813)
+    at oU (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:113240) @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[   34313ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183)
+    at r8 (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:44813)
+    at oU (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:113240)
+[   34413ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/grafana/api/health:0
+[   45801ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183)
+    at r8 (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:44813)
+    at oU (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:113240) @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[   45803ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183)
+    at r8 (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:44813)
+    at oU (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:113240)
+[   54225ms] [ERROR] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85592)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183) @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[   54228ms] NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84898)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85368)
+    at uB (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:84601)
+    at uH (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:85592)
+    at uQ (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:86158)
+    at uq (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:87609)
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:109314
+    at oI (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:111554)
+    at oC (http://127.0.0.1:46580/dashboard/_next/static/chunks/framework-c1d1c1639ca45fe7.js:9:96183)
+[  115327ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/grafana/api/health:0
+[ 1005730ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/grafana/api/health:0

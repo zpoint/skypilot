@@ -1,0 +1,145 @@
+[     173ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/favicon.ico:0
+[     183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[     183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/static/dead-clicks-autocapture.js?v=1.356.0:0
+[     183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/static/web-vitals.js?v=1.356.0:0
+[     189ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/array/phc_QHyDrOac26TKUEYArlailR2EDe8xOCg2Vb4kjzdoADi/config.js:0
+[     195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/array/phc_QHyDrOac26TKUEYArlailR2EDe8xOCg2Vb4kjzdoADi/config?ip=0&_=1773910007747&ver=1.356.0:0
+[     207ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:46580/plugins/auth.js:0
+[     207ms] [ERROR] Refused to execute script from 'http://127.0.0.1:46580/plugins/auth.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled. @ http://127.0.0.1:46580/dashboard/jobs:0
+[     209ms] [WARNING] [SkyDashboardPlugin] Failed to load plugin script: http://127.0.0.1:46580/plugins/auth.js Event @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
+[     209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/flags/?v=2&ip=0&_=1773910007759&ver=1.356.0&compression=base64:0
+[     301ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/flags/?v=2&ip=0&_=1773910007846&ver=1.356.0&compression=base64:0
+[    3183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910010737&ver=1.356.0:0
+[    8183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910015737&ver=1.356.0:0
+[    9188ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910016741&ver=1.356.0:0
+[   11452ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910019006&ver=1.356.0:0
+[   17447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910025000&ver=1.356.0:0
+[   17452ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910025007&ver=1.356.0:0
+[   20455ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910028008&ver=1.356.0:0
+[   20455ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910028009&ver=1.356.0:0
+[   22446ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910030000&ver=1.356.0:0
+[   26457ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910034010&ver=1.356.0:0
+[   27447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910035001&ver=1.356.0:0
+[   29458ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910037012&ver=1.356.0:0
+[   32460ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910040013&ver=1.356.0:0
+[   32461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910040014&ver=1.356.0:0
+[   32461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910040015&ver=1.356.0:0
+[   35462ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910043016&ver=1.356.0:0
+[   37447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?ip=0&_=1773910045000&ver=1.356.0:0
+[   38464ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910046017&ver=1.356.0:0
+[   40772ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=1&ip=0&_=1773910048325&ver=1.356.0:0
+[   43773ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910051327&ver=1.356.0:0
+[   46775ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910054328&ver=1.356.0:0
+[   46775ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=2&ip=0&_=1773910054329&ver=1.356.0:0
+[   49776ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910057330&ver=1.356.0:0
+[   58779ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910066332&ver=1.356.0:0
+[   61780ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910069333&ver=1.356.0:0
+[   61780ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=3&ip=0&_=1773910069334&ver=1.356.0:0
+[   70046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910077599&ver=1.356.0:0
+[   73047ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910080601&ver=1.356.0:0
+[   76049ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910083602&ver=1.356.0:0
+[   85051ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=4&ip=0&_=1773910092604&ver=1.356.0:0
+[  108360ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910115913&ver=1.356.0:0
+[  114362ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910121915&ver=1.356.0:0
+[  114362ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910121916&ver=1.356.0:0
+[  120364ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910127917&ver=1.356.0:0
+[  120364ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910127918&ver=1.356.0:0
+[  138013ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=5&ip=0&_=1773910145567&ver=1.356.0:0
+[  190556ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910198109&ver=1.356.0:0
+[  211558ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910219112&ver=1.356.0:0
+[  214560ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910222113&ver=1.356.0:0
+[  214560ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910222114&ver=1.356.0:0
+[  216756ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910224310&ver=1.356.0:0
+[  234759ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/e/?retry_count=6&ip=0&_=1773910242313&ver=1.356.0:0
+[  234776ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/api/v1/trial/status:0
+[  234776ms] [WARNING] [TrialPlugin] Failed to fetch trial status: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at fetchStatus (http://127.0.0.1:46580/plugins/trial.js:1398:30)
+    at http://127.0.0.1:46580/plugins/trial.js:1432:7 @ http://127.0.0.1:46580/plugins/trial.js:1416
+[  234847ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  234847ms] [ERROR] [TrialPlugin] Fetch interceptor error: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1094:32)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/plugins/trial.js:1140
+[  234848ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  234849ms] [ERROR] Error fetching pools: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  234849ms] [WARNING] Background refresh failed for 298976428_[{}]: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
+[  236886ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/status:0
+[  236886ms] [ERROR] [TrialPlugin] Fetch interceptor error: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1094:32)
+    at async Object.fetchImmediate (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:42339)
+    at async Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:42562)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/plugins/trial.js:1140
+[  236888ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/status:0
+[  236888ms] [ERROR] Error in apiClient.fetch for /status: TypeError: Failed to fetch @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  236888ms] [ERROR] Error fetching clusters: Error: Error in apiClient.fetch for /status: TypeError: Failed to fetch
+    at Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43219)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  236888ms] [WARNING] Background refresh failed for 3066308059_: Error: Error in apiClient.fetch for /status: TypeError: Failed to fetch
+    at Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43219)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
+[  264126ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  264126ms] [ERROR] [TrialPlugin] Fetch interceptor error: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1094:32)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/plugins/trial.js:1140
+[  264127ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  264127ms] [ERROR] Error fetching pools: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  264127ms] [WARNING] Background refresh failed for 298976428_[{}]: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
+[  266165ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/status:0
+[  266165ms] [ERROR] [TrialPlugin] Fetch interceptor error: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1094:32)
+    at async Object.fetchImmediate (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:42339)
+    at async Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:42562)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/plugins/trial.js:1140
+[  266166ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/status:0
+[  266166ms] [ERROR] Error in apiClient.fetch for /status: TypeError: Failed to fetch @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  266166ms] [ERROR] Error fetching clusters: Error: Error in apiClient.fetch for /status: TypeError: Failed to fetch
+    at Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43219)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  266167ms] [WARNING] Background refresh failed for 3066308059_: Error: Error in apiClient.fetch for /status: TypeError: Failed to fetch
+    at Object.fetch (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43219)
+    at async u (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:44507) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
+[  292885ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://usage-v3.skypilot.co/flags/?v=2&ip=0&_=1773910300439&ver=1.356.0&compression=base64:0
+[  292938ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/api/v1/trial/status:0
+[  292938ms] [WARNING] [TrialPlugin] Failed to fetch trial status: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at fetchStatus (http://127.0.0.1:46580/plugins/trial.js:1398:30)
+    at http://127.0.0.1:46580/plugins/trial.js:1432:7 @ http://127.0.0.1:46580/plugins/trial.js:1416
+[  293009ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  293009ms] [ERROR] [TrialPlugin] Fetch interceptor error: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1094:32)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/plugins/trial.js:1140
+[  293010ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:46580/internal/dashboard/jobs/pool_status:0
+[  293010ms] [ERROR] Error fetching pools: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:71
+[  293011ms] [WARNING] Background refresh failed for 298976428_[{}]: TypeError: Failed to fetch
+    at http://127.0.0.1:46580/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at window.fetch (http://127.0.0.1:46580/plugins/trial.js:1143:16)
+    at async Object.post (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:43444)
+    at async f (http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:72:73171) @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85

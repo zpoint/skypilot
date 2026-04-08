@@ -1,0 +1,7 @@
+[    1537ms] [ERROR] Refused to load the script 'https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://usage-v3.skypilot.co". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+ @ https://api.dev.skypilot.co/login?next=/plugins/api/usage/config:0
+[    1869ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api.dev.skypilot.co/favicon.ico:0
+[   86949ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.dev.skypilot.co/plugins/api/usage/config:0
+[   87458ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.dev.skypilot.co/favicon.ico:0
+[  103261ms] [ERROR] Refused to load the script 'https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://usage-v3.skypilot.co". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+ @ https://api.dev.skypilot.co/dashboard/:0

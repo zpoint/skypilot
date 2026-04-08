@@ -1,0 +1,4 @@
+[     289ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/favicon.ico:0
+[     353ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:46580/plugins/auth.js:0
+[     354ms] [ERROR] Refused to execute script from 'http://127.0.0.1:46580/plugins/auth.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled. @ http://127.0.0.1:46580/dashboard/clusters:0
+[     357ms] [WARNING] [SkyDashboardPlugin] Failed to load plugin script: http://127.0.0.1:46580/plugins/auth.js Event @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0

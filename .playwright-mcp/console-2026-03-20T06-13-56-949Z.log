@@ -1,0 +1,7 @@
+[      12ms] Route change aborted by user during tour.
+[     497ms] [ERROR] Failed to get user info: TypeError: Failed to fetch
+    at https://api.dev.skypilot.co/dashboard/_next/static/chunks/329-636aec6d923e55f6.js:36:3104
+    at https://api.dev.skypilot.co/dashboard/_next/static/chunks/pages/_app-0ba27ae40afa391f.js:72:41306
+    at a (https://api.dev.skypilot.co/dashboard/_next/static/chunks/pages/_app-0ba27ae40afa391f.js:72:41561)
+    at https://api.dev.skypilot.co/dashboard/_next/static/chunks/pages/_app-0ba27ae40afa391f.js:86:260009 @ https://usage-v3.skypilot.co/static/posthog-recorder.js?v=1.356.0:0
+[     503ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://api.dev.skypilot.co/plugins/api/usage/config:0
