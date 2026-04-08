@@ -11,6 +11,8 @@ import { BASE_PATH } from '@/data/connectors/constants';
 import { TourProvider } from '@/hooks/useTour';
 import { PluginProvider } from '@/plugins/PluginProvider';
 import { VersionProvider } from '@/components/elements/version-display';
+import { PluginWrapperSlot } from '@/plugins/PluginWrapperSlot';
+
 const Layout = dynamic(
   () => import('@/components/elements/layout').then((mod) => mod.Layout),
   { ssr: false }
@@ -34,13 +36,15 @@ function App({ Component, pageProps }) {
 
   return (
     <PluginProvider>
-      <VersionProvider>
-        <TourProvider>
-          <Layout highlighted={pageProps.highlighted}>
-            <Component {...pageProps} />
-          </Layout>
-        </TourProvider>
-      </VersionProvider>
+      <PluginWrapperSlot name="app.providers">
+        <VersionProvider>
+          <TourProvider>
+            <Layout highlighted={pageProps.highlighted}>
+              <Component {...pageProps} />
+            </Layout>
+          </TourProvider>
+        </VersionProvider>
+      </PluginWrapperSlot>
     </PluginProvider>
   );
 }
