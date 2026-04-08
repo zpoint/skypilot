@@ -1,6 +1,0 @@
-[      74ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/favicon.ico:0
-[     255ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:46580/plugins/auth.js:0
-[     255ms] [ERROR] Refused to execute script from 'http://127.0.0.1:46580/plugins/auth.js' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled. @ http://127.0.0.1:46580/dashboard/:0
-[     256ms] [WARNING] [SkyDashboardPlugin] Failed to load plugin script: http://127.0.0.1:46580/plugins/auth.js Event @ http://127.0.0.1:46580/dashboard/_next/static/chunks/pages/_app-040892cfe34046a8.js:85
-[   67392ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/grafana/api/health:0
-[  168987ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:46580/grafana/api/health:0
