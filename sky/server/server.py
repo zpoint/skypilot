@@ -704,6 +704,9 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     # - script-src 'self' 'unsafe-inline' https://usage-v3.skypilot.co:
     #   Allow same-origin scripts, inline scripts (needed for Next.js
     #   __NEXT_DATA__), and PostHog scripts via the Cloudflare proxy.
+    #   NOTE: The usage-v3.skypilot.co domain is only active when the
+    #   analytics plugin (UsageEnforcementPlugin) is installed. Without
+    #   the plugin, this CSP entry is inert — no requests are made.
     # - style-src 'self' 'unsafe-inline': Allow same-origin styles and
     #   inline styles (needed for MUI/Emotion dynamic style injection)
     # - font-src 'self': Only allow same-origin fonts
