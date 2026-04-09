@@ -2483,6 +2483,8 @@ async def health(request: fastapi.Request) -> responses.APIHealthResponse:
         enabled,
         # Latest version info (if available and newer than current)
         latest_version=latest_version,
+        # Whether telemetry/usage collection is enabled
+        telemetry_enabled=not env_options.Options.DISABLE_LOGGING.get(),
     )
 
 
