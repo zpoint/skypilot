@@ -2175,6 +2175,7 @@ export function Status2Actions({
         <button
           onClick={(e) => handleDownloadLogs(e, false)}
           className="text-sky-blue hover:text-sky-blue-bright font-medium inline-flex items-center h-8"
+          title="Download logs"
         >
           <Download className="w-4 h-4" />
           {withLabel && <span className="ml-1.5">Download</span>}

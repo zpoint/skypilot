@@ -2195,6 +2195,7 @@ function UsersTable({
                               onChange={(e) =>
                                 setCurrentEditingRole(e.target.value)
                               }
+                              aria-label="Select user role"
                               className="block w-auto p-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-blue focus:border-sky-blue sm:text-sm"
                             >
                               <option value="admin">Admin</option>

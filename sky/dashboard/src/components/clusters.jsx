@@ -478,7 +478,7 @@ export function Clusters() {
         </div>
         <div className="flex items-center gap-2 ml-auto">
           <div className="flex items-center gap-2">
-            <label className="flex items-center cursor-pointer">
+            <label className="flex items-center cursor-pointer" title="Toggle cluster history">
               <input
                 type="checkbox"
                 checked={showHistory}
