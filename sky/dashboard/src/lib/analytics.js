@@ -1,15 +1,5 @@
 /**
  * Analytics stub for SkyPilot Dashboard.
- *
- * All exported functions are silent no-ops by default. A plugin may call
- * registerAnalyticsProvider() to inject an implementation; without one,
- * every track*() call is a no-op — zero runtime cost, zero network requests.
- *
- * The provider contract is intentionally narrow: just trackEvent and
- * trackPageView. Domain-specific helpers (trackClusterAction, etc.) live
- * in this file as thin wrappers over trackEvent — adding a new domain is a
- * one-line change here, not a three-file change across stub + provider
- * interface + provider implementation.
  */
 
 let _provider = null;

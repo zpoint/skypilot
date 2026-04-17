@@ -863,8 +863,6 @@ export async function downloadManagedJobLogs({
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-    // Track download explicitly — autocapture misses programmatic
-    // <a>.click() on dynamically created elements.
     trackJobAction('download_logs', { controller });
   } catch (error) {
     console.error('Error downloading managed job logs:', error);

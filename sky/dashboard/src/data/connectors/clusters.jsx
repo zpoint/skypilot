@@ -339,8 +339,6 @@ export async function downloadJobLogs({
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-    // Track download explicitly — autocapture misses programmatic
-    // <a>.click() on dynamically created elements.
     trackClusterAction('download_logs', {
       job_count: jobIds?.length ?? 0,
     });

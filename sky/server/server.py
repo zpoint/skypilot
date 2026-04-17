@@ -729,8 +729,6 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     #   ('nonce-<value>') so inline scripts are allowed only when they
     #   carry the matching nonce attribute.  Non-HTML responses get a
     #   strict 'self'-only policy (no inline allowance needed).
-    #   Allows the usage-v3.skypilot.co domain used by the analytics
-    #   provider when a plugin installs one; inert otherwise.
     # - style-src: Uses 'unsafe-inline' because CSS-in-JS libraries
     #   (Emotion, react-remove-scroll-bar) dynamically create <style>
     #   elements that cannot easily carry nonces.  CSS cannot execute
