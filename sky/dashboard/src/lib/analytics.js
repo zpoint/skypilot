@@ -4,10 +4,7 @@
 
 let _provider = null;
 
-/**
- * Register the analytics implementation. Called by a plugin after its
- * analytics backend is initialized. Pass null to unregister.
- */
+/** Register the analytics implementation. Pass null to unregister. */
 export function registerAnalyticsProvider(provider) {
   _provider = provider;
 }
