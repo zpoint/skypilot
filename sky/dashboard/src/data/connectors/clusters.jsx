@@ -339,12 +339,10 @@ export async function downloadJobLogs({
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-    // Track download explicitly — PostHog autocapture misses programmatic
+    // Track download explicitly — autocapture misses programmatic
     // <a>.click() on dynamically created elements.
     trackClusterAction('download_logs', {
-      cluster_name: clusterName,
-      job_ids: jobIds,
-      filename,
+      job_count: jobIds?.length ?? 0,
     });
   } catch (error) {
     console.error('Error downloading logs:', error);

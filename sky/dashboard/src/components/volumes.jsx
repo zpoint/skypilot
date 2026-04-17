@@ -94,7 +94,7 @@ export function Volumes() {
   };
 
   const handleDeleteVolumeClick = (volume) => {
-    trackVolumeAction('delete', { volume: volume.name });
+    trackVolumeAction('delete');
     setVolumeToDelete(volume);
     setShowDeleteConfirmDialog(true);
     setDeleteError(null);

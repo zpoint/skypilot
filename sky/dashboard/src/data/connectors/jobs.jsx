@@ -862,14 +862,9 @@ export async function downloadManagedJobLogs({
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-    // Track download explicitly — PostHog autocapture misses programmatic
+    // Track download explicitly — autocapture misses programmatic
     // <a>.click() on dynamically created elements.
-    trackJobAction('download_logs', {
-      job_id: jobId,
-      job_name: name,
-      controller,
-      filename,
-    });
+    trackJobAction('download_logs', { controller });
   } catch (error) {
     console.error('Error downloading managed job logs:', error);
     showToast(`Error downloading managed job logs: ${error.message}`, 'error');

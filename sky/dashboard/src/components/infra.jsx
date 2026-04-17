@@ -2732,7 +2732,7 @@ export function GPUs() {
 
   // Handler for clicking on a context
   const handleContextClick = (context) => {
-    trackInfraAction('view_context', { context });
+    trackInfraAction('view_context');
     setSelectedContext(context);
     // Use push instead of replace for proper browser history
     const targetPath = `/infra/${encodeURIComponent(context)}`;

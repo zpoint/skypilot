@@ -123,7 +123,9 @@ function RecipeCard({ recipe, onPin }) {
       <Link
         href={`/recipes/${slug}`}
         className="block"
-        onClick={() => trackRecipeAction('view', { recipe: recipe.name })}
+        onClick={() =>
+          trackRecipeAction('view', { recipe_type: recipe.recipe_type })
+        }
       >
         <Card className="h-full hover:bg-gray-50 transition-colors cursor-pointer group">
           <CardContent className="p-3">
@@ -1231,7 +1233,7 @@ export function RecipeHub() {
   };
 
   const handlePin = async (recipeName, pinned) => {
-    trackRecipeAction('pin', { recipe: recipeName });
+    trackRecipeAction('pin');
     try {
       const updated = await togglePinRecipe(recipeName, pinned);
       if (updated) {
@@ -1244,7 +1246,7 @@ export function RecipeHub() {
   };
 
   const handleDelete = async (recipeName) => {
-    trackRecipeAction('delete', { recipe: recipeName });
+    trackRecipeAction('delete');
     const deleted = await deleteRecipe(recipeName);
     if (deleted) {
       showToast('Recipe deleted successfully!', 'success');

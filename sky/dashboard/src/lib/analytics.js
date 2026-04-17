@@ -1,18 +1,22 @@
 /**
  * Analytics stub for SkyPilot Dashboard.
  *
- * All exported functions are silent no-ops by default. A plugin (e.g. the
- * UsageEnforcementPlugin in feature-plugin) calls registerAnalyticsProvider()
- * to inject the real PostHog-backed implementation. Without the plugin, every
- * track*() call is a no-op — zero runtime cost, zero network requests.
+ * All exported functions are silent no-ops by default. A plugin may call
+ * registerAnalyticsProvider() to inject an implementation; without one,
+ * every track*() call is a no-op — zero runtime cost, zero network requests.
+ *
+ * The provider contract is intentionally narrow: just trackEvent and
+ * trackPageView. Domain-specific helpers (trackClusterAction, etc.) live
+ * in this file as thin wrappers over trackEvent — adding a new domain is a
+ * one-line change here, not a three-file change across stub + provider
+ * interface + provider implementation.
  */
 
 let _provider = null;
 
 /**
- * Register the real analytics implementation. Called by a plugin
- * after the analytics backend (e.g. PostHog) is initialized.
- * Pass null to unregister.
+ * Register the analytics implementation. Called by a plugin after its
+ * analytics backend is initialized. Pass null to unregister.
  */
 export function registerAnalyticsProvider(provider) {
   _provider = provider;
@@ -23,7 +27,7 @@ export function getAnalyticsProvider() {
   return _provider;
 }
 
-// ── Tracking functions (no-op without provider) ─────────────────────────────
+// ── Core provider-backed tracking ───────────────────────────────────────────
 
 export function trackEvent(eventName, properties = {}) {
   _provider?.trackEvent?.(eventName, properties);
@@ -33,42 +37,44 @@ export function trackPageView(path, properties = {}) {
   _provider?.trackPageView?.(path, properties);
 }
 
+// ── Domain helpers (thin wrappers over trackEvent) ──────────────────────────
+
 export function trackClusterAction(action, properties = {}) {
-  _provider?.trackClusterAction?.(action, properties);
+  trackEvent('cluster_action', { action, ...properties });
 }
 
 export function trackJobAction(action, properties = {}) {
-  _provider?.trackJobAction?.(action, properties);
+  trackEvent('job_action', { action, ...properties });
 }
 
 export function trackWorkspaceAction(action, properties = {}) {
-  _provider?.trackWorkspaceAction?.(action, properties);
+  trackEvent('workspace_action', { action, ...properties });
 }
 
 export function trackRecipeAction(action, properties = {}) {
-  _provider?.trackRecipeAction?.(action, properties);
+  trackEvent('recipe_action', { action, ...properties });
 }
 
 export function trackInfraAction(action, properties = {}) {
-  _provider?.trackInfraAction?.(action, properties);
+  trackEvent('infra_action', { action, ...properties });
 }
 
 export function trackVolumeAction(action, properties = {}) {
-  _provider?.trackVolumeAction?.(action, properties);
+  trackEvent('volume_action', { action, ...properties });
 }
 
 export function trackUserAction(action, properties = {}) {
-  _provider?.trackUserAction?.(action, properties);
+  trackEvent('user_action', { action, ...properties });
 }
 
 export function trackSettingsAction(action, properties = {}) {
-  _provider?.trackSettingsAction?.(action, properties);
+  trackEvent('settings_action', { action, ...properties });
 }
 
 export function trackFilterUsed(filterType, properties = {}) {
-  _provider?.trackFilterUsed?.(filterType, properties);
+  trackEvent('filter_used', { filter_type: filterType, ...properties });
 }
 
 export function trackPluginPageView(pluginName, pagePath) {
-  _provider?.trackPluginPageView?.(pluginName, pagePath);
+  trackEvent('plugin_page_view', { plugin: pluginName, path: pagePath });
 }

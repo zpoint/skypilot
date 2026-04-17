@@ -660,7 +660,7 @@ export function Workspaces() {
   }, [workspaceDetails, sortConfig, searchQuery, rawWorkspacesData]);
 
   const handleDeleteWorkspace = (workspaceName) => {
-    trackWorkspaceAction('delete', { workspace: workspaceName });
+    trackWorkspaceAction('delete');
     checkPermissionAndAct('cannot delete workspace', () => {
       setDeleteState({
         confirmOpen: true,
@@ -726,7 +726,7 @@ export function Workspaces() {
   };
 
   const handleEditWorkspace = (workspaceName) => {
-    trackWorkspaceAction('edit', { workspace: workspaceName });
+    trackWorkspaceAction('edit');
     checkPermissionAndAct('cannot edit workspace', () => {
       router.push(`/workspaces/${workspaceName}`);
     });

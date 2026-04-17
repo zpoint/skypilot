@@ -1,9 +1,9 @@
 /**
  * Tests for analytics stub (analytics.js).
  *
- * The stub provides a registerAnalyticsProvider() / track*() API that
- * is a silent no-op without a provider. When a plugin registers a
- * provider, all track*() calls delegate to it.
+ * The provider contract is just { trackEvent, trackPageView }. Domain
+ * helpers (trackClusterAction, etc.) fan in to trackEvent with a
+ * hard-coded event name and the caller's properties.
  */
 import {
   registerAnalyticsProvider,
@@ -62,15 +62,6 @@ describe('analytics stub', () => {
     });
   });
 
-  test('trackClusterAction delegates to provider', () => {
-    const provider = { trackClusterAction: jest.fn() };
-    registerAnalyticsProvider(provider);
-    trackClusterAction('stop', { cluster: 'mycluster' });
-    expect(provider.trackClusterAction).toHaveBeenCalledWith('stop', {
-      cluster: 'mycluster',
-    });
-  });
-
   test('trackPageView delegates to provider', () => {
     const provider = { trackPageView: jest.fn() };
     registerAnalyticsProvider(provider);
@@ -80,23 +71,55 @@ describe('analytics stub', () => {
     });
   });
 
-  test('trackFilterUsed delegates to provider', () => {
-    const provider = { trackFilterUsed: jest.fn() };
+  describe('domain helpers fan in to trackEvent', () => {
+    const cases = [
+      ['trackClusterAction', trackClusterAction, 'cluster_action', 'stop'],
+      ['trackJobAction', trackJobAction, 'job_action', 'view_logs'],
+      [
+        'trackWorkspaceAction',
+        trackWorkspaceAction,
+        'workspace_action',
+        'create',
+      ],
+      ['trackRecipeAction', trackRecipeAction, 'recipe_action', 'view'],
+      ['trackInfraAction', trackInfraAction, 'infra_action', 'refresh'],
+      ['trackVolumeAction', trackVolumeAction, 'volume_action', 'delete'],
+      ['trackUserAction', trackUserAction, 'user_action', 'create'],
+      ['trackSettingsAction', trackSettingsAction, 'settings_action', 'save'],
+    ];
+
+    test.each(cases)(
+      '%s → trackEvent(%s)',
+      (_name, fn, expectedEvent, action) => {
+        const provider = { trackEvent: jest.fn() };
+        registerAnalyticsProvider(provider);
+        fn(action, { extra: 1 });
+        expect(provider.trackEvent).toHaveBeenCalledWith(expectedEvent, {
+          action,
+          extra: 1,
+        });
+      }
+    );
+  });
+
+  test('trackFilterUsed fans in to trackEvent with filter_type', () => {
+    const provider = { trackEvent: jest.fn() };
     registerAnalyticsProvider(provider);
     trackFilterUsed('job', { property: 'status' });
-    expect(provider.trackFilterUsed).toHaveBeenCalledWith('job', {
+    expect(provider.trackEvent).toHaveBeenCalledWith('filter_used', {
+      filter_type: 'job',
       property: 'status',
     });
   });
 
-  test('trackPluginPageView delegates to provider', () => {
-    const provider = { trackPluginPageView: jest.fn() };
+  test('trackPluginPageView fans in to trackEvent', () => {
+    const provider = { trackEvent: jest.fn() };
     registerAnalyticsProvider(provider);
     trackPluginPageView('gpu_healer', '/health');
-    expect(provider.trackPluginPageView).toHaveBeenCalledWith(
-      'gpu_healer',
-      '/health'
-    );
+    expect(provider.trackEvent).toHaveBeenCalledWith('plugin_page_view', {
+      plugin: 'gpu_healer',
+      path: '/health',
+    });
   });
 
   test('unregister by passing null reverts to no-op', () => {
@@ -107,10 +130,11 @@ describe('analytics stub', () => {
     expect(provider.trackEvent).not.toHaveBeenCalled();
   });
 
-  test('provider missing a method does not throw', () => {
-    const provider = { trackEvent: jest.fn() };
+  test('provider missing trackEvent does not throw', () => {
+    // Provider implementing only trackPageView — domain helpers still safe
+    const provider = { trackPageView: jest.fn() };
     registerAnalyticsProvider(provider);
-    // trackClusterAction is not on provider — should not throw
     trackClusterAction('stop');
+    trackEvent('x');
   });
 });

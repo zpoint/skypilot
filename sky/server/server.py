@@ -708,10 +708,8 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     #   ('nonce-<value>') so inline scripts are allowed only when they
     #   carry the matching nonce attribute.  Non-HTML responses get a
     #   strict 'self'-only policy (no inline allowance needed).
-    #   Also allows https://usage-v3.skypilot.co for PostHog scripts.
-    #   NOTE: The usage-v3.skypilot.co domain is only active when the
-    #   analytics plugin (UsageEnforcementPlugin) is installed. Without
-    #   the plugin, this CSP entry is inert — no requests are made.
+    #   Allows the usage-v3.skypilot.co domain used by the analytics
+    #   provider when a plugin installs one; inert otherwise.
     # - style-src: Uses 'unsafe-inline' because CSS-in-JS libraries
     #   (Emotion, react-remove-scroll-bar) dynamically create <style>
     #   elements that cannot easily carry nonces.  CSS cannot execute
@@ -719,13 +717,13 @@ class SecurityHeadersMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     # - font-src 'self': Only allow same-origin fonts
     # - connect-src 'self' https://usage-v3.skypilot.co
     #   http://localhost:* http://127.0.0.1:*:
-    #   Allow same-origin fetch/XHR/WebSocket, PostHog analytics
-    #   via the Cloudflare reverse proxy, and localhost connections
-    #   needed by the /token page's legacy auth callback flow (the page's
-    #   JavaScript POSTs the auth token to a local HTTP server started by
-    #   the CLI on localhost)
+    #   Allow same-origin fetch/XHR/WebSocket, analytics traffic via the
+    #   usage-v3 reverse proxy, and localhost connections needed by the
+    #   /token page's legacy auth callback flow (the page's JavaScript
+    #   POSTs the auth token to a local HTTP server started by the CLI
+    #   on localhost)
     # - worker-src 'self' blob:: Allow same-origin workers and blob
-    #   workers (needed by PostHog session recording).
+    #   workers (needed for analytics).
     # - frame-src 'self': Allow same-origin iframes (for Grafana panels)
     # - img-src 'self' data:: Allow same-origin images and data URIs
     # - object-src 'none': Block all plugin content (Flash, Java, etc.)

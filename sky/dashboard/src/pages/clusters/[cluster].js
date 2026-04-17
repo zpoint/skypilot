@@ -153,12 +153,12 @@ function ClusterDetails() {
   };
 
   const handleConnectClick = () => {
-    trackClusterAction('connect', { cluster });
+    trackClusterAction('connect');
     setIsSSHModalOpen(true);
   };
 
   const handleVSCodeClick = () => {
-    trackClusterAction('vscode', { cluster });
+    trackClusterAction('vscode');
     setIsVSCodeModalOpen(true);
   };
 

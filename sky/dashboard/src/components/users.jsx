@@ -651,7 +651,7 @@ export function Users() {
   };
 
   const handleDeleteUserClick = (user) => {
-    trackUserAction('delete', { user: user.usernameDisplay });
+    trackUserAction('delete');
     checkPermissionAndAct('cannot delete users', () => {
       setUserToDelete(user);
       setShowDeleteConfirmDialog(true);
