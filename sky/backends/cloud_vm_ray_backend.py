@@ -2909,6 +2909,34 @@ class SkyletClient:
         return self._managed_jobs_stub.CancelJobs(request, timeout=timeout)
 
 
+def _tail_hook_logs_cmd_multinode(event: Optional[str], node_ids: List[str],
+                                  tail: int, follow: bool) -> str:
+    """Build a shell command that concatenates per-node hook logs.
+
+    Each node block is preceded by a ``=== <node_id> ===`` header. The
+    head runs this command against its own log directly; other nodes
+    are fetched via SSH using the cluster's deployment key.
+
+    This is exported as a module-level helper so unit tests can assert
+    on its shape without needing a real handle.
+    """
+    log_dir = f'~/{constants.HOOK_LOG_DIR}'
+    tail_flags = []
+    if tail > 0:
+        tail_flags.extend(['-n', str(tail)])
+    if follow:
+        tail_flags.append('-f')
+    tail_flag_str = ' '.join(tail_flags)
+    log_path = (f'{log_dir}/{event}.log'
+                if event is not None else f'{log_dir}/*.log')
+    parts: List[str] = []
+    for node_id in node_ids:
+        parts.append(f'echo "=== {node_id} ==="')
+        parts.append(f'tail {tail_flag_str} {log_path} 2>/dev/null || '
+                     f'echo "(no log on {node_id})"')
+    return '; '.join(parts)
+
+
 @registry.BACKEND_REGISTRY.type_register(name='cloudvmray')
 class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
     """Backend: runs on cloud virtual machines, managed by Ray.
@@ -4647,12 +4675,48 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
                                    follow=follow,
                                    tail=tail)
 
+    def _resync_worker_hooks_config(
+            self, cluster_name: str, hooks: Optional[List[Dict[str,
+                                                               Any]]]) -> None:
+        """Re-push ``~/.sky/hooks/config.json`` to every worker.
+
+        Invoked on re-launch when the task's ``hooks:`` list has
+        changed, so the worker-side SIGTERM handler picks up the new
+        definitions without a full restart. Best-effort: logs a
+        warning on SSH failure and lets the launch proceed.
+        """
+        try:
+            handle = global_user_state.get_handle_from_cluster_name(
+                cluster_name)
+            if handle is None:
+                return
+            config = json.dumps(hooks or [])
+            remote = (f'mkdir -p ~/{constants.HOOK_LOG_DIR} && '
+                      f'cat > ~/{constants.HOOK_LOG_DIR}/config.json <<EOF\n'
+                      f'{config}\nEOF')
+            # The head iterates workers and echoes the config onto each.
+            driver = (
+                f'ips=$(python3 -c "from sky.skylet import hook_executor; '
+                f'print(\' \'.join(hook_executor._discover_worker_ips()))"); '
+                f'for ip in $ips; do '
+                f'ssh -i ~/.ssh/sky-cluster-key '
+                f'-o StrictHostKeyChecking=no '
+                f'-o UserKnownHostsFile=/dev/null '
+                f'sky@$ip {shlex.quote(remote)} || true; '
+                f'done')
+            self.run_on_head(handle, driver, stream_logs=False)
+        except Exception as e:  # pylint: disable=broad-except
+            logger.warning(
+                f'Failed to re-sync hooks config to workers of '
+                f'{cluster_name!r}: {e}. Workers will use stale hooks until '
+                'the next restart.')
+
     def tail_hook_logs(self,
                        handle: CloudVmRayResourceHandle,
                        event: Optional[str] = None,
                        follow: bool = True,
                        tail: int = 0) -> int:
-        """Tail per-event lifecycle-hook logs.
+        """Tail per-event lifecycle-hook logs across all nodes.
 
         Args:
             handle: The handle to the cluster.
@@ -4673,6 +4737,43 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
         if follow:
             tail_flags.append('-f')
         tail_flag_str = ' '.join(tail_flags)
+
+        # Multi-node aggregation: when the cluster has >1 node, the head
+        # SSHes to each worker to stream its per-event log, prefixed by a
+        # `=== <node-id> ===` header. Single-node falls through.
+        num_nodes = getattr(handle, 'launched_nodes', 1) or 1
+        if num_nodes > 1 and event is not None:
+            log_path = f'{new_log_dir}/{event}.log'
+            ssh_opts = ('-i ~/.ssh/sky-cluster-key '
+                        '-o StrictHostKeyChecking=no '
+                        '-o UserKnownHostsFile=/dev/null '
+                        '-o ConnectTimeout=10')
+            remote_tail = (
+                f'echo === worker-$N ===; tail {tail_flag_str} {log_path} '
+                f'2>/dev/null || echo "(no log)"')
+            multi_cmd = (
+                f'echo "=== head ==="; '
+                f'tail {tail_flag_str} {log_path} 2>/dev/null || '
+                f'echo "(no log on head)"; '
+                f'ips=$(python3 -c "from sky.skylet import hook_executor; '
+                f'print(\' \'.join(hook_executor._discover_worker_ips()))"); '
+                f'N=1; for ip in $ips; do '
+                f'ssh {ssh_opts} sky@$ip "N=$N; {remote_tail}" || '
+                f'echo "(ssh failed for worker-$N)"; '
+                f'N=$((N+1)); done')
+            if threading.current_thread() is threading.main_thread():
+                signal.signal(signal.SIGINT, backend_utils.interrupt_handler)
+                signal.signal(signal.SIGTSTP, backend_utils.stop_handler)
+            try:
+                returncode = self.run_on_head(
+                    handle,
+                    multi_cmd,
+                    stream_logs=True,
+                    ssh_mode=command_runner.SshMode.INTERACTIVE,
+                )
+            except SystemExit as e:
+                returncode = e.code
+            return returncode
 
         if event is None:
             # Auto-select: pick whichever per-event log exists. Prefer
@@ -5748,9 +5849,13 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
 
             # Re-launch with changed resources.hooks: propagate the new list
             # onto to_provision so the next SetAutostop RPC carries the
-            # up-to-date scripts / timeouts.
+            # up-to-date scripts / timeouts. Workers also get a fresh
+            # `~/.sky/hooks/config.json` re-sync below so their side of
+            # the fan-out uses the new definitions too.
             if one_task_resource.hooks != to_provision.hooks:
                 to_provision = to_provision.copy(hooks=one_task_resource.hooks)
+                self._resync_worker_hooks_config(cluster_name,
+                                                 one_task_resource.hooks)
 
             # cluster_config_overrides should be the same for all resources.
             for resource in task.resources:
