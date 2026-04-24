@@ -875,7 +875,8 @@ def _maybe_run_down_hooks(handle: 'backends.ResourceHandle',
                'if any(\'down\' in (h.get(\'events\') '
                'or hook_executor.EVENTS) for h in hooks):\n'
                '    if hook_executor.try_claim_teardown(\'down\'):\n'
-               '        hook_executor.run(\'down\', hooks)\n')
+               '        hook_executor.run(\'down\', hooks)\n'
+               '        hook_executor.fanout_to_workers(\'down\')\n')
     # Use SKY_PYTHON_CMD so the codegen sees the sky/ installation on the
     # remote — plain `python3` may point at a minimal system interpreter.
     cmd = f'{constants.SKY_PYTHON_CMD} -c {shlex.quote(codegen)}'

@@ -1,4 +1,5 @@
 """Setup dependencies & services for instances."""
+import base64
 from concurrent import futures
 import functools
 import hashlib
@@ -483,6 +484,74 @@ def start_ray_on_worker_nodes(cluster_name: str, no_restart: bool,
                                    'Detailed Error: \n'
                                    f'===== stdout ===== \n{stdout}\n'
                                    f'===== stderr ====={stderr}')
+
+
+@common.log_function_start_end
+@_auto_retry()
+@timeline.event
+def start_worker_hook_handler(cluster_name: str, hooks: Optional[List[Dict]],
+                              cluster_info: common.ClusterInfo,
+                              ssh_credentials: Dict[str, Any]) -> None:
+    """Launch the lifecycle-hook handler on every worker node.
+
+    Steps per worker:
+      1. Write ``~/.sky/hooks/config.json`` with the serialized hooks.
+      2. Kill any previous handler daemon (best-effort).
+      3. Start a new handler via ``nohup python3 -m
+         sky.skylet.worker_hook_handler`` so it survives the SSH
+         session closing.
+
+    No-op for single-node clusters (nothing to fan out to) and when
+    ``hooks`` is empty.
+    """
+    if cluster_info.num_instances <= 1 or not hooks:
+        return
+    _hint_worker_log_path(cluster_name, cluster_info, 'worker_hook_handler')
+    runners = provision.get_command_runners(cluster_info.provider_name,
+                                            cluster_info, **ssh_credentials)
+    worker_runners = runners[1:]
+    worker_instances = cluster_info.get_worker_instances()
+    cache_ids = []
+    prev_instance_id = None
+    cnt = 0
+    for instance in worker_instances:
+        if instance.instance_id != prev_instance_id:
+            cnt = 0
+            prev_instance_id = instance.instance_id
+        cache_ids.append(f'{prev_instance_id}-{cnt}')
+        cnt += 1
+
+    hooks_json = json.dumps(hooks)
+    hooks_b64 = base64.b64encode(hooks_json.encode()).decode()
+    start_cmd = (
+        f'mkdir -p ~/.sky/hooks && '
+        f'echo {hooks_b64} | base64 -d > ~/.sky/hooks/config.json && '
+        f'pkill -f "sky.skylet.worker_hook_handler" 2>/dev/null || true; '
+        f'{constants.ACTIVATE_SKY_REMOTE_PYTHON_ENV}; '
+        f'nohup python3 -m sky.skylet.worker_hook_handler '
+        f'> ~/.sky/hooks/handler.log 2>&1 & disown')
+
+    def _setup(runner_and_id):
+        runner, instance_id = runner_and_id
+        log_dir = metadata_utils.get_instance_log_dir(cluster_name, instance_id)
+        log_path_abs = str(log_dir / 'worker_hook_handler.log')
+        return runner.run(start_cmd,
+                          stream_logs=False,
+                          require_outputs=True,
+                          log_path=log_path_abs,
+                          source_bashrc=True)
+
+    num_threads = subprocess_utils.get_parallel_threads(
+        cluster_info.provider_name)
+    results = subprocess_utils.run_in_parallel(
+        _setup, list(zip(worker_runners, cache_ids)), num_threads)
+    for returncode, stdout, stderr in results:
+        if returncode:
+            logger.warning(
+                f'worker_hook_handler start failed on a worker '
+                f'(exit={returncode}): {stderr.strip() or stdout.strip()}. '
+                f'Teardown fan-out will still reach this worker via SSH but '
+                f'preemption hooks may not fire until the next launch.')
 
 
 @common.log_function_start_end

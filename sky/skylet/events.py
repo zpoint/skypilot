@@ -239,6 +239,9 @@ class AutostopEvent(SkyletEvent):
             logger.info(f'Executing {len(hooks)} stored lifecycle hook(s) for '
                         'autostop.')
             hook_executor.run(hook_executor.AUTOSTOP, hooks)
+            # Fan out to workers so cluster-wide autostop hooks fire
+            # everywhere, not just the head node.
+            hook_executor.fanout_to_workers(hook_executor.AUTOSTOP)
 
     def _stop_cluster(self, autostop_config):
         if (autostop_config.backend ==
