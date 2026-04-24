@@ -943,14 +943,14 @@ def test_k8s_multinode_single_worker_preempt():
             f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
             # Delete only the worker pod; head continues.
             f'kubectl delete pod -l '
-            f'skypilot-cluster={name},ray-node-type=worker '
+            f'skypilot-cluster-name={name},ray-node-type=worker '
             f'--context kind-skypilot --wait=false',
             'sleep 20',
             # Worker's pod logs should contain the marker; head's should not.
-            f'kubectl logs -l skypilot-cluster={name},ray-node-type=worker '
+            f'kubectl logs -l skypilot-cluster-name={name},ray-node-type=worker '
             f'--context kind-skypilot --tail=200 --all-containers '
             f'2>/dev/null | grep "{marker}"',
-            f'! kubectl logs -l skypilot-cluster={name},ray-node-type=head '
+            f'! kubectl logs -l skypilot-cluster-name={name},ray-node-type=head '
             f'--context kind-skypilot --tail=200 --all-containers '
             f'2>/dev/null | grep -q "{marker}"',
         ],
