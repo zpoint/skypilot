@@ -1,4 +1,5 @@
 """Backend: runs on cloud virtual machines, managed by Ray."""
+import base64
 import copy
 import dataclasses
 import enum
@@ -4690,20 +4691,29 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
                 cluster_name)
             if handle is None:
                 return
-            config = json.dumps(hooks or [])
+            # Base64-encode the JSON payload so user hook strings
+            # containing newlines / `EOF` can't break the heredoc and
+            # spill into the shell. Decode → tmp file → atomic mv so
+            # a worker handler reading the config concurrently with
+            # the re-sync never observes a truncated file (C6 fix).
+            config_b64 = base64.b64encode(json.dumps(hooks or
+                                                     []).encode()).decode()
+            cfg_path = f'~/{constants.HOOK_LOG_DIR}/config.json'
             remote = (f'mkdir -p ~/{constants.HOOK_LOG_DIR} && '
-                      f'cat > ~/{constants.HOOK_LOG_DIR}/config.json <<EOF\n'
-                      f'{config}\nEOF')
+                      f'echo {config_b64} | base64 -d > '
+                      f'{cfg_path}.tmp && mv {cfg_path}.tmp {cfg_path}')
             # The head iterates workers and echoes the config onto each.
-            driver = (
-                f'ips=$(python3 -c "from sky.skylet import hook_executor; '
-                f'print(\' \'.join(hook_executor._discover_worker_ips()))"); '
-                f'for ip in $ips; do '
-                f'ssh -i ~/.ssh/sky-cluster-key '
-                f'-o StrictHostKeyChecking=no '
-                f'-o UserKnownHostsFile=/dev/null '
-                f'sky@$ip {shlex.quote(remote)} || true; '
-                f'done')
+            inline_discover = (
+                'from sky.skylet import hook_executor; '
+                'print(\' \'.join(hook_executor._discover_worker_ips()))')
+            driver = (f'ips=$({constants.SKY_PYTHON_CMD} -c '
+                      f'{shlex.quote(inline_discover)}); '
+                      f'for ip in $ips; do '
+                      f'ssh -i ~/.ssh/sky-cluster-key '
+                      f'-o StrictHostKeyChecking=no '
+                      f'-o UserKnownHostsFile=/dev/null '
+                      f'sky@$ip {shlex.quote(remote)} || true; '
+                      f'done')
             self.run_on_head(handle, driver, stream_logs=False)
         except Exception as e:  # pylint: disable=broad-except
             logger.warning(
@@ -4751,16 +4761,18 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
             remote_tail = (
                 f'echo === worker-$N ===; tail {tail_flag_str} {log_path} '
                 f'2>/dev/null || echo "(no log)"')
-            multi_cmd = (
-                f'echo "=== head ==="; '
-                f'tail {tail_flag_str} {log_path} 2>/dev/null || '
-                f'echo "(no log on head)"; '
-                f'ips=$(python3 -c "from sky.skylet import hook_executor; '
-                f'print(\' \'.join(hook_executor._discover_worker_ips()))"); '
-                f'N=1; for ip in $ips; do '
-                f'ssh {ssh_opts} sky@$ip "N=$N; {remote_tail}" || '
-                f'echo "(ssh failed for worker-$N)"; '
-                f'N=$((N+1)); done')
+            inline_discover = (
+                'from sky.skylet import hook_executor; '
+                'print(\' \'.join(hook_executor._discover_worker_ips()))')
+            multi_cmd = (f'echo "=== head ==="; '
+                         f'tail {tail_flag_str} {log_path} 2>/dev/null || '
+                         f'echo "(no log on head)"; '
+                         f'ips=$({constants.SKY_PYTHON_CMD} -c '
+                         f'{shlex.quote(inline_discover)}); '
+                         f'N=1; for ip in $ips; do '
+                         f'ssh {ssh_opts} sky@$ip "N=$N; {remote_tail}" || '
+                         f'echo "(ssh failed for worker-$N)"; '
+                         f'N=$((N+1)); done')
             if threading.current_thread() is threading.main_thread():
                 signal.signal(signal.SIGINT, backend_utils.interrupt_handler)
                 signal.signal(signal.SIGTSTP, backend_utils.stop_handler)
