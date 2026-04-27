@@ -729,6 +729,18 @@ def _post_provision_setup(
                                                  ssh_credentials,
                                                  launched_resources)
 
+        # Deploy the worker-side lifecycle-hook handler so workers can
+        # fire preemption hooks locally (and accept head-driven
+        # autostop/down fan-out via SSH).
+        hooks_for_workers = None
+        if launched_resources is not None:
+            hooks_for_workers = getattr(launched_resources, 'hooks', None)
+        if hooks_for_workers:
+            instance_setup.start_worker_hook_handler(cluster_name.name_on_cloud,
+                                                     hooks_for_workers,
+                                                     cluster_info,
+                                                     ssh_credentials)
+
     logger.info(
         ux_utils.finishing_message(f'Cluster launched: {cluster_name}.',
                                    provision_logging.config.log_path,

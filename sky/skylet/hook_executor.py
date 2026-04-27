@@ -12,6 +12,7 @@ guarantee is per-node (see termination_hook_design.md §1.6.5).
 """
 import fcntl
 import os
+import shlex
 import subprocess
 from typing import Any, Dict, List, Optional
 
@@ -149,3 +150,93 @@ def run(event: str, hooks: Optional[List[Dict[str, Any]]]) -> None:
         if rc != 0:
             logger.warning(
                 f'{event} hook exited with code {rc}; continuing teardown.')
+
+
+# ---------------------------------------------------------------------------
+# Head fan-out (PR3)
+# ---------------------------------------------------------------------------
+
+# SSH key used by Ray worker fan-out — matches the path baked into
+# cluster provisioning. See `sky/authentication.py`.
+_SKY_CLUSTER_KEY_PATH = os.path.expanduser('~/.ssh/sky-cluster-key')
+
+# Events that fan out from head → workers. Preemption is handled
+# per-worker by the worker's own SIGTERM path (k8s kubelet or the
+# VM preemption poller), so the head never drives it.
+_FANOUT_EVENTS = (AUTOSTOP, DOWN)
+
+
+def _discover_worker_ips() -> List[str]:
+    """Return worker node IPs via `ray.nodes()` (head-only call).
+
+    Returns an empty list on any discovery failure — fan-out is
+    best-effort and a head-local autostop/down shouldn't be blocked
+    by ray/discovery issues.
+    """
+    try:
+        import ray  # pylint: disable=import-outside-toplevel
+        if not ray.is_initialized():
+            ray.init(address='auto',
+                     ignore_reinit_error=True,
+                     log_to_driver=False)
+        ips = []
+        for node in ray.nodes():
+            if not node.get('Alive'):
+                continue
+            resources = node.get('Resources') or {}
+            if 'node:__head__' in resources:
+                continue
+            ip = node.get('NodeManagerAddress')
+            if ip:
+                ips.append(ip)
+        return ips
+    except Exception as e:  # pylint: disable=broad-except
+        logger.warning(f'hook_executor: worker discovery failed: {e}')
+        return []
+
+
+def _ssh_worker(ip: str, event: str) -> None:
+    """SSH to a worker and run the same event's hooks locally there.
+
+    The worker already has `~/.sky/hooks/config.json` synced at
+    launch (see `provision/instance_setup.start_worker_hook_handler`).
+    """
+    # Use SKY_PYTHON_CMD because plain `python3` on the remote (e.g.
+    # `/opt/conda/bin/python3` on K8s) doesn't have the `sky` package.
+    # Same invariant as `core._maybe_run_down_hooks`. See
+    # `termination_hook_design.md` §2.9.
+    inline = ('from sky.skylet import hook_executor, worker_hook_handler; '
+              'hooks = worker_hook_handler._read_hooks_config(); '
+              f'hook_executor.run({event!r}, hooks)')
+    remote_script = f'{constants.SKY_PYTHON_CMD} -c {shlex.quote(inline)}'
+    cmd = [
+        'ssh',
+        '-i',
+        _SKY_CLUSTER_KEY_PATH,
+        '-o',
+        'StrictHostKeyChecking=no',
+        '-o',
+        'UserKnownHostsFile=/dev/null',
+        '-o',
+        'ConnectTimeout=10',
+        f'sky@{ip}',
+        remote_script,
+    ]
+    subprocess.run(cmd, check=False, timeout=120)
+
+
+def fanout_to_workers(event: str) -> None:
+    """Run `event`'s hooks on every worker via SSH fan-out.
+
+    No-ops for events outside `_FANOUT_EVENTS`. Per-worker failures
+    are logged but don't interrupt the fan-out: teardown on the head
+    must proceed regardless of worker reachability.
+    """
+    if event not in _FANOUT_EVENTS:
+        return
+    for ip in _discover_worker_ips():
+        try:
+            _ssh_worker(ip, event)
+        except Exception as e:  # pylint: disable=broad-except
+            logger.warning(
+                f'hook_executor: SSH to worker {ip} failed: {e}; continuing.')

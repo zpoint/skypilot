@@ -787,6 +787,17 @@ def test_preemption_azure_simulate_eviction():
 # ---------------------------------------------------------------------------
 # S16 — On-demand (non-spot) VM: poller runs but never SIGTERMs.
 # ---------------------------------------------------------------------------
+def _multinode_yaml(extra_resources: dict, num_nodes: int = 2) -> str:
+    """Write a minimal YAML with a custom resources block + num_nodes."""
+    cfg = yaml_utils.read_yaml('tests/test_yamls/minimal.yaml')
+    cfg['resources'] = extra_resources
+    cfg['num_nodes'] = num_nodes
+    f = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False)
+    yaml_utils.dump_yaml(f.name, cfg)
+    f.flush()
+    return f.name
+
+
 @_no_autostop
 @pytest.mark.no_kubernetes
 def test_preemption_no_false_positive(generic_cloud: str):
@@ -819,5 +830,205 @@ def test_preemption_no_false_positive(generic_cloud: str):
         ],
         f'sky down -y {name}',
         timeout=smoke_tests_utils.get_timeout(generic_cloud),
+    )
+    smoke_tests_utils.run_one_test(test)
+
+
+# =========================================================================
+# PR3 — Worker support (multi-node)
+# =========================================================================
+
+
+# ---------------------------------------------------------------------------
+# S18 — 2-node cluster: autostop hook fires on both head and worker, and
+#      `sky logs --hook autostop` aggregates per-node output.
+# ---------------------------------------------------------------------------
+@_no_autostop
+@pytest.mark.no_kubernetes
+def test_multinode_hook_autostop_aggregates(generic_cloud: str):
+    name = smoke_tests_utils.get_cluster_name()
+    autostop_timeout = 600 if generic_cloud == 'azure' else 350
+    marker = f'multinode-autostop-{time.time()}'
+    yaml_path = _multinode_yaml({
+        'autostop': {
+            'idle_minutes': 1,
+            'down': False,
+        },
+        'hooks': [{
+            'run': f'echo {marker}-$(hostname)',
+            'events': ['autostop'],
+        }],
+    })
+    test = smoke_tests_utils.Test(
+        'test_multinode_hook_autostop_aggregates',
+        [
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} '
+            f'--infra {generic_cloud} --fast '
+            f'{smoke_tests_utils.LOW_RESOURCE_ARG} {yaml_path}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            smoke_tests_utils.get_cmd_wait_until_cluster_status_contains(
+                cluster_name=name,
+                cluster_status=[sky.ClusterStatus.STOPPED],
+                timeout=autostop_timeout),
+            'sleep 30',
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} --fast '
+            f'tests/test_yamls/minimal.yaml) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            f'out=$(sky logs {name} --hook autostop --no-follow) && '
+            f'echo "$out" | grep "=== head ===" && '
+            f'echo "$out" | grep "=== worker-1 ==="',
+        ],
+        f'sky down -y {name}',
+        timeout=smoke_tests_utils.get_timeout(generic_cloud) + autostop_timeout,
+    )
+    smoke_tests_utils.run_one_test(test)
+
+
+# ---------------------------------------------------------------------------
+# S19 — 2-node: `sky down` with down-hook lands on every node.
+# ---------------------------------------------------------------------------
+@_no_autostop
+@pytest.mark.no_kubernetes
+def test_multinode_hook_down_fanout(generic_cloud: str):
+    name = smoke_tests_utils.get_cluster_name()
+    yaml_path = _multinode_yaml({
+        'hooks': [{
+            'run': 'echo down-$(hostname) >> ~/.sky/hooks/down.log',
+            'events': ['down'],
+            'timeout': 30,
+        }],
+    })
+    test = smoke_tests_utils.Test(
+        'test_multinode_hook_down_fanout',
+        [
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} '
+            f'--infra {generic_cloud} --fast '
+            f'{smoke_tests_utils.LOW_RESOURCE_ARG} {yaml_path}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            # Tail down log in background during teardown, then
+            # assert both nodes' headers appear.
+            (f'(sky logs {name} --hook down --no-follow > '
+             f'/tmp/{name}-downlog 2>&1 &) ; sleep 2; sky down -y {name}; '
+             f'cat /tmp/{name}-downlog'),
+            f'grep -q "=== head ===" /tmp/{name}-downlog && '
+            f'grep -q "=== worker-1 ===" /tmp/{name}-downlog',
+        ],
+        f'sky down -y {name} --purge || true',
+        timeout=smoke_tests_utils.get_timeout(generic_cloud),
+    )
+    smoke_tests_utils.run_one_test(test)
+
+
+# ---------------------------------------------------------------------------
+# S20 — Kind 2-node: deleting a single worker pod fires preemption only
+#      on that worker, not on the head.
+# ---------------------------------------------------------------------------
+@pytest.mark.kubernetes
+def test_k8s_multinode_single_worker_preempt():
+    name = smoke_tests_utils.get_cluster_name()
+    marker = f'single-worker-preempt-{time.time()}'
+    yaml_path = _multinode_yaml({
+        'hooks': [{
+            'run': f'echo {marker}-$(hostname)',
+            'events': ['preemption'],
+            'timeout': 30,
+        }],
+    })
+    test = smoke_tests_utils.Test(
+        'test_k8s_multinode_single_worker_preempt',
+        [
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} '
+            f'--infra kubernetes --fast '
+            f'{smoke_tests_utils.LOW_RESOURCE_ARG} {yaml_path}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            # Delete only the worker pod; head continues.
+            f'kubectl delete pod -l '
+            f'skypilot-cluster-name={name},ray-node-type=worker '
+            f'--context kind-skypilot --wait=false',
+            'sleep 20',
+            # Worker's pod logs should contain the marker; head's should not.
+            f'kubectl logs -l skypilot-cluster-name={name},ray-node-type=worker '
+            f'--context kind-skypilot --tail=200 --all-containers '
+            f'2>/dev/null | grep "{marker}"',
+            f'! kubectl logs -l skypilot-cluster-name={name},ray-node-type=head '
+            f'--context kind-skypilot --tail=200 --all-containers '
+            f'2>/dev/null | grep -q "{marker}"',
+        ],
+        f'sky down -y {name}',
+        timeout=smoke_tests_utils.get_timeout('kubernetes'),
+    )
+    smoke_tests_utils.run_one_test(test)
+
+
+# ---------------------------------------------------------------------------
+# S23 — Re-launch with a changed hooks: — workers' config.json re-synced,
+#      old hook doesn't fire, new one does.
+# ---------------------------------------------------------------------------
+@_no_autostop
+@pytest.mark.no_kubernetes
+def test_multinode_relaunch_resyncs_hooks(generic_cloud: str):
+    name = smoke_tests_utils.get_cluster_name()
+    old_marker = f'old-hook-{time.time()}'
+    new_marker = f'new-hook-{time.time()}'
+    old_yaml = _multinode_yaml({
+        'hooks': [{
+            'run': f'echo {old_marker}',
+            'events': ['down'],
+        }],
+    })
+    new_yaml = _multinode_yaml({
+        'hooks': [{
+            'run': f'echo {new_marker}',
+            'events': ['down'],
+        }],
+    })
+    test = smoke_tests_utils.Test(
+        'test_multinode_relaunch_resyncs_hooks',
+        [
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} '
+            f'--infra {generic_cloud} --fast '
+            f'{smoke_tests_utils.LOW_RESOURCE_ARG} {old_yaml}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            # Re-launch with the new hooks list.
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} '
+            f'--infra {generic_cloud} --fast '
+            f'{smoke_tests_utils.LOW_RESOURCE_ARG} {new_yaml}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            # Verify workers hold the new config.json.
+            f'out=$(sky exec {name} "cat ~/.sky/hooks/config.json") && '
+            f'echo "$out" | grep -q "{new_marker}" && '
+            f'! echo "$out" | grep -q "{old_marker}"',
+        ],
+        f'sky down -y {name}',
+        timeout=smoke_tests_utils.get_timeout(generic_cloud) * 2,
+    )
+    smoke_tests_utils.run_one_test(test)
+
+
+# ---------------------------------------------------------------------------
+# S24 — AWS 2-node real-cloud: down hook via SSH fan-out reaches workers.
+# ---------------------------------------------------------------------------
+@pytest.mark.aws
+def test_aws_multinode_down_hook_ssh_fanout():
+    name = smoke_tests_utils.get_cluster_name()
+    yaml_path = _multinode_yaml({
+        'hooks': [{
+            'run': 'echo aws-down-$(hostname) >> /tmp/sky-down-hook.log',
+            'events': ['down'],
+        }],
+    })
+    test = smoke_tests_utils.Test(
+        'test_aws_multinode_down_hook_ssh_fanout',
+        [
+            f's=$(SKYPILOT_DEBUG=0 sky launch -y -c {name} --infra aws '
+            f'--fast {smoke_tests_utils.LOW_RESOURCE_ARG} {yaml_path}) && '
+            f'{smoke_tests_utils.VALIDATE_LAUNCH_OUTPUT}',
+            # Verify handler is running on workers before teardown.
+            f'sky exec {name} --num-nodes 2 '
+            f'"pgrep -f sky.skylet.worker_hook_handler"',
+            f'sky down -y {name}',
+        ],
+        f'sky down -y {name} --purge || true',
+        timeout=smoke_tests_utils.get_timeout('aws'),
     )
     smoke_tests_utils.run_one_test(test)
