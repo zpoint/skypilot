@@ -34,6 +34,11 @@ from sky.skylet import preemption_poller
 logger = logging.getLogger(__name__)
 
 CONFIG_PATH = os.path.expanduser('~/.sky/hooks/config.json')
+# PID file the K8s preStop hook reads to forward kubelet's SIGTERM to
+# this handler (skylet isn't PID 1 in the pod; bash setup is). Must
+# match the pgrep / fallback paths in
+# `sky/templates/kubernetes-ray.yml.j2`.
+HANDLER_PID_FILE = os.path.expanduser('~/.sky/hooks/handler_pid')
 
 
 def _read_hooks_config() -> List[Dict[str, Any]]:
@@ -63,6 +68,12 @@ def _sigterm_handler(signum, frame):  # pylint: disable=unused-argument
         except Exception as e:  # pylint: disable=broad-except
             logger.warning(f'worker_hook_handler: preemption hook failed: '
                            f'{e}')
+    try:
+        os.unlink(HANDLER_PID_FILE)
+    except FileNotFoundError:
+        pass
+    except OSError as e:  # pylint: disable=broad-except
+        logger.debug(f'worker_hook_handler: failed to remove PID file: {e}')
     sys.exit(0)
 
 
@@ -85,6 +96,18 @@ def main():
 
     signal.signal(signal.SIGTERM, _sigterm_handler)
     hook_executor.clear_teardown_claim()
+
+    # Publish our PID so the K8s preStop hook can `kill -TERM` us.
+    # Best-effort: a failed write only matters on K8s, where the
+    # absence of the file falls back to pgrep in the preStop body.
+    try:
+        os.makedirs(os.path.dirname(HANDLER_PID_FILE), exist_ok=True)
+        with open(HANDLER_PID_FILE, 'w', encoding='utf-8') as f:
+            f.write(str(os.getpid()))
+    except OSError as e:
+        logger.warning(
+            f'worker_hook_handler: failed to write PID file '
+            f'{HANDLER_PID_FILE}: {e}; preStop will fall back to pgrep.')
 
     cloud = args.cloud
     if cloud is None:
