@@ -12,6 +12,7 @@ guarantee is per-node (see termination_hook_design.md §1.6.5).
 """
 import fcntl
 import os
+import shlex
 import subprocess
 from typing import Any, Dict, List, Optional
 
@@ -200,11 +201,14 @@ def _ssh_worker(ip: str, event: str) -> None:
     The worker already has `~/.sky/hooks/config.json` synced at
     launch (see `provision/instance_setup.start_worker_hook_handler`).
     """
-    # Inline Python so we don't depend on a wheel install on the worker.
-    remote_script = (
-        'python3 -c "from sky.skylet import hook_executor, worker_hook_handler;'
-        'hooks = worker_hook_handler._read_hooks_config();'
-        f'hook_executor.run({event!r}, hooks)"')
+    # Use SKY_PYTHON_CMD because plain `python3` on the remote (e.g.
+    # `/opt/conda/bin/python3` on K8s) doesn't have the `sky` package.
+    # Same invariant as `core._maybe_run_down_hooks`. See
+    # `termination_hook_design.md` §2.9.
+    inline = ('from sky.skylet import hook_executor, worker_hook_handler; '
+              'hooks = worker_hook_handler._read_hooks_config(); '
+              f'hook_executor.run({event!r}, hooks)')
+    remote_script = f'{constants.SKY_PYTHON_CMD} -c {shlex.quote(inline)}'
     cmd = [
         'ssh',
         '-i',
